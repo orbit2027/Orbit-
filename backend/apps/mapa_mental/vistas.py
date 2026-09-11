@@ -19,8 +19,8 @@ def mapa_completo(request):
     RF-MAP-05: Retorna el mapa mental completo del usuario.
     Incluye todos los nodos y conexiones.
     """
-    nodos = NodoMapa.objects(usuario=request.user)
-    conexiones = ConexionNodo.objects(usuario=request.user)
+    nodos = NodoMapa.objects.filter(usuario=request.user)
+    conexiones = ConexionNodo.objects.filter(usuario=request.user)
 
     return Response({
         'nodos': NodoMapaSerializador(nodos, many=True).data,
@@ -72,13 +72,7 @@ def detalle_nodo(request, nodo_id):
         )
 
     elif request.method == 'DELETE':
-        # RF-MAP-04: Eliminar nodo y todas sus conexiones asociadas
-        ConexionNodo.objects(
-            nodo_origen=nodo, usuario=request.user
-        ).delete()
-        ConexionNodo.objects(
-            nodo_destino=nodo, usuario=request.user
-        ).delete()
+        # RF-MAP-04: Las conexiones asociadas se eliminan por FK CASCADE
         nodo.delete()
         return Response(
             {'mensaje': 'Nodo y conexiones eliminados'},

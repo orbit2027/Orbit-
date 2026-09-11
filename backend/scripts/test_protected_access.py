@@ -16,7 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.tokens import AccessToken
 
 def obtener_token_para(correo):
-    usuario = Usuario.objects(correo=correo).first()
+    usuario = Usuario.objects.filter(correo=correo).first()
     if not usuario:
         print('NO_USER')
         return None

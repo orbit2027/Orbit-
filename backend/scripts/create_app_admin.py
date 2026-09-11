@@ -14,7 +14,7 @@ from apps.usuarios.modelo import Usuario
 
 def main():
     admin_email = 'admin@orbit.local'
-    existing = Usuario.objects(correo=admin_email).first()
+    existing = Usuario.objects.filter(correo=admin_email).first()
     if existing:
         print('ADMIN_EXISTS', existing.correo, existing.rol, existing.activo)
         return

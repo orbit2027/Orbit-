@@ -16,8 +16,6 @@ from .serializador import (
     EditarUsuarioSerializador,
     EliminarCuentaSerializador
 )
-from apps.tareas.modelo import Tarea
-from apps.mapa_mental.modelo import NodoMapa, ConexionNodo
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -59,7 +57,7 @@ def iniciar_sesion(request):
     correo = serializador.validated_data['correo'].lower().strip()
     contrasena = serializador.validated_data['contrasena']
 
-    usuario = Usuario.objects(correo=correo, activo=True).first()
+    usuario = Usuario.objects.filter(correo=correo, activo=True).first()
 
     # Error genérico para no revelar si el correo existe
     if not usuario or not usuario.verificar_contrasena(contrasena):
@@ -142,10 +140,7 @@ def eliminar_cuenta(request):
 
     usuario = request.user
 
-    # Eliminar en cascada: tareas, conexiones y nodos del usuario
-    ConexionNodo.objects(usuario=usuario).delete()
-    NodoMapa.objects(usuario=usuario).delete()
-    Tarea.objects(usuario=usuario).delete()
+    # Eliminar en cascada: tareas, conexiones y nodos se borran con FK CASCADE
     usuario.delete()
 
     return Response(

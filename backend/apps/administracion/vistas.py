@@ -25,12 +25,12 @@ def estadisticas_globales(request):
     inicio_dia = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
 
     total_usuarios = Usuario.objects.count()
-    tareas_activas = Tarea.objects(estado__in=['por_hacer', 'en_progreso']).count()
-    completadas_hoy = Tarea.objects(
+    tareas_activas = Tarea.objects.filter(estado__in=['por_hacer', 'en_progreso']).count()
+    completadas_hoy = Tarea.objects.filter(
         estado='completado',
         fecha_creacion__gte=inicio_dia
     ).count()
-    activos_hoy = Usuario.objects(
+    activos_hoy = Usuario.objects.filter(
         activo=True,
         fecha_registro__gte=inicio_dia
     ).count()
@@ -41,7 +41,7 @@ def estadisticas_globales(request):
         fecha_inicio = ahora - timedelta(days=30 * (i + 1))
         fecha_fin = ahora - timedelta(days=30 * i)
 
-        registros = Usuario.objects(
+        registros = Usuario.objects.filter(
             fecha_registro__gte=fecha_inicio,
             fecha_registro__lt=fecha_fin
         ).count()
@@ -65,7 +65,7 @@ def estadisticas_globales(request):
 @requerir_rol('administrador')
 def listar_usuarios(request):
     """RF-GES-02: Visualizar todos los usuarios registrados."""
-    usuarios = Usuario.objects().order_by('-fecha_registro')
+    usuarios = Usuario.objects.order_by('-fecha_registro')
     serializador = UsuarioAdminSerializador(usuarios, many=True)
     return Response(serializador.data, status=status.HTTP_200_OK)
 

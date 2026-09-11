@@ -11,7 +11,7 @@ from .serializador import TareaSerializador, MoverTareaSerializador
 @permission_classes([IsAuthenticated])
 def lista_tareas(request):
     if request.method == 'GET':
-        tareas = Tarea.objects(usuario=request.user).order_by('-fecha_creacion')
+        tareas = Tarea.objects.filter(usuario=request.user).order_by('-fecha_creacion')
         serializador = TareaSerializador(tareas, many=True)
         return Response(serializador.data, status=status.HTTP_200_OK)
 

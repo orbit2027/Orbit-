@@ -75,13 +75,6 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
-# Conexión a MongoDB con MongoEngine
-MONGODB_URI = config('MONGODB_URI')
-
-import mongoengine
-mongoengine.connect(host=MONGODB_URI)
-
-
 # Configuración de plantillas (necesaria para Django)
 TEMPLATES = [
     {

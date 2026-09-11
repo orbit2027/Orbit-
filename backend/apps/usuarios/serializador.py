@@ -13,7 +13,7 @@ class RegistroUsuarioSerializador(serializers.Serializer):
     contrasena = serializers.CharField(min_length=8, write_only=True)
 
     def validate_correo(self, valor):
-        if Usuario.objects(correo=valor).first():
+        if Usuario.objects.filter(correo=valor).first():
             raise serializers.ValidationError("Este correo ya está registrado.")
         return valor.lower().strip()
 
@@ -80,7 +80,7 @@ class EditarUsuarioSerializador(serializers.Serializer):
     def validate_correo(self, valor):
         """Verifica que el nuevo correo no esté en uso por otro usuario."""
         usuario_actual = self.context.get('usuario_actual')
-        if Usuario.objects(correo=valor, id__ne=usuario_actual.id).first():
+        if Usuario.objects.filter(correo=valor).exclude(id=usuario_actual.id).first():
             raise serializers.ValidationError("Este correo ya está en uso.")
         return valor.lower().strip()
 

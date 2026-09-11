@@ -27,7 +27,7 @@ class AutenticacionJWT(BaseAuthentication):
             usuario_id = token_acceso['user_id']
 
             # Buscar el usuario en la base de datos
-            usuario = Usuario.objects(id=usuario_id, activo=True).first()
+            usuario = Usuario.objects.filter(id=usuario_id, activo=True).first()
             if not usuario:
                 raise AuthenticationFailed("Usuario no encontrado o desactivado.")
 

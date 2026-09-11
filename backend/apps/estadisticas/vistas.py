@@ -20,10 +20,10 @@ def estadisticas_usuario(request):
     usuario = request.user
 
     # Contar tareas por estado
-    total = Tarea.objects(usuario=usuario).count()
-    por_hacer = Tarea.objects(usuario=usuario, estado='por_hacer').count()
-    en_progreso = Tarea.objects(usuario=usuario, estado='en_progreso').count()
-    completadas = Tarea.objects(usuario=usuario, estado='completado').count()
+    total = Tarea.objects.filter(usuario=usuario).count()
+    por_hacer = Tarea.objects.filter(usuario=usuario, estado='por_hacer').count()
+    en_progreso = Tarea.objects.filter(usuario=usuario, estado='en_progreso').count()
+    completadas = Tarea.objects.filter(usuario=usuario, estado='completado').count()
 
     # Calcular datos semanales de las últimas semanas
     ahora = datetime.utcnow()
@@ -33,13 +33,13 @@ def estadisticas_usuario(request):
         inicio_semana = ahora - timedelta(weeks=i + 1)
         fin_semana = ahora - timedelta(weeks=i)
 
-        creadas_semana = Tarea.objects(
+        creadas_semana = Tarea.objects.filter(
             usuario=usuario,
             fecha_creacion__gte=inicio_semana,
             fecha_creacion__lt=fin_semana
         ).count()
 
-        completadas_semana = Tarea.objects(
+        completadas_semana = Tarea.objects.filter(
             usuario=usuario,
             estado='completado',
             fecha_creacion__gte=inicio_semana,

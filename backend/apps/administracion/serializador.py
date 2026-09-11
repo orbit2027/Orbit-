@@ -30,7 +30,7 @@ class CrearUsuarioAdminSerializador(serializers.Serializer):
     rol = serializers.ChoiceField(choices=['usuario', 'administrador'], default='usuario')
 
     def validate_correo(self, valor):
-        if Usuario.objects(correo=valor).first():
+        if Usuario.objects.filter(correo=valor).first():
             raise serializers.ValidationError("Este correo ya esta registrado.")
         return valor.lower().strip()
 
@@ -59,6 +59,6 @@ class EditarUsuarioAdminSerializador(serializers.Serializer):
 
     def validate_correo(self, valor):
         usuario_id = self.context.get('usuario_id')
-        if Usuario.objects(correo=valor, id__ne=usuario_id).first():
+        if Usuario.objects.filter(correo=valor).exclude(id=usuario_id).first():
             raise serializers.ValidationError("Este correo ya esta en uso.")
         return valor.lower().strip()

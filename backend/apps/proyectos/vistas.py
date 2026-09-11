@@ -16,10 +16,10 @@ from .serializador import ProyectoSerializador
 def _serializar_con_metricas(proyecto):
     """Serializa un proyecto y le añade conteo de tareas asociadas."""
     datos = ProyectoSerializador(proyecto).data
-    tareas = Tarea.objects(proyecto=str(proyecto.id))
+    tareas = Tarea.objects.filter(proyecto=str(proyecto.id))
     datos['tareas_totales'] = tareas.count()
-    datos['tareas_completadas'] = tareas(estado='completado').count()
-    datos['tareas_activas'] = tareas(
+    datos['tareas_completadas'] = tareas.filter(estado='completado').count()
+    datos['tareas_activas'] = tareas.filter(
         estado__in=['por_hacer', 'en_progreso']
     ).count()
     return datos
@@ -29,7 +29,7 @@ def _serializar_con_metricas(proyecto):
 def lista_proyectos(request):
     """Crear o visualizar los proyectos propios."""
     if request.method == 'GET':
-        proyectos = Proyecto.objects(usuario=request.user).order_by('-fecha_creacion')
+        proyectos = Proyecto.objects.filter(usuario=request.user).order_by('-fecha_creacion')
         return Response(
             [_serializar_con_metricas(p) for p in proyectos],
             status=status.HTTP_200_OK
@@ -80,7 +80,7 @@ def detalle_proyecto(request, proyecto_id):
                     t.fecha_limite.isoformat() if t.fecha_limite else None
                 ),
             }
-            for t in Tarea.objects(proyecto=str(proyecto.id)).order_by('-fecha_creacion')
+            for t in Tarea.objects.filter(proyecto=str(proyecto.id)).order_by('-fecha_creacion')
         ]
         return Response(datos, status=status.HTTP_200_OK)
 
@@ -103,7 +103,7 @@ def detalle_proyecto(request, proyecto_id):
 
     elif request.method == 'DELETE':
         # Las tareas del proyecto se conservan, solo se desvinculan
-        Tarea.objects(proyecto=str(proyecto.id)).update(set__proyecto='')
+        Tarea.objects.filter(proyecto=str(proyecto.id)).update(proyecto='')
         proyecto.delete()
         return Response(
             {'mensaje': 'Proyecto eliminado'},
@@ -139,7 +139,7 @@ def proyectos_todos(request):
     Visualizar los proyectos de todos los usuarios (solo admin).
     Incluye el nombre del propietario en cada proyecto.
     """
-    proyectos = Proyecto.objects().order_by('-fecha_creacion')
+    proyectos = Proyecto.objects.order_by('-fecha_creacion')
     resultado = []
     for p in proyectos:
         datos = _serializar_con_metricas(p)

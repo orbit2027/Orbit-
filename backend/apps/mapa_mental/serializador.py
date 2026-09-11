@@ -73,9 +73,14 @@ class ConexionNodoSerializador(serializers.Serializer):
         return attrs
 
     def create(self, datos_validados):
-        """Resuelve las referencias y crea la conexión en MongoDB."""
-        origen = NodoMapa.objects.get(id=datos_validados['nodo_origen'])
-        destino = NodoMapa.objects.get(id=datos_validados['nodo_destino'])
+        """Resuelve las referencias y crea la conexión."""
+        try:
+            origen = NodoMapa.objects.get(id=datos_validados['nodo_origen'])
+            destino = NodoMapa.objects.get(id=datos_validados['nodo_destino'])
+        except NodoMapa.DoesNotExist:
+            raise serializers.ValidationError(
+                "Uno de los nodos no existe o no es tuyo."
+            )
         conexion = ConexionNodo(
             nodo_origen=origen,
             nodo_destino=destino,
