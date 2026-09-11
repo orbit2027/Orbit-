@@ -1,0 +1,1 @@
+"""Módulo de proyectos: agrupación de tareas y gestión por proyectos."""

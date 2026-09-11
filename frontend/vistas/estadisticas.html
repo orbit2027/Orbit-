@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi progreso — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+    <link rel="stylesheet" href="../css/vistas.css">
+</head>
+<body>
+<div class="layout-principal">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <span class="nombre-logo">orbit</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="sidebar-item" onclick="location.href='tablero-kanban.html'">
+                <i class="bi bi-kanban"></i><span>Tablero</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='proyectos.html'">
+                <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='mapa-mental.html'">
+                <i class="bi bi-diagram-3"></i><span>Mapa mental</span>
+            </button>
+            <button class="sidebar-item active" onclick="location.href='estadisticas.html'">
+                <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="usuario-fila">
+                <div class="avatar" id="avatar-usuario">U</div>
+                <div class="view__inline--1">
+                    <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
+                </div>
+            </div>
+            <button class="btn-secondary" id="btn-cerrar-sesion"
+                    class="view__inline--2">
+                <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════ CONTENIDO ═══════════ -->
+    <div class="zona-contenido">
+
+        <header class="topbar">
+            <h1 class="topbar-titulo">Mi progreso</h1>
+            <button class="campana-notificacion" id="campana-notificaciones"><i class="bi bi-bell"></i></button>
+            <div class="avatar" id="avatar-topbar">U</div>
+        </header>
+
+        <div class="contenido-scroll">
+
+            <!-- Mensaje motivacional dinámico según progreso -->
+            <div class="view__inline--3">
+                <h2 class="view__inline--4" id="mensaje-motivacional">
+                    Cargando tu progreso...
+                </h2>
+                <p class="view__inline--5" id="subtitulo-progreso"></p>
+            </div>
+
+            <!-- Tarjetas resumen -->
+            <div class="statistics__stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--6">
+                        <i class="bi bi-list-task view__inline--7"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-total">0</div>
+                        <div class="stat-etiqueta">Total de tareas</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--8">
+                        <i class="bi bi-check-circle view__inline--9"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-completadas">0</div>
+                        <div class="stat-etiqueta">Completadas</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--10">
+                        <i class="bi bi-hourglass-split view__inline--11"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-progreso">0</div>
+                        <div class="stat-etiqueta">En progreso</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--12">
+                        <i class="bi bi-clock view__inline--13"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-pendientes">0</div>
+                        <div class="stat-etiqueta">Pendientes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas -->
+            <div class="grid-graficas">
+
+                <!-- Dona: distribución por estado (RF-EST-02) -->
+                <div class="glass-card statistics__chart-card">
+                    <h3 class="statistics__chart-title">Distribución por estado</h3>
+                    <div class="view__inline--14">
+                        <canvas id="grafico-dona"></canvas>
+                    </div>
+                    <!-- Leyenda personalizada -->
+                    <div class="view__inline--15" id="leyenda-dona"></div>
+                </div>
+
+                <!-- Barras: completadas por semana -->
+                <div class="glass-card statistics__chart-card">
+                    <h3 class="statistics__chart-title">Tareas completadas por semana</h3>
+                    <div class="view__inline--16">
+                        <canvas id="grafico-barras"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script type="module" src="../js/estilos-dinamicos.js"></script>
+
+<script type="module">
+    import api from '../js/api.js';
+    import { obtenerUsuario, logout } from '../js/autenticacion.js';
+    import { inicializarNotificaciones } from '../js/notificaciones.js';
+
+    let graficoDona = null;
+    let graficoBarras = null;
+
+    // Datos del usuario en la interfaz
+    const usuario = obtenerUsuario();
+    if (usuario) {
+        const iniciales = usuario.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+        document.getElementById('avatar-usuario').textContent = iniciales;
+        document.getElementById('avatar-topbar').textContent = iniciales;
+        document.getElementById('nombre-usuario').textContent = usuario.nombre_completo;
+    }
+
+    // Mensajes motivacionales según porcentaje de avance
+    function obtenerMotivacion(porcentaje) {
+        if (porcentaje <= 30) return { texto: 'Cada gran viaje comienza con el primer paso', emoji: '🚀' };
+        if (porcentaje <= 70) return { texto: 'Vas por buen camino, ¡sigue en órbita!', emoji: '⭐' };
+        if (porcentaje < 100) return { texto: '¡Casi lo logras, la meta está cerca!', emoji: '✨' };
+        return { texto: '¡Misión cumplida, eres increíble!', emoji: '🎉' };
+    }
+
+    // Configuración global de Chart.js con la tipografía de Orbit
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748B';
+
+    // Tooltip oscuro reutilizable para ambas gráficas
+    const estiloTooltip = {
+        backgroundColor: '#0A192F',
+        borderColor: 'rgba(0,229,255,0.2)',
+        borderWidth: 1,
+        borderRadius: 8,
+        titleColor: '#E2E8F0',
+        bodyColor: '#00E5FF',
+        padding: 10
+    };
+
+    async function cargarEstadisticas() {
+        try {
+            const datos = await api.get('/estadisticas/').then(r => r.data);
+
+            const total = datos.total || 0;
+            const completadas = datos.completadas || 0;
+            const enProgreso = datos.en_progreso || 0;
+            const pendientes = datos.por_hacer || 0;
+            const porcentaje = total > 0 ? Math.round((completadas / total) * 100) : 0;
+
+            // Tarjetas resumen
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-completadas').textContent = completadas;
+            document.getElementById('stat-progreso').textContent = enProgreso;
+            document.getElementById('stat-pendientes').textContent = pendientes;
+
+            // Mensaje motivacional
+            const motivacion = obtenerMotivacion(porcentaje);
+            document.getElementById('mensaje-motivacional').textContent =
+                `${motivacion.texto} ${motivacion.emoji}`;
+            document.getElementById('subtitulo-progreso').textContent =
+                `Has completado el ${porcentaje}% de tus tareas este mes`;
+
+            renderizarDona(pendientes, enProgreso, completadas, porcentaje);
+            renderizarBarras(datos.semanal || []);
+
+        } catch (error) {
+            console.error('Error al cargar estadísticas:', error);
+        }
+    }
+
+    // Gráficos de dona con porcentaje central
+    function renderizarDona(pendientes, enProgreso, completadas, porcentaje) {
+        const ctx = document.getElementById('grafico-dona');
+        if (graficoDona) graficoDona.destroy();
+
+        const datosDona = [
+            { nombre: 'Pendientes', valor: pendientes, color: '#64748B' },
+            { nombre: 'En progreso', valor: enProgreso, color: '#F59E0B' },
+            { nombre: 'Completadas', valor: completadas, color: '#00C48C' }
+        ];
+
+        graficoDona = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: datosDona.map(d => d.nombre),
+                datasets: [{
+                    data: datosDona.map(d => d.valor),
+                    backgroundColor: datosDona.map(d => d.color),
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { ...estiloTooltip, bodyColor: '#E2E8F0' }
+                }
+            },
+            plugins: [{
+                // Texto central personalizado con el porcentaje
+                id: 'textoCentral',
+                afterDraw(chart) {
+                    const { ctx, chartArea: { width, height } } = chart;
+                    ctx.save();
+                    ctx.font = "700 24px 'Plus Jakarta Sans'";
+                    ctx.fillStyle = '#E2E8F0';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${porcentaje}%`, width / 2 + chart.chartArea.left - chart.chartArea.width / 2 + width / 2, height / 2 + chart.chartArea.top);
+                    ctx.restore();
+                }
+            }]
+        });
+
+        // Leyenda personalizada debajo de la dona
+        const leyenda = document.getElementById('leyenda-dona');
+        leyenda.innerHTML = '';
+        datosDona.forEach(d => {
+            const fila = document.createElement('div');
+            fila.className = 'leyenda-dona-fila';
+            fila.innerHTML = `
+                <div class="view__inline--17">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${d.color};"></div>
+                    <span class="view__inline--18">${d.nombre}</span>
+                </div>
+                <span class="view__inline--19">${d.valor}</span>
+            `;
+            leyenda.appendChild(fila);
+        });
+    }
+
+    // Barras de tareas completadas por semana
+    function renderizarBarras(datosSemanales) {
+        const ctx = document.getElementById('grafico-barras');
+        if (graficoBarras) graficoBarras.destroy();
+
+        const etiquetas = datosSemanales.length > 0
+            ? datosSemanales.map(d => d.semana)
+            : ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
+        const valores = datosSemanales.length > 0
+            ? datosSemanales.map(d => d.completadas)
+            : [0, 0, 0, 0];
+
+        graficoBarras = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: 'rgba(0,229,255,0.75)',
+                    hoverBackgroundColor: '#00E5FF',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748B', font: { size: 12 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(100,116,139,0.1)', drawTicks: false },
+                        ticks: { color: '#64748B', font: { size: 12 }, precision: 0 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        ...estiloTooltip,
+                        callbacks: {
+                            label: (contexto) => ` ${contexto.parsed.y} tareas completadas`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Cerrar sesión
+    document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
+
+    inicializarNotificaciones();
+    cargarEstadisticas();
+</script>
+</body>
+</html>

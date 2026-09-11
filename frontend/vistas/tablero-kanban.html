@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi tablero — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+    <link rel="stylesheet" href="../css/vistas.css">
+</head>
+<body>
+<div class="layout-principal">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <span class="nombre-logo">orbit</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="sidebar-item active" onclick="location.href='tablero-kanban.html'">
+                <i class="bi bi-kanban"></i><span>Tablero</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='proyectos.html'">
+                <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='mapa-mental.html'">
+                <i class="bi bi-diagram-3"></i><span>Mapa mental</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='estadisticas.html'">
+                <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="usuario-fila">
+                <div class="avatar" id="avatar-usuario">U</div>
+                <div class="view__inline--102">
+                    <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
+                </div>
+            </div>
+            <button class="btn-secondary" id="btn-cerrar-sesion"
+                    class="view__inline--103">
+                <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════ CONTENIDO ═══════════ -->
+    <div class="zona-contenido">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="view__inline--104">
+                <h1 class="topbar-titulo">Mi tablero</h1>
+            </div>
+            <div class="view__inline--105">
+                <button class="btn-primary" id="btn-nueva-tarea-topbar"
+                        class="view__inline--106">
+                    <i class="bi bi-plus"></i> Nueva tarea
+                </button>
+                <button class="campana-notificacion" id="campana-notificaciones"><i class="bi bi-bell"></i></button>
+                <div class="avatar" id="avatar-topbar">U</div>
+            </div>
+        </header>
+
+        <div class="contenido-scroll">
+
+            <!-- Encabezado de bienvenida + filtros -->
+            <div class="view__inline--107">
+                <div>
+                    <h2 class="view__inline--108">
+                        ¡Bienvenido, <span id="primer-nombre">Usuario</span>! 👋
+                    </h2>
+                    <p class="view__inline--109">
+                        Aquí están todas tus tareas activas
+                    </p>
+                </div>
+                <div class="view__inline--110" id="filtros-etiqueta">
+                    <button class="pill active" data-filtro="Todas">Todas</button>
+                    <button class="pill" data-filtro="Urgente">Urgente</button>
+                    <button class="pill" data-filtro="Personal">Personal</button>
+                    <button class="pill" data-filtro="Trabajo">Trabajo</button>
+                    <button class="pill" data-filtro="Estudio">Estudio</button>
+                    <button class="pill" data-filtro="Hogar">Hogar</button>
+                </div>
+            </div>
+
+            <!-- Columnas del tablero -->
+            <div class="board__columns">
+                <div class="columna-kanban" data-estado="por_hacer">
+                    <div class="columna-header">
+                        <div class="punto-columna view__inline--111"></div>
+                        <span class="view__inline--112">Por hacer</span>
+                        <span class="contador-columna" data-contador="por_hacer">0</span>
+                    </div>
+                    <div class="board__list" data-lista="por_hacer"></div>
+                </div>
+
+                <div class="columna-kanban" data-estado="en_progreso">
+                    <div class="columna-header">
+                        <div class="punto-columna view__inline--113"></div>
+                        <span class="view__inline--114">En progreso</span>
+                        <span class="contador-columna" data-contador="en_progreso">0</span>
+                    </div>
+                    <div class="board__list" data-lista="en_progreso"></div>
+                </div>
+
+                <div class="columna-kanban" data-estado="completado">
+                    <div class="columna-header">
+                        <div class="punto-columna view__inline--115"></div>
+                        <span class="view__inline--116">Completado</span>
+                        <span class="contador-columna" data-contador="completado">0</span>
+                    </div>
+                    <div class="board__list" data-lista="completado"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón flotante "+" -->
+    <button class="fab glow-cyan" id="fab-nueva-tarea" title="Nueva tarea">
+        <i class="bi bi-plus"></i>
+    </button>
+</div>
+
+<!-- ═══════════ MODAL CREAR/EDITAR TAREA ═══════════ -->
+<div class="modal-overlay" id="modal-tarea" class="view__inline--117">
+    <div class="glass-card-strong modal-card" id="modal-tarea-caja">
+        <h3 class="modal-titulo" id="modal-tarea-titulo">Nueva tarea</h3>
+
+        <div class="view__inline--118">
+            <label class="etiqueta-form" for="tarea-titulo">Título de la tarea *</label>
+            <input class="input-dark" id="tarea-titulo" placeholder="¿Qué necesitas hacer?">
+        </div>
+
+        <div class="view__inline--119">
+            <label class="etiqueta-form" for="tarea-descripcion">Descripción (opcional)</label>
+            <textarea class="input-dark" id="tarea-descripcion" rows="3"
+                      placeholder="Añade más detalles..." class="view__inline--120"></textarea>
+        </div>
+
+        <div class="view__inline--121">
+            <label class="etiqueta-form">Etiqueta</label>
+            <div class="view__inline--122" id="opciones-etiqueta-modal">
+                <!-- Se generan con JS -->
+            </div>
+        </div>
+
+        <div class="view__inline--123">
+            <label class="etiqueta-form" for="tarea-proyecto">Proyecto (opcional)</label>
+            <select class="input-dark" id="tarea-proyecto" class="view__inline--124">
+                <option value="">Sin proyecto</option>
+                <!-- Se llenan con JS -->
+            </select>
+        </div>
+
+        <div class="view__inline--125">
+            <label class="etiqueta-form" for="tarea-fecha">Fecha límite (opcional)</label>
+            <input class="input-dark" type="date" id="tarea-fecha" class="view__inline--126">
+        </div>
+
+        <div class="modal-acciones">
+            <button class="btn-secondary" id="btn-cancelar-tarea">Cancelar</button>
+            <button class="btn-primary" id="btn-guardar-tarea">Guardar tarea</button>
+        </div>
+    </div>
+</div>
+
+<!-- SortableJS para drag & drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<!-- Axios para llamadas HTTP -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+    import api from '../js/api.js';
+    import { obtenerUsuario, logout } from '../js/autenticacion.js';
+    import { formatearFecha } from '../js/utilidades.js';
+    import { inicializarNotificaciones } from '../js/notificaciones.js';
+
+    // Colores oficiales por etiqueta
+    const COLORES_ETIQUETA = {
+        'Urgente': '#FF4D4D',
+        'Personal': '#A78BFA',
+        'Trabajo': '#00E5FF',
+        'Estudio': '#F59E0B',
+        'Hogar': '#00C48C'
+    };
+
+    // Estado local del tablero
+    let tareas = [];
+    let proyectos = [];
+    let filtroActual = 'Todas';
+    let menuAbiertoId = null;
+    let tareaEditandoId = null;
+    let etiquetaSeleccionada = 'Trabajo';
+
+    // Datos del usuario en la interfaz
+    const usuario = obtenerUsuario();
+    if (usuario) {
+        const iniciales = usuario.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+        document.getElementById('avatar-usuario').textContent = iniciales;
+        document.getElementById('avatar-topbar').textContent = iniciales;
+        document.getElementById('nombre-usuario').textContent = usuario.nombre_completo;
+        document.getElementById('primer-nombre').textContent = usuario.nombre_completo.split(' ')[0];
+    }
+
+    // ═══════════ CARGA DE TAREAS ═══════════
+    async function cargarTareas() {
+        try {
+            const respuesta = await api.get('/tareas/');
+            tareas = respuesta.data.map(t => ({
+                ...t,
+                etiqueta: t.etiqueta || 'Trabajo'
+            }));
+            renderizarTablero();
+        } catch (error) {
+            console.error('Error al cargar tareas:', error);
+        }
+    }
+
+    // ═══════════ CARGA DE PROYECTOS (para selector en modal) ═══════════
+    async function cargarProyectos() {
+        try {
+            proyectos = await api.get('/proyectos/').then(r => r.data);
+            const select = document.getElementById('tarea-proyecto');
+            select.innerHTML = '<option value="">Sin proyecto</option>';
+            proyectos.filter(p => p.estado === 'activo').forEach(p => {
+                const op = document.createElement('option');
+                op.value = p.id;
+                op.textContent = p.nombre;
+                select.appendChild(op);
+            });
+        } catch (error) {
+            console.error('Error al cargar proyectos:', error);
+        }
+    }
+
+    // ═══════════ RENDERIZADO ═══════════
+    function renderizarTablero() {
+        const filtradas = tareas.filter(t =>
+            filtroActual === 'Todas' || t.etiqueta === filtroActual
+        );
+
+        ['por_hacer', 'en_progreso', 'completado'].forEach(estado => {
+            const lista = document.querySelector(`[data-lista="${estado}"]`);
+            const tareasColumna = filtradas.filter(t => t.estado === estado);
+
+            lista.innerHTML = '';
+            tareasColumna.forEach(tarea => lista.appendChild(crearTarjeta(tarea)));
+
+            const contador = document.querySelector(`[data-contador="${estado}"]`);
+            contador.textContent = tareasColumna.length;
+        });
+    }
+
+    function crearTarjeta(tarea) {
+        const color = COLORES_ETIQUETA[tarea.etiqueta] || '#00E5FF';
+        const div = document.createElement('div');
+        div.className = 'kanban-card glass-card';
+        div.dataset.id = tarea.id;
+
+        div.innerHTML = `
+            <div class="view__inline--127">
+                <span class="tag" style="background: ${color}20; color: ${color}; border: 1px solid ${color}40;">
+                    ${tarea.etiqueta}
+                </span>
+                <div class="view__inline--128">
+                    <button class="btn-menu-tarea view__inline--129">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                </div>
+            </div>
+            <h4 class="tarjeta-titulo">${escapar(tarea.titulo)}</h4>
+            ${tarea.descripcion ? `<p class="tarjeta-descripcion">${escapar(tarea.descripcion)}</p>` : ''}
+            <div class="tarjeta-footer">
+                ${tarea.fecha_limite ? `
+                    <span class="fecha-limite">
+                        <i class="bi bi-calendar3"></i> ${formatearFecha(tarea.fecha_limite)}
+                    </span>` : ''}
+                ${tarea.origen_nodo ? `
+                    <span class="icono-mapa-origen" title="Convertido desde mapa mental">
+                        <i class="bi bi-diagram-3"></i>
+                    </span>` : ''}
+            </div>
+        `;
+
+        // Menú contextual de la tarjeta
+        div.querySelector('.btn-menu-tarea').addEventListener('click', (e) => {
+            e.stopPropagation();
+            cerrarMenus();
+            menuAbiertoId = tarea.id;
+            const menu = crearMenuTarea(tarea);
+            div.querySelector('.btn-menu-tarea').parentElement.appendChild(menu);
+        });
+
+        return div;
+    }
+
+    function crearMenuTarea(tarea) {
+        const menu = document.createElement('div');
+        menu.className = 'menu-opciones';
+        menu.innerHTML = `
+            <button class="menu-opcion" data-opcion="editar"><i class="bi bi-pencil"></i> Editar tarea</button>
+            <button class="menu-opcion" data-opcion="eliminar" class="view__inline--130">
+                <i class="bi bi-trash"></i> Eliminar tarea
+            </button>
+        `;
+        menu.addEventListener('click', async (e) => {
+            const opcion = e.target.closest('[data-opcion]')?.dataset.opcion;
+            if (opcion === 'editar') abrirModalEditar(tarea);
+            if (opcion === 'eliminar') await eliminarTarea(tarea.id);
+            cerrarMenus();
+        });
+        return menu;
+    }
+
+    function cerrarMenus() {
+        document.querySelectorAll('.menu-opciones').forEach(m => m.remove());
+        menuAbiertoId = null;
+    }
+
+    document.addEventListener('click', cerrarMenus);
+
+    function escapar(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto || '';
+        return div.innerHTML;
+    }
+
+    // ═══════════ DRAG & DROP CON SORTABLEJS ═══════════
+    ['por_hacer', 'en_progreso', 'completado'].forEach(estado => {
+        new Sortable(document.querySelector(`[data-lista="${estado}"]`), {
+            group: 'tareas',
+            animation: 200,
+            ghostClass: 'sortable-ghost',
+            onEnd: async (evento) => {
+                const tareaId = evento.item.dataset.id;
+                const nuevoEstado = evento.to.dataset.lista;
+
+                // Persistir el movimiento en MongoDB al soltar (RF-TAR-05)
+                const tarea = tareas.find(t => t.id === tareaId);
+                if (tarea && tarea.estado !== nuevoEstado) {
+                    tarea.estado = nuevoEstado;
+                    try {
+                        await api.patch(`/tareas/${tareaId}/`, { estado: nuevoEstado });
+                    } catch (error) {
+                        console.error('Error al mover tarea:', error);
+                        cargarTareas(); // Restaurar estado real si falla
+                    }
+                }
+                renderizarTablero();
+            }
+        });
+    });
+
+    // ═══════════ FILTROS POR ETIQUETA ═══════════
+    document.getElementById('filtros-etiqueta').addEventListener('click', (e) => {
+        const pill = e.target.closest('.pill');
+        if (!pill) return;
+        document.querySelectorAll('#filtros-etiqueta .pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        filtroActual = pill.dataset.filtro;
+        renderizarTablero();
+    });
+
+    // ═══════════ MODAL CREAR/EDITAR ═══════════
+    const modal = document.getElementById('modal-tarea');
+
+    // Generar botones de etiqueta dentro del modal
+    const contenedorEtiquetas = document.getElementById('opciones-etiqueta-modal');
+    Object.keys(COLORES_ETIQUETA).forEach(etiqueta => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = etiqueta;
+        btn.dataset.etiqueta = etiqueta;
+        btn.style.cssText = `padding: 4px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;`;
+        btn.addEventListener('click', () => seleccionarEtiquetaModal(etiqueta));
+        contenedorEtiquetas.appendChild(btn);
+    });
+
+    function seleccionarEtiquetaModal(etiqueta) {
+        etiquetaSeleccionada = etiqueta;
+        const color = COLORES_ETIQUETA[etiqueta];
+        contenedorEtiquetas.querySelectorAll('button').forEach(b => {
+            const activo = b.dataset.etiqueta === etiqueta;
+            b.style.background = activo ? `${COLORES_ETIQUETA[b.dataset.etiqueta]}20` : 'rgba(255,255,255,0.04)';
+            b.style.color = activo ? COLORES_ETIQUETA[b.dataset.etiqueta] : 'var(--color-terciario)';
+            b.style.border = `1px solid ${activo ? COLORES_ETIQUETA[b.dataset.etiqueta] + '60' : 'rgba(100,116,139,0.3)'}`;
+        });
+    }
+
+    function abrirModalCrear() {
+        tareaEditandoId = null;
+        document.getElementById('modal-tarea-titulo').textContent = 'Nueva tarea';
+        document.getElementById('tarea-titulo').value = '';
+        document.getElementById('tarea-descripcion').value = '';
+        document.getElementById('tarea-fecha').value = '';
+        document.getElementById('tarea-proyecto').value = '';
+        seleccionarEtiquetaModal('Trabajo');
+        modal.style.display = 'flex';
+        document.getElementById('tarea-titulo').focus();
+    }
+
+    function abrirModalEditar(tarea) {
+        tareaEditandoId = tarea.id;
+        document.getElementById('modal-tarea-titulo').textContent = 'Editar tarea';
+        document.getElementById('tarea-titulo').value = tarea.titulo;
+        document.getElementById('tarea-descripcion').value = tarea.descripcion || '';
+        document.getElementById('tarea-fecha').value = tarea.fecha_limite
+            ? new Date(tarea.fecha_limite).toISOString().split('T')[0] : '';
+        document.getElementById('tarea-proyecto').value = tarea.proyecto || '';
+        seleccionarEtiquetaModal(tarea.etiqueta);
+        modal.style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        modal.style.display = 'none';
+    }
+
+    document.getElementById('fab-nueva-tarea').addEventListener('click', abrirModalCrear);
+    document.getElementById('btn-nueva-tarea-topbar').addEventListener('click', abrirModalCrear);
+    document.getElementById('btn-cancelar-tarea').addEventListener('click', cerrarModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) cerrarModal();
+    });
+
+    // Guardar tarea (crear o actualizar según contexto)
+    document.getElementById('btn-guardar-tarea').addEventListener('click', async () => {
+        const titulo = document.getElementById('tarea-titulo').value.trim();
+        if (!titulo) {
+            document.getElementById('tarea-titulo').focus();
+            return;
+        }
+
+        const datos = {
+            titulo,
+            descripcion: document.getElementById('tarea-descripcion').value.trim(),
+            etiqueta: etiquetaSeleccionada,
+            color_etiqueta: COLORES_ETIQUETA[etiquetaSeleccionada],
+            fecha_limite: document.getElementById('tarea-fecha').value || null,
+            proyecto: document.getElementById('tarea-proyecto').value || ''
+        };
+
+        const btnGuardar = document.getElementById('btn-guardar-tarea');
+        btnGuardar.disabled = true;
+
+        try {
+            if (tareaEditandoId) {
+                await api.put(`/tareas/${tareaEditandoId}/`, datos);
+            } else {
+                await api.post('/tareas/', datos);
+            }
+            cerrarModal();
+            cargarTareas();
+        } catch (error) {
+            console.error('Error al guardar:', error);
+        } finally {
+            btnGuardar.disabled = false;
+        }
+    });
+
+    // ═══════════ ELIMINAR TAREA ═══════════
+    async function eliminarTarea(id) {
+        if (!confirm('¿Eliminar esta tarea permanentemente?')) return;
+        try {
+            await api.delete(`/tareas/${id}/`);
+            cargarTareas();
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+        }
+    }
+
+    // ═══════════ CERRAR SESIÓN ═══════════
+    document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
+
+    // Carga inicial
+    inicializarNotificaciones();
+    cargarTareas();
+    cargarProyectos();
+</script>
+</body>
+</html>

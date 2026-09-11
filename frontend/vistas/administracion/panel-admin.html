@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../css/orbit.css">
+    <link rel="stylesheet" href="../../css/componentes.css">
+    <link rel="stylesheet" href="../../css/vistas.css">
+</head>
+<body>
+<div class="layout-principal">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <span class="nombre-logo">orbit</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="sidebar-item active">
+                <i class="bi bi-shield-check"></i><span>Panel Admin</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='../proyectos.html'">
+                <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="usuario-fila">
+                <div class="avatar" id="avatar-admin">A</div>
+                <div class="view__inline--131">
+                    <div class="nombre-usuario-sidebar" id="nombre-admin">Admin</div>
+                    <span class="badge-admin">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-secondary" id="btn-cerrar-sesion"
+                    class="view__inline--132">
+                <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════ CONTENIDO ═══════════ -->
+    <div class="zona-contenido">
+
+        <header class="topbar">
+            <div class="view__inline--133">
+                <h1 class="topbar-titulo">Dashboard</h1>
+                <span class="topbar-badge">Administrador</span>
+            </div>
+<button class="campana-notificacion" id="campana-notificaciones"><i class="bi bi-bell"></i></button>
+            <div class="avatar" id="avatar-topbar">A</div>
+        </header>
+
+        <div class="contenido-scroll">
+
+            <!-- Indicadores globales de la plataforma -->
+            <div class="admin__stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--134">
+                        <i class="bi bi-people view__inline--135"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-total-usuarios">0</div>
+                        <div class="stat-etiqueta">Total de usuarios</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--136">
+                        <i class="bi bi-person-check view__inline--137"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-usuarios-activos">0</div>
+                        <div class="stat-etiqueta">Usuarios activos</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--138">
+                        <i class="bi bi-kanban view__inline--139"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-tareas-activas">0</div>
+                        <div class="stat-etiqueta">Tareas activas</div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card">
+                    <div class="stat-icono view__inline--140">
+                        <i class="bi bi-check2-all view__inline--141"></i>
+                    </div>
+                    <div>
+                        <div class="stat-valor" id="stat-completadas-hoy">0</div>
+                        <div class="stat-etiqueta">Completadas hoy</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestión de usuarios -->
+            <div class="glass-card admin__table-card">
+                <div class="view__inline--142">
+                    <h3 class="view__inline--143">
+                        Gestión de usuarios
+                    </h3>
+                    <div class="view__inline--144">
+                        <div class="admin__search">
+                            <i class="bi bi-search"></i>
+                            <input class="input-dark" id="buscador-usuarios" placeholder="Buscar usuario">
+                        </div>
+                        <button class="btn-primary" id="btn-crear-usuario"
+                                class="view__inline--145">
+                            <i class="bi bi-plus"></i> Crear usuario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de usuarios  -->
+                <div class="view__inline--146">
+                    <table class="tabla-usuarios">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Correo</th>
+                                <th>Fecha de registro</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla"></tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="view__inline--147">
+                    <span class="view__inline--148" id="info-paginacion"></span>
+                    <div class="view__inline--149">
+                        <button class="btn-secondary" id="btn-pagina-anterior" class="view__inline--150">Anterior</button>
+                        <button class="btn-secondary" id="btn-pagina-siguiente" class="view__inline--151">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de crecimiento mensual -->
+            <div class="glass-card admin__chart-card">
+                <h3 class="view__inline--152">
+                    Crecimiento de usuarios
+                </h3>
+                <div class="view__inline--153">
+                    <canvas id="grafico-crecimiento"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ MODAL CREAR/EDITAR USUARIO ═══════════ -->
+<div class="modal-overlay" id="modal-usuario" class="view__inline--154">
+    <div class="glass-card-strong modal-card">
+        <h3 class="modal-titulo" id="modal-usuario-titulo">Crear usuario</h3>
+
+        <div class="view__inline--155">
+            <label class="etiqueta-form" for="usuario-nombre">Nombre completo</label>
+            <input class="input-dark" id="usuario-nombre" placeholder="Nombre del usuario">
+        </div>
+
+        <div class="view__inline--156">
+            <label class="etiqueta-form" for="usuario-correo">Correo electrónico</label>
+            <input class="input-dark" type="email" id="usuario-correo" placeholder="correo@ejemplo.com">
+        </div>
+
+        <div class="view__inline--157" id="campo-contrasena">
+            <label class="etiqueta-form" for="usuario-contrasena">Contraseña</label>
+            <input class="input-dark" type="password" id="usuario-contrasena"
+                   placeholder="Mínimo 8 caracteres, una mayúscula y un número">
+        </div>
+
+        <div class="view__inline--158">
+            <label class="etiqueta-form" for="usuario-rol">Rol</label>
+            <select class="input-dark" id="usuario-rol" class="view__inline--159">
+                <option value="usuario">Usuario</option>
+                <option value="administrador">Administrador</option>
+            </select>
+        </div>
+
+        <div class="alerta-error-box" id="error-modal-usuario" class="view__inline--160">
+            <i class="bi bi-exclamation-circle view__inline--161"></i>
+            <span id="error-modal-texto"></span>
+        </div>
+
+        <div class="modal-acciones">
+            <button class="btn-secondary" id="btn-cancelar-usuario">Cancelar</button>
+            <button class="btn-primary" id="btn-guardar-usuario">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Detalle de usuario -->
+<div class="modal-overlay" id="modal-detalle" class="view__inline--162">
+    <div class="glass-card-strong modal-card view__inline--163">
+        <h3 class="modal-titulo">Detalle de usuario</h3>
+        <div id="contenido-detalle"></div>
+        <div class="modal-acciones">
+            <button class="btn-secondary" id="btn-cerrar-detalle">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+import api from '../../js/api.js';
+    import { obtenerUsuario, logout } from '../../js/autenticacion.js';
+    import { formatearFecha } from '../../js/utilidades.js';
+    import { inicializarNotificaciones } from '../../js/notificaciones.js';
+
+    // Protección de ruta: solo administradores
+    const admin = obtenerUsuario();
+    if (!admin || admin.rol !== 'administrador') {
+        location.href = '../tablero-kanban.html';
+    }
+
+    inicializarNotificaciones();
+
+    const iniciales = admin.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+    document.getElementById('avatar-admin').textContent = iniciales;
+    document.getElementById('avatar-topbar').textContent = iniciales;
+    document.getElementById('nombre-admin').textContent = admin.nombre_completo;
+
+    // Estado de la tabla
+    let todosUsuarios = [];
+    let paginaActual = 1;
+    const POR_PAGINA = 10;
+    let usuarioEditandoId = null;
+    let graficoCrecimiento = null;
+
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748B';
+
+    // ═══════════ CARGA DE DATOS ═══════════
+    async function cargarTodo() {
+        await Promise.all([cargarEstadisticas(), cargarUsuarios()]);
+    }
+
+    async function cargarEstadisticas() {
+        try {
+            const datos = await api.get('/administracion/estadisticas/').then(r => r.data);
+
+            document.getElementById('stat-total-usuarios').textContent = datos.total_usuarios || 0;
+            document.getElementById('stat-tareas-activas').textContent = datos.tareas_activas || 0;
+            document.getElementById('stat-completadas-hoy').textContent = datos.completadas_hoy || 0;
+            document.getElementById('stat-usuarios-activos').textContent =
+                todosUsuarios.filter(u => u.activo).length || datos.activos_hoy || 0;
+
+            renderizarCrecimiento(datos.crecimiento_mensual || []);
+        } catch (error) {
+            console.error('Error al cargar estadísticas:', error);
+        }
+    }
+
+    async function cargarUsuarios() {
+        try {
+            todosUsuarios = await api.get('/administracion/usuarios/').then(r => r.data);
+            renderizarTabla();
+        } catch (error) {
+            console.error('Error al cargar usuarios:', error);
+        }
+    }
+
+    // ═══════════ TABLA CON BÚSQUEDA Y PAGINACIÓN ═══════════
+    function obtenerFiltrados() {
+        const termino = document.getElementById('buscador-usuarios').value.toLowerCase().trim();
+        return todosUsuarios.filter(u =>
+            u.nombre_completo.toLowerCase().includes(termino) ||
+            u.correo.toLowerCase().includes(termino)
+        );
+    }
+
+    function renderizarTabla() {
+        const filtrados = obtenerFiltrados();
+        const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+        paginaActual = Math.min(paginaActual, totalPaginas);
+
+        const inicio = (paginaActual - 1) * POR_PAGINA;
+        const paginados = filtrados.slice(inicio, inicio + POR_PAGINA);
+
+        const cuerpo = document.getElementById('cuerpo-tabla');
+        cuerpo.innerHTML = '';
+
+        paginados.forEach(usuario => {
+            const tr = document.createElement('tr');
+            const inicialesUser = usuario.nombre_completo.split(' ').slice(0, 2)
+                .map(p => p[0]).join('').toUpperCase();
+
+            tr.innerHTML = `
+                <td>
+                    <div class="view__inline--164">
+                        <div class="avatar avatar-solido">${inicialesUser}</div>
+                        <span class="view__inline--165">${escapar(usuario.nombre_completo)}</span>
+                    </div>
+                </td>
+                <td>${escapar(usuario.correo)}</td>
+                <td class="view__inline--166">${formatearFecha(usuario.fecha_registro)}</td>
+                <td>
+                    <span class="estado-pill ${usuario.activo ? 'estado-activo' : 'estado-inactivo'}">
+                        ${usuario.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                </td>
+                <td>
+                    <div class="view__inline--167">
+                        <button class="btn-accion-tabla" data-accion="ver" title="Ver perfil"><i class="bi bi-eye"></i></button>
+                        <button class="btn-accion-tabla" data-accion="editar" title="Editar usuario"><i class="bi bi-pencil"></i></button>
+                        <button class="btn-accion-tabla" data-accion="toggle" title="${usuario.activo ? 'Desactivar' : 'Activar'}">
+                            <i class="bi bi-${usuario.activo ? 'slash-circle' : 'check-circle'}"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            // Acciones por fila
+            tr.querySelector('[data-accion="ver"]').addEventListener('click', () => verDetalle(usuario));
+            tr.querySelector('[data-accion="editar"]').addEventListener('click', () => abrirModalEditar(usuario));
+            tr.querySelector('[data-accion="toggle"]').addEventListener('click', () => alternarEstado(usuario));
+
+            cuerpo.appendChild(tr);
+        });
+
+        // Información y botones de paginación
+        document.getElementById('info-paginacion').textContent =
+            filtrados.length > 0
+                ? `Mostrando ${inicio + 1} a ${Math.min(inicio + POR_PAGINA, filtrados.length)} de ${filtrados.length} usuarios`
+                : 'Sin resultados';
+
+        document.getElementById('btn-pagina-anterior').disabled = paginaActual === 1;
+        document.getElementById('btn-pagina-siguiente').disabled = inicio + POR_PAGINA >= filtrados.length;
+    }
+
+    function escapar(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto || '';
+        return div.innerHTML;
+    }
+
+    document.getElementById('buscador-usuarios').addEventListener('input', () => {
+        paginaActual = 1;
+        renderizarTabla();
+    });
+
+    document.getElementById('btn-pagina-anterior').addEventListener('click', () => {
+        if (paginaActual > 1) { paginaActual--; renderizarTabla(); }
+    });
+    document.getElementById('btn-pagina-siguiente').addEventListener('click', () => {
+        paginaActual++; renderizarTabla();
+    });
+
+    // ═══════════  DETALLE DE USUARIO ═══════════
+    function verDetalle(usuario) {
+        document.getElementById('contenido-detalle').innerHTML = `
+            <div class="view__inline--168">
+                <div class="avatar avatar-solido view__inline--169">
+                    ${usuario.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
+                </div>
+                <div>
+                    <div class="view__inline--170">${escapar(usuario.nombre_completo)}</div>
+                    <span class="badge-admin">${usuario.rol === 'administrador' ? 'Administrador' : 'Usuario'}</span>
+                </div>
+            </div>
+            <div class="view__inline--171">
+                <div><strong class="view__inline--172">Correo:</strong> <span class="view__inline--173">${escapar(usuario.correo)}</span></div>
+                <div><strong class="view__inline--174">Fecha de registro:</strong> <span class="view__inline--175">${formatearFecha(usuario.fecha_registro)}</span></div>
+                <div><strong class="view__inline--176">Estado:</strong>
+                    <span class="estado-pill ${usuario.activo ? 'estado-activo' : 'estado-inactivo'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('modal-detalle').style.display = 'flex';
+    }
+
+    document.getElementById('btn-cerrar-detalle').addEventListener('click', () => {
+        document.getElementById('modal-detalle').style.display = 'none';
+    });
+
+    // ═══════════  CREAR Y EDITAR USUARIO ═══════════
+    const modalUsuario = document.getElementById('modal-usuario');
+
+    document.getElementById('btn-crear-usuario').addEventListener('click', () => {
+        usuarioEditandoId = null;
+        document.getElementById('modal-usuario-titulo').textContent = 'Crear usuario';
+        document.getElementById('usuario-nombre').value = '';
+        document.getElementById('usuario-correo').value = '';
+        document.getElementById('usuario-contrasena').value = '';
+        document.getElementById('usuario-rol').value = 'usuario';
+        document.getElementById('campo-contrasena').style.display = 'block';
+        ocultarErrorModal();
+        modalUsuario.style.display = 'flex';
+    });
+
+    function abrirModalEditar(usuario) {
+        usuarioEditandoId = usuario.id;
+        document.getElementById('modal-usuario-titulo').textContent = 'Editar usuario';
+        document.getElementById('usuario-nombre').value = usuario.nombre_completo;
+        document.getElementById('usuario-correo').value = usuario.correo;
+        document.getElementById('usuario-rol').value = usuario.rol;
+        document.getElementById('campo-contrasena').style.display = 'none'; // El admin no cambia contraseñas acá
+        ocultarErrorModal();
+        modalUsuario.style.display = 'flex';
+    }
+
+    document.getElementById('btn-cancelar-usuario').addEventListener('click', () => {
+        modalUsuario.style.display = 'none';
+    });
+
+    modalUsuario.addEventListener('click', (e) => {
+        if (e.target === modalUsuario) modalUsuario.style.display = 'none';
+    });
+
+    function mostrarErrorModal(mensaje) {
+        document.getElementById('error-modal-texto').textContent = mensaje;
+        document.getElementById('error-modal-usuario').style.display = 'flex';
+    }
+
+    function ocultarErrorModal() {
+        document.getElementById('error-modal-usuario').style.display = 'none';
+    }
+
+    document.getElementById('btn-guardar-usuario').addEventListener('click', async () => {
+        const nombre = document.getElementById('usuario-nombre').value.trim();
+        const correo = document.getElementById('usuario-correo').value.trim();
+        const rol = document.getElementById('usuario-rol').value;
+        const contrasena = document.getElementById('usuario-contrasena').value;
+
+        if (!nombre || !correo) {
+            mostrarErrorModal('Nombre y correo son obligatorios.');
+            return;
+        }
+
+        try {
+            if (usuarioEditandoId) {
+                // editar datos básicos
+                await api.put(`/administracion/usuarios/${usuarioEditandoId}/`, {
+                    nombre_completo: nombre,
+                    correo,
+                    rol
+                });
+            } else {
+                // crear cuenta nueva con contraseña
+                if (!contrasena) {
+                    mostrarErrorModal('La contraseña es obligatoria para nuevos usuarios.');
+                    return;
+                }
+                await api.post('/administracion/usuarios/', {
+                    nombre_completo: nombre,
+                    correo,
+                    rol,
+                    contrasena
+                });
+            }
+            modalUsuario.style.display = 'none';
+            cargarTodo();
+        } catch (error) {
+            const datos = error.response?.data || {};
+            const primerError = Object.values(datos)[0];
+            mostrarErrorModal(
+                Array.isArray(primerError) ? primerError[0]
+                    : typeof primerError === 'string' ? primerError
+                    : 'Error al guardar el usuario.'
+            );
+        }
+    });
+
+    // ═══════════  ACTIVAR / DESACTIVAR (nunca se elimina) ═══════════
+    async function alternarEstado(usuario) {
+        const accion = usuario.activo ? 'desactivar' : 'activar';
+        if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${usuario.nombre_completo}?`)) return;
+
+        try {
+            await api.patch(`/administracion/usuarios/${usuario.id}/toggle/`);
+            cargarTodo();
+        } catch (error) {
+            console.error('Error al cambiar estado:', error);
+        }
+    }
+
+    // ═══════════ GRÁFICO DE CRECIMIENTO (área cian) ═══════════
+    function renderizarCrecimiento(datosMensuales) {
+        const ctx = document.getElementById('grafico-crecimiento');
+        if (graficoCrecimiento) graficoCrecimiento.destroy();
+
+        const meses = datosMensuales.length > 0
+            ? datosMensuales.map(d => d.mes)
+            : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+        const registros = datosMensuales.length > 0
+            ? datosMensuales.map(d => d.registros)
+            : [0, 0, 0, 0, 0, 0];
+
+        graficoCrecimiento = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: meses,
+                datasets: [{
+                    data: registros,
+                    borderColor: '#00E5FF',
+                    borderWidth: 2,
+                    fill: true,
+                    backgroundColor: (contexto) => {
+                        // Degradado vertical del área bajo la línea
+                        const gradiente = contexto.chart.ctx.createLinearGradient(0, 0, 0, 240);
+                        gradiente.addColorStop(0, 'rgba(0,229,255,0.25)');
+                        gradiente.addColorStop(1, 'rgba(0,229,255,0.02)');
+                        return gradiente;
+                    },
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#00E5FF',
+                    pointBorderColor: '#0A192F',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#00E5FF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748B', font: { size: 12 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(100,116,139,0.1)', drawTicks: false },
+                        ticks: { color: '#64748B', font: { size: 12 }, precision: 0 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0A192F',
+                        borderColor: 'rgba(0,229,255,0.2)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        titleColor: '#E2E8F0',
+                        bodyColor: '#00E5FF',
+                        padding: 10,
+                        callbacks: {
+                            label: (contexto) => ` ${contexto.parsed.y} nuevos usuarios`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Cerrar sesión
+    document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
+
+    cargarTodo();
+</script>
+</body>
+</html>

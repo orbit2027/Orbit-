@@ -1,0 +1,133 @@
+/*
+ * Orbit - Variables CSS y estilos globales
+ */
+
+/* Paleta oficial de colores */
+:root {
+    --color-primario: #00E5FF;
+    --color-secundario: #0A192F;
+    --color-navy-light: #0D2137;
+    --color-terciario: #64748B;
+    --color-neutro: #F8FAFC;
+    --color-texto: #E2E8F0;
+    --color-error: #FF4D4D;
+    --color-exito: #00C48C;
+    --color-advertencia: #F59E0B;
+    --color-morado: #A78BFA;
+
+    --color-primario-hover: #33ECFF;
+    --color-overlay: rgba(0, 0, 0, 0.7);
+    --color-blanco-05: rgba(255, 255, 255, 0.05);
+    --color-blanco-07: rgba(255, 255, 255, 0.07);
+    --color-blanco-04: rgba(255, 255, 255, 0.04);
+    --color-blanco-02: rgba(255, 255, 255, 0.02);
+    --color-cian-04: rgba(0, 229, 255, 0.4);
+    --color-cian-03: rgba(0, 229, 255, 0.3);
+    --color-cian-025: rgba(0, 229, 255, 0.25);
+    --color-cian-015: rgba(0, 229, 255, 0.15);
+    --color-cian-012: rgba(0, 229, 255, 0.12);
+    --color-cian-01: rgba(0, 229, 255, 0.1);
+    --color-cian-008: rgba(0, 229, 255, 0.08);
+    --color-cian-006: rgba(0, 229, 255, 0.06);
+    --color-gris-04: rgba(100, 116, 139, 0.4);
+    --color-gris-03: rgba(100, 116, 139, 0.3);
+    --color-gris-02: rgba(100, 116, 139, 0.2);
+    --color-gris-015: rgba(100, 116, 139, 0.15);
+    --color-error-03: rgba(255, 77, 77, 0.3);
+    --color-exito-03: rgba(0, 196, 140, 0.3);
+
+    /* Gradientes */
+    --gradiente-fondo: linear-gradient(160deg, #0A192F 0%, #0D2137 60%, #0A192F 100%);
+    --gradiente-auth: linear-gradient(135deg, #0A192F 0%, #0D2137 100%);
+
+    /* Bordes translúcidos */
+    --borde-cian: rgba(0, 229, 255, 0.1);
+    --borde-cian-fuerte: rgba(0, 229, 255, 0.25);
+    --borde-gris: rgba(100, 116, 139, 0.3);
+
+    /* Radios */
+    --radio-tarjeta: 12px;
+    --radio-tarjeta-lg: 20px;
+    --radio-boton: 8px;
+    --radio-pill: 999px;
+    --radio-circular: 50%;
+
+    --sombra-cian: 0 0 20px rgba(0, 229, 255, 0.3);
+    --transicion-rapida: 0.2s;
+
+    /* Tipografía */
+    --fuente-principal: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Reset y base */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--fuente-principal);
+    background-color: var(--color-secundario);
+    color: var(--color-texto);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 229, 255, 0.2);
+    border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-cian-04);
+}
+
+/* Animaciones globales */
+@keyframes orbitar {
+    from { transform: rotate(0deg) translateX(var(--r)) rotate(0deg); }
+    to   { transform: rotate(360deg) translateX(var(--r)) rotate(-360deg); }
+}
+.orbital {
+    position: absolute;
+    border-radius: 50%;
+    animation: orbitar var(--duration, 8s) linear infinite;
+}
+
+@keyframes flotarY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+.flotante-anim {
+    animation: flotarY 4s ease-in-out infinite;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes deslizarArriba {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utilidades de texto */
+.texto-cian { color: var(--color-primario); }
+.texto-gris { color: var(--color-terciario); }
+
+/* Enlaces */
+a {
+    color: var(--color-primario);
+    text-decoration: none;
+}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<div class="auth">
+
+    <div class="glass-card-strong auth__card">
+
+        <!-- Encabezado -->
+        <div class="auth__header">
+            <div class="logo-orbit auth__logo">
+                <i class="bi bi-circle-half auth__logo-icon"></i>
+            </div>
+            <span class="nombre-logo auth__brand">orbit</span>
+            <h2 class="auth__title">
+                Crea tu cuenta
+            </h2>
+            <p class="auth__subtitle">
+                Únete a Orbit y pon tus ideas en movimiento
+            </p>
+        </div>
+
+        <form id="formulario-registro" novalidate>
+
+            <!-- Error -->
+            <div id="error-registro" class="alerta-error-box auth__alert">
+                <i class="bi bi-exclamation-circle auth__alert-icon"></i>
+                <span id="error-registro-texto"></span>
+            </div>
+
+            <!-- Nombre completo -->
+            <div class="auth__field">
+                <label class="etiqueta-form" for="nombre">Nombre completo</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-person"></i>
+                    <input class="input-dark" type="text" id="nombre"
+                           placeholder="Tu nombre completo" autocomplete="name">
+                </div>
+            </div>
+
+            <!-- Correo -->
+            <div class="auth__field">
+                <label class="etiqueta-form" for="correo">Correo electrónico</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-envelope"></i>
+                    <input class="input-dark" type="email" id="correo"
+                           placeholder="tucorreo@ejemplo.com" autocomplete="email">
+                </div>
+            </div>
+
+            <!-- Contraseña con medidor de fortaleza -->
+            <div class="auth__field">
+                <label class="etiqueta-form" for="contrasena">Contraseña</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-lock"></i>
+                    <input class="input-dark" type="password" id="contrasena"
+                           placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                    <button type="button" class="toggle-pass" id="btn-mostrar-pass">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+
+                <!-- Barra de fortaleza (3 segmentos) -->
+                <div id="zona-fortaleza" class="auth__strength">
+                    <div class="barra-fortaleza">
+                        <div class="segmento-fortaleza" data-nivel="1"></div>
+                        <div class="segmento-fortaleza" data-nivel="2"></div>
+                        <div class="segmento-fortaleza" data-nivel="3"></div>
+                    </div>
+                    <div class="auth__strength-labels">
+                        <span id="texto-fortaleza" class="auth__strength-text"></span>
+                        <span class="auth__strength-help">
+                            Debe incluir al menos una mayúscula y un número
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmar contraseña -->
+            <div class="auth__field auth__field--password">
+                <label class="etiqueta-form" for="confirmar">Confirmar contraseña</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-lock"></i>
+                    <input class="input-dark" type="password" id="confirmar"
+                           placeholder="Repite tu contraseña" autocomplete="new-password">
+                    <i id="icono-coincidencia" class="auth__match-icon"></i>
+                </div>
+            </div>
+
+            <!-- reCAPTCHA v2 real -->
+            <div class="d-flex justify-content-center auth__captcha">
+                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            </div>
+
+            <button type="submit" class="btn-primary auth__submit" id="btn-registro">
+                Crear mi cuenta
+            </button>
+        </form>
+
+        <p class="auth__footer">
+            ¿Ya tienes cuenta?
+            <a class="auth__link" href="iniciar-sesion.html">Inicia sesión</a>
+        </p>
+    </div>
+</div>
+
+<!-- Axios desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+    import { registrar, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
+    import { validarContrasena } from '../js/utilidades.js';
+
+    if (estaAutenticado()) {
+        redirigirSegunRol();
+    }
+
+    const formulario = document.getElementById('formulario-registro');
+    const errorBox = document.getElementById('error-registro');
+    const errorTexto = document.getElementById('error-registro-texto');
+    const btnRegistro = document.getElementById('btn-registro');
+    const inputPass = document.getElementById('contrasena');
+    const inputConfirmar = document.getElementById('confirmar');
+    const zonaFortaleza = document.getElementById('zona-fortaleza');
+    const textoFortaleza = document.getElementById('texto-fortaleza');
+    const iconoCoincidencia = document.getElementById('icono-coincidencia');
+
+    function mostrarError(mensaje) {
+        errorTexto.textContent = mensaje;
+        errorBox.style.display = 'flex';
+    }
+
+    // Mostrar/ocultar contraseña
+    document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
+        const visible = inputPass.type === 'text';
+        inputPass.type = visible ? 'password' : 'text';
+        document.querySelector('#btn-mostrar-pass i').className =
+            visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+
+    // Medidor de fortaleza en tiempo real
+    inputPass.addEventListener('input', () => {
+        const valor = inputPass.value;
+        if (valor.length === 0) {
+            zonaFortaleza.style.display = 'none';
+            return;
+        }
+        zonaFortaleza.style.display = 'block';
+
+        const tieneMayuscula = /[A-Z]/.test(valor);
+        const tieneNumero = /\d/.test(valor);
+
+        let nivel = 0;
+        let etiqueta = '';
+        let color = '';
+
+        if (valor.length >= 8 && tieneMayuscula && tieneNumero) {
+            nivel = 3; etiqueta = 'Fuerte'; color = 'var(--color-exito)';
+        } else if (valor.length >= 6 && (tieneMayuscula || tieneNumero)) {
+            nivel = 2; etiqueta = 'Regular'; color = 'var(--color-advertencia)';
+        } else {
+            nivel = 1; etiqueta = 'Débil'; color = 'var(--color-error)';
+        }
+
+        // Pintar segmentos hasta el nivel alcanzado
+        document.querySelectorAll('.segmento-fortaleza').forEach(seg => {
+            seg.style.background = Number(seg.dataset.nivel) <= nivel ? color : 'rgba(100,116,139,0.2)';
+        });
+        textoFortaleza.textContent = etiqueta;
+        textoFortaleza.style.color = color;
+    });
+
+    // Indicador de coincidencia de contraseñas
+    inputConfirmar.addEventListener('input', () => {
+        const coincide = inputConfirmar.value.length > 0 && inputConfirmar.value === inputPass.value;
+        const difiere = inputConfirmar.value.length > 0 && inputConfirmar.value !== inputPass.value;
+
+        iconoCoincidencia.style.display = inputConfirmar.value ? 'block' : 'none';
+        iconoCoincidencia.className = coincide
+            ? 'bi bi-check-circle-fill'
+            : 'bi bi-x-circle-fill';
+        iconoCoincidencia.style.color = coincide
+            ? 'var(--color-exito)'
+            : 'var(--color-error)';
+        inputConfirmar.style.borderColor = coincide
+            ? 'rgba(0,196,140,0.5)'
+            : difiere ? 'rgba(255,77,77,0.5)' : '';
+    });
+
+    formulario.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+
+        const nombre = document.getElementById('nombre').value.trim();
+        const correo = document.getElementById('correo').value.trim();
+        const contrasena = inputPass.value;
+        const confirmar = inputConfirmar.value;
+
+        // Validaciones client-side antes de llamar a la API
+        if (!nombre || !correo || !contrasena || !confirmar) {
+            mostrarError('Por favor completa todos los campos.');
+            return;
+        }
+        if (contrasena !== confirmar) {
+            mostrarError('Las contraseñas no coinciden.');
+            return;
+        }
+        const fortaleza = validarContrasena(contrasena);
+        if (!fortaleza.longitud || !fortaleza.mayuscula || !fortaleza.numero) {
+            mostrarError('La contraseña no cumple los requisitos de seguridad.');
+            return;
+        }
+
+        const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+        const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        if (!captchaToken && !esDesarrolloLocal) {
+            mostrarError('Por favor completa el captcha.');
+            return;
+        }
+
+        try {
+            btnRegistro.disabled = true;
+            btnRegistro.innerHTML = '<span class="loader-mini"></span> Creando cuenta...';
+
+            await registrar(nombre, correo, contrasena, captchaToken);
+            redirigirSegunRol();
+
+        } catch (error) {
+            // Mostrar el primer error que devuelva el servidor
+            const datos = error.response?.data || {};
+            const primerError = Object.values(datos)[0];
+            mostrarError(
+                Array.isArray(primerError) ? primerError[0]
+                    : typeof primerError === 'string' ? primerError
+                    : 'Error al crear la cuenta. Intenta de nuevo.'
+            );
+            grecaptcha.reset();
+        } finally {
+            btnRegistro.disabled = false;
+            btnRegistro.textContent = 'Crear mi cuenta';
+        }
+    });
+</script>
+</body>
+</html>
+
+
+
+

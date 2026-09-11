@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi mapa mental — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+    <link rel="stylesheet" href="../css/vistas.css">
+</head>
+<body>
+<div class="layout-principal">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <span class="nombre-logo">orbit</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="sidebar-item" onclick="location.href='tablero-kanban.html'">
+                <i class="bi bi-kanban"></i><span>Tablero</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='proyectos.html'">
+                <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+            </button>
+            <button class="sidebar-item active" onclick="location.href='mapa-mental.html'">
+                <i class="bi bi-diagram-3"></i><span>Mapa mental</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='estadisticas.html'">
+                <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="usuario-fila">
+                <div class="avatar" id="avatar-usuario">U</div>
+                <div>
+                    <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
+                </div>
+            </div>
+            <button class="btn-secondary" id="btn-cerrar-sesion">
+                <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Panel de herramientas verticales -->
+    <div class="panel-herramientas">
+        <button class="btn-herramienta activo" id="herr-seleccion" title="Selección"><i class="bi bi-cursor"></i></button>
+        <button class="btn-herramienta" id="herr-agregar" title="Agregar nodo"><i class="bi bi-plus-circle"></i></button>
+        <button class="btn-herramienta" id="herr-conectar" title="Conectar nodos"><i class="bi bi-share"></i></button>
+        <button class="btn-herramienta" id="herr-eliminar" title="Eliminar selección"><i class="bi bi-trash"></i></button>
+    </div>
+
+    <!-- ═══════════ ZONA DEL MAPA ═══════════ -->
+    <div class="zona-contenido">
+
+        <!-- Topbar con controles de zoom -->
+        <header class="topbar">
+            <h1 class="topbar-titulo">Mi mapa mental</h1>
+            <p class="topbar-ayuda" id="ayuda-conectar">Toca dos nodos para conectarlos</p>
+
+            <div class="topbar-zoom">
+                <button class="btn-zoom" id="zoom-menos"><i class="bi bi-dash"></i></button>
+                <span id="texto-zoom">100%</span>
+                <button class="btn-zoom" id="zoom-mas"><i class="bi bi-plus"></i></button>
+                <button class="btn-zoom ancho" id="zoom-reset">Ajustar vista</button>
+            </div>
+
+            <button class="campana-notificacion" id="campana-notificaciones">
+                <i class="bi bi-bell"></i>
+                <span class="campana-dot"></span>
+            </button>
+            <div class="avatar" id="avatar-topbar">U</div>
+
+            <button class="btn-primary" id="btn-agregar-idea">
+                <i class="bi bi-plus"></i> Agregar idea
+            </button>
+        </header>
+
+        <!-- Lienzo del mapa (Cytoscape.js) -->
+        <div class="mind-map__canvas" id="lienzo-mapa">
+            <div id="cy-mapa"></div>
+
+            <!-- Estado vacío -->
+            <div class="mind-map__empty" id="estado-vacio">
+                <i class="bi bi-lightbulb"></i>
+                <h3>
+                    Aún no tienes ideas en tu mapa
+                </h3>
+                <p>
+                    Haz clic en Agregar idea para comenzar
+                </p>
+                <button class="btn-primary" id="btn-primera-idea">
+                    <i class="bi bi-plus"></i> Agregar mi primera idea
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de propiedades del nodo seleccionado -->
+    <div class="panel-propiedades" id="panel-propiedades">
+        <h4>
+            Propiedades del nodo
+        </h4>
+
+        <div>
+            <label>Texto</label>
+            <textarea class="input-dark" id="prop-texto" rows="3"></textarea>
+        </div>
+
+        <div>
+            <label>Color</label>
+            <div id="prop-colores"></div>
+        </div>
+
+        <div class="panel-propiedades__posicion">
+            <div>
+                <label>Pos X</label>
+                <div id="prop-x">0</div>
+            </div>
+            <div>
+                <label>Pos Y</label>
+                <div id="prop-y">0</div>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="prop-convertir">
+            <i class="bi bi-check2-square"></i>Convertir en tarea
+        </button>
+        <button class="btn-danger-soft" id="prop-eliminar">
+            <i class="bi bi-trash"></i>Eliminar nodo
+        </button>
+        <button class="btn-secondary" id="prop-eliminar-conexiones">
+            <i class="bi bi-diagram-2"></i>Desconectar
+        </button>
+    </div>
+</div>
+
+<!-- Menú contextual (clic derecho sobre nodo) -->
+<div class="mind-map__context-menu" id="menu-contextual">
+    <button class="menu-opcion" data-accion="editar"><i class="bi bi-pencil"></i> Editar idea</button>
+    <button class="menu-opcion" data-accion="conectar"><i class="bi bi-share"></i> Conectar con otra idea</button>
+    <button class="menu-opcion destacado" data-accion="convertir"><i class="bi bi-check2-square"></i> Convertir en tarea</button>
+    <button class="menu-opcion" data-accion="color"><i class="bi bi-palette"></i> Cambiar color</button>
+    <button class="menu-opcion" data-accion="eliminar"><i class="bi bi-trash"></i> Eliminar idea</button>
+</div>
+
+<!-- Modal: Convertir idea en tarea (RF-MAP-06) -->
+<div class="modal-overlay" id="modal-convertir">
+    <div class="glass-card-strong modal-card">
+        <h3 class="modal-titulo">Convertir idea en tarea</h3>
+        <p>
+            El título de la tarea será:
+            <strong id="convertir-titulo-preview">""</strong>
+        </p>
+
+        <div>
+            <label class="etiqueta-form" for="convertir-descripcion">Descripción (opcional)</label>
+            <textarea class="input-dark" id="convertir-descripcion" rows="3"
+                      placeholder="Añade detalles..."></textarea>
+        </div>
+
+        <div>
+            <label class="etiqueta-form" for="convertir-etiqueta">Etiqueta</label>
+            <select class="input-dark" id="convertir-etiqueta">
+                <option value="Urgente">Urgente</option>
+                <option value="Personal">Personal</option>
+                <option value="Trabajo" selected>Trabajo</option>
+                <option value="Estudio">Estudio</option>
+                <option value="Hogar">Hogar</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="etiqueta-form" for="convertir-fecha">Fecha límite (opcional)</label>
+            <input class="input-dark" type="date" id="convertir-fecha">
+        </div>
+
+        <div class="modal-acciones">
+            <button class="btn-secondary" id="btn-cancelar-convertir">Cancelar</button>
+            <button class="btn-primary" id="btn-confirmar-convertir">Crear tarea</button>
+        </div>
+    </div>
+</div>
+
+<!-- Axios y Cytoscape.js -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+
+<script type="module">
+    import api from '../js/api.js';
+    import { obtenerUsuario, logout } from '../js/autenticacion.js';
+    import { inicializarNotificaciones } from '../js/notificaciones.js';
+
+    const COLORES = ['#00E5FF', '#00C48C', '#F59E0B', '#FF4D4D', '#A78BFA', '#64748B'];
+    const COLORES_ETIQUETA = {
+        'Urgente': '#FF4D4D', 'Personal': '#A78BFA', 'Trabajo': '#00E5FF',
+        'Estudio': '#F59E0B', 'Hogar': '#00C48C'
+    };
+
+    // Estado del mapa
+    let nodos = [];
+    let conexiones = [];
+    let nodoSeleccionadoId = null;
+    let modoConectar = false;
+    let nodoOrigenConexion = null;
+    let nodoParaConvertir = null;
+    let nodoMenuActual = null;
+
+    const menuContextual = document.getElementById('menu-contextual');
+    const ayudaConectar = document.getElementById('ayuda-conectar');
+
+    // Datos del usuario
+    const usuario = obtenerUsuario();
+    if (usuario) {
+        const iniciales = usuario.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+        document.getElementById('avatar-usuario').textContent = iniciales;
+        document.getElementById('avatar-topbar').textContent = iniciales;
+        document.getElementById('nombre-usuario').textContent = usuario.nombre_completo;
+    }
+
+    // ═══════════ CYTOSCAPE.JS ═══════════
+    const cy = cytoscape({
+        container: document.getElementById('cy-mapa'),
+        elements: [],
+        minZoom: 0.2,
+        maxZoom: 3,
+        wheelSensitivity: 0.22,
+        boxSelectionEnabled: false,
+        autoungrabify: false,
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': 'data(color)',
+                    'border-color': '#0D2137',
+                    'border-width': 2,
+                    'label': 'data(label)',
+                    'color': '#E2E8F0',
+                    'font-size': '11px',
+                    'font-weight': 500,
+                    'font-family': 'Plus Jakarta Sans, sans-serif',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'text-wrap': 'ellipsis',
+                    'text-max-width': '128px',
+                    'text-overflow-wrap': 'anywhere',
+                    'shape': 'round-rectangle',
+                    'width': 150,
+                    'height': 50,
+                    'background-opacity': 0.12
+                }
+            },
+            {
+                selector: 'node[convertido]',
+                style: {
+                    'border-style': 'dashed',
+                    'background-opacity': 0.07,
+                    'overlay-color': '#00C48C'
+                }
+            },
+            {
+                selector: 'node:selected',
+                style: {
+                    'border-color': '#ffffff',
+                    'border-width': 3,
+                    'overlay-color': 'data(color)',
+                    'overlay-opacity': 0.25
+                }
+            },
+            {
+                selector: 'node.nodo-origen',
+                style: { 'border-color': '#F59E0B', 'border-width': 3 }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': 'rgba(0,229,255,0.45)',
+                    'curve-style': 'bezier',
+                    'target-arrow-color': 'rgba(0,229,255,0.55)',
+                    'target-arrow-shape': 'triangle',
+                    'arrow-scale': 0.9
+                }
+            },
+            {
+                selector: 'edge:selected',
+                style: {
+                    'line-color': '#00E5FF',
+                    'target-arrow-color': '#00E5FF',
+                    'width': 3
+                }
+            }
+        ]
+    });
+
+    function nodoData(id) {
+        return nodos.find(n => n.id === id);
+    }
+
+    // ═══════════ CARGA DESDE LA API ═══════════
+    async function cargarMapa() {
+        try {
+            const respuesta = await api.get('/mapa-mental/');
+            nodos = respuesta.data.nodos || [];
+            conexiones = respuesta.data.conexiones || [];
+            document.getElementById('estado-vacio').style.display = nodos.length ? 'none' : 'flex';
+
+            cy.elements().remove();
+            const elementos = [];
+
+            nodos.forEach(n => elementos.push({
+                group: 'nodes',
+                data: {
+                    id: n.id,
+                    label: n.texto,
+                    color: n.color,
+                    convertido: n.convertido_en_tarea
+                },
+                position: { x: n.posicion_x, y: n.posicion_y }
+            }));
+
+            conexiones.forEach(c => elementos.push({
+                group: 'edges',
+                data: { id: c.id, source: c.nodo_origen, target: c.nodo_destino }
+            }));
+
+            cy.add(elementos);
+            if (nodos.length) cy.fit(undefined, 40);
+        } catch (error) {
+            console.error('Error al cargar el mapa:', error);
+        }
+    }
+
+    // ═══════════ INTERACCIÓN CON EL GRAFO ═══════════
+
+    // Selección / modo conectar al tocar un nodo
+    cy.on('tap', 'node', (evt) => {
+        const id = evt.target.id();
+
+        if (modoConectar) {
+            manejarClicConexion(id);
+            return;
+        }
+
+        nodoSeleccionadoId = id;
+        evt.target.select();
+        actualizarPanelPropiedades();
+    });
+
+    // Deseleccionar al tocar el fondo
+    cy.on('tap', (evt) => {
+        if (evt.target === cy) {
+            nodoSeleccionadoId = null;
+            ocultarMenuContextual();
+            actualizarPanelPropiedades();
+            cy.elements().unselect();
+        }
+    });
+
+    // Menú contextual (clic derecho o mantener presionado)
+    cy.on('cxttap', 'node', (evt) => {
+        const id = evt.target.id();
+        nodoSeleccionadoId = id;
+        nodoMenuActual = nodoData(id);
+        evt.target.select();
+        evt.preventDefault();
+
+        const oe = evt.originalEvent;
+        menuContextual.style.left = `${oe.clientX}px`;
+        menuContextual.style.top = `${oe.clientY}px`;
+        menuContextual.style.display = 'block';
+        actualizarPanelPropiedades();
+    });
+
+    // Doble clic / doble toque para editar texto
+    cy.on('dbltap', 'node', (evt) => {
+        const nodo = nodoData(evt.target.id());
+        if (nodo) editarTextoNodo(nodo);
+    });
+
+    // Persistir posición al soltar el arrastre
+    cy.on('dragfree', 'node', async (evt) => {
+        const id = evt.target.id();
+        const pos = evt.target.position();
+        const nd = nodoData(id);
+        if (nd) {
+            nd.posicion_x = pos.x;
+            nd.posicion_y = pos.y;
+        }
+        try {
+            await api.patch(`/mapa-mental/nodos/${id}/`, {
+                posicion_x: pos.x,
+                posicion_y: pos.y
+            });
+        } catch (error) {
+            console.error('Error al guardar posición:', error);
+        }
+        if (nodoSeleccionadoId === id) {
+            document.getElementById('prop-x').textContent = Math.round(pos.x);
+            document.getElementById('prop-y').textContent = Math.round(pos.y);
+        }
+    });
+
+    // ═══════════ MODO CONECTAR NODOS ═══════════
+    document.getElementById('herr-conectar').addEventListener('click', () => {
+        modoConectar = !modoConectar;
+        nodoOrigenConexion = null;
+        cy.elements().removeClass('nodo-origen');
+        document.getElementById('herr-conectar').classList.toggle('activo', modoConectar);
+        ayudaConectar.style.display = modoConectar ? 'inline-block' : 'none';
+    });
+
+    document.getElementById('herr-seleccion').addEventListener('click', () => {
+        modoConectar = false;
+        nodoOrigenConexion = null;
+        cy.elements().removeClass('nodo-origen');
+        document.getElementById('herr-conectar').classList.remove('activo');
+        ayudaConectar.style.display = 'none';
+    });
+
+    async function manejarClicConexion(id) {
+        if (!modoConectar) return;
+
+        if (!nodoOrigenConexion) {
+            nodoOrigenConexion = id;
+            cy.getElementById(id).addClass('nodo-origen');
+            return;
+        }
+        if (nodoOrigenConexion === id) return;
+
+        cy.getElementById(nodoOrigenConexion).removeClass('nodo-origen');
+
+        try {
+            const respuesta = await api.post('/mapa-mental/conexiones/', {
+                nodo_origen: nodoOrigenConexion,
+                nodo_destino: id
+            });
+            cy.add({
+                group: 'edges',
+                data: { id: respuesta.data.id, source: nodoOrigenConexion, target: id }
+            });
+            conexiones.push({
+                id: respuesta.data.id,
+                nodo_origen: nodoOrigenConexion,
+                nodo_destino: id
+            });
+        } catch (error) {
+            console.error('Error al crear conexión:', error);
+        }
+
+        nodoOrigenConexion = null;
+        modoConectar = false;
+        document.getElementById('herr-conectar').classList.remove('activo');
+        ayudaConectar.style.display = 'none';
+    }
+
+    // ═══════════ CREAR / ELIMINAR NODOS ═══════════
+    async function agregarNodo() {
+        try {
+            const respuesta = await api.post('/mapa-mental/nodos/', {
+                texto: 'Nueva idea',
+                color: '#00E5FF',
+                posicion_x: Math.round(150 + Math.random() * 250),
+                posicion_y: Math.round(150 + Math.random() * 150)
+            });
+
+            nodos.push(respuesta.data);
+            cy.add({
+                group: 'nodes',
+                data: {
+                    id: respuesta.data.id,
+                    label: respuesta.data.texto,
+                    color: respuesta.data.color
+                },
+                position: { x: respuesta.data.posicion_x, y: respuesta.data.posicion_y }
+            });
+
+            nodoSeleccionadoId = respuesta.data.id;
+            cy.getElementById(respuesta.data.id).select();
+            document.getElementById('estado-vacio').style.display = 'none';
+            actualizarPanelPropiedades();
+        } catch (error) {
+            console.error('Error al crear nodo:', error);
+        }
+    }
+
+    async function eliminarNodo(id) {
+        if (!confirm('¿Eliminar esta idea y sus conexiones?')) return;
+        try {
+            await api.delete(`/mapa-mental/nodos/${id}/`);
+            nodos = nodos.filter(n => n.id !== id);
+            conexiones = conexiones.filter(c =>
+                c.nodo_origen !== id && c.nodo_destino !== id
+            );
+            cy.remove(`#${id}`);
+            if (nodoSeleccionadoId === id) {
+                nodoSeleccionadoId = null;
+                actualizarPanelPropiedades();
+            }
+            ocultarMenuContextual();
+            if (!nodos.length) document.getElementById('estado-vacio').style.display = 'flex';
+        } catch (error) {
+            console.error('Error al eliminar nodo:', error);
+        }
+    }
+
+    // ═══════════ ELIMINAR SOLO CONEXIONES DEL NODO SELECCIONADO ═══════════
+    async function eliminarConexionesDeNodo(id) {
+        const relacionadas = conexiones.filter(c => c.nodo_origen === id || c.nodo_destino === id);
+        if (!relacionadas.length) return;
+        for (const conexion of relacionadas) {
+            try {
+                await api.delete(`/mapa-mental/conexiones/${conexion.id}/`);
+                cy.remove(`#${conexion.id}`);
+            } catch (error) {
+                console.error('Error al eliminar conexión:', error);
+            }
+        }
+        conexiones = conexiones.filter(c => c.nodo_origen !== id && c.nodo_destino !== id);
+    }
+
+    document.getElementById('herr-agregar').addEventListener('click', agregarNodo);
+    document.getElementById('btn-agregar-idea').addEventListener('click', agregarNodo);
+    document.getElementById('btn-primera-idea').addEventListener('click', agregarNodo);
+    document.getElementById('herr-eliminar').addEventListener('click', () => {
+        if (nodoSeleccionadoId) eliminarNodo(nodoSeleccionadoId);
+    });
+
+    // ═══════════ EDICIÓN DE TEXTO ═══════════
+    function editarTextoNodo(nodo) {
+        const nuevoTexto = prompt('Editar idea:', nodo.texto);
+        if (nuevoTexto === null || !nuevoTexto.trim()) return;
+        actualizarNodo(nodo.id, { texto: nuevoTexto.trim() });
+    }
+
+    async function actualizarNodo(id, datos) {
+        try {
+            await api.patch(`/mapa-mental/nodos/${id}/`, datos);
+            const nd = nodos.find(n => n.id === id);
+            if (nd) Object.assign(nd, datos);
+            const el = cy.getElementById(id);
+            if (datos.texto) el.data('label', datos.texto);
+            if (datos.color) el.data('color', datos.color);
+            actualizarPanelPropiedades();
+        } catch (error) {
+            console.error('Error al actualizar nodo:', error);
+        }
+    }
+
+    // ═══════════ MENÚ CONTEXTUAL ═══════════
+    function ocultarMenuContextual() {
+        menuContextual.style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!menuContextual.contains(e.target)) ocultarMenuContextual();
+    });
+
+    menuContextual.addEventListener('click', (e) => {
+        const accion = e.target.closest('[data-accion]')?.dataset.accion;
+        if (!accion || !nodoMenuActual) return;
+        ocultarMenuContextual();
+
+        switch (accion) {
+            case 'editar':
+                editarTextoNodo(nodoMenuActual);
+                break;
+            case 'conectar':
+                modoConectar = true;
+                nodoOrigenConexion = nodoMenuActual.id;
+                document.getElementById('herr-conectar').classList.add('activo');
+                cy.getElementById(nodoMenuActual.id).addClass('nodo-origen');
+                ayudaConectar.style.display = 'inline-block';
+                break;
+            case 'convertir':
+                abrirModalConvertir(nodoMenuActual);
+                break;
+            case 'color': {
+                const indice = COLORES.indexOf(nodoMenuActual.color);
+                const nuevoColor = COLORES[(indice + 1) % COLORES.length];
+                actualizarNodo(nodoMenuActual.id, { color: nuevoColor });
+                break;
+            }
+            case 'eliminar':
+                eliminarNodo(nodoMenuActual.id);
+                break;
+        }
+    });
+
+    // ═══════════ PANEL DE PROPIEDADES ═══════════
+    function actualizarPanelPropiedades() {
+        const panel = document.getElementById('panel-propiedades');
+        const nodo = nodoData(nodoSeleccionadoId);
+
+        if (!nodo) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = 'flex';
+        document.getElementById('prop-texto').value = nodo.texto;
+        document.getElementById('prop-x').textContent = Math.round(nodo.posicion_x);
+        document.getElementById('prop-y').textContent = Math.round(nodo.posicion_y);
+
+        const contenedorColores = document.getElementById('prop-colores');
+        contenedorColores.innerHTML = '';
+        COLORES.forEach(color => {
+            const btn = document.createElement('button');
+            btn.style.cssText = `width: 24px; height: 24px; border-radius: 50%; background: ${color};
+                border: ${nodo.color === color ? '2px solid #E2E8F0' : '2px solid transparent'};
+                cursor: pointer; transition: transform 0.15s;`;
+            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.2)');
+            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+            btn.addEventListener('click', () => actualizarNodo(nodo.id, { color }));
+            contenedorColores.appendChild(btn);
+        });
+    }
+
+    document.getElementById('prop-texto').addEventListener('change', (e) => {
+        if (nodoSeleccionadoId && e.target.value.trim()) {
+            actualizarNodo(nodoSeleccionadoId, { texto: e.target.value.trim() });
+        }
+    });
+
+    document.getElementById('prop-eliminar').addEventListener('click', () => {
+        if (nodoSeleccionadoId) eliminarNodo(nodoSeleccionadoId);
+    });
+
+    document.getElementById('prop-eliminar-conexiones').addEventListener('click', () => {
+        if (nodoSeleccionadoId) eliminarConexionesDeNodo(nodoSeleccionadoId);
+    });
+
+    // ═══════════ RF-MAP-06: CONVERTIR EN TAREA ═══════════
+    function abrirModalConvertir(nodo) {
+        if (nodo.convertido_en_tarea) {
+            alert('Esta idea ya fue convertida en tarea.');
+            return;
+        }
+        nodoParaConvertir = nodo;
+        document.getElementById('convertir-titulo-preview').textContent = `"${nodo.texto}"`;
+        document.getElementById('convertir-descripcion').value = '';
+        document.getElementById('convertir-etiqueta').value = 'Trabajo';
+        document.getElementById('convertir-fecha').value = '';
+        document.getElementById('modal-convertir').style.display = 'flex';
+    }
+
+    document.getElementById('btn-cancelar-convertir').addEventListener('click', () => {
+        document.getElementById('modal-convertir').style.display = 'none';
+    });
+
+    document.getElementById('btn-confirmar-convertir').addEventListener('click', async () => {
+        if (!nodoParaConvertir) return;
+
+        const etiqueta = document.getElementById('convertir-etiqueta').value;
+        const descripcion = document.getElementById('convertir-descripcion').value.trim();
+        const fecha = document.getElementById('convertir-fecha').value;
+
+        try {
+            await api.post(`/mapa-mental/nodos/${nodoParaConvertir.id}/convertir-tarea/`, {
+                descripcion,
+                etiqueta,
+                color_etiqueta: COLORES_ETIQUETA[etiqueta],
+                fecha_limite: fecha || null
+            });
+
+            document.getElementById('modal-convertir').style.display = 'none';
+            nodoParaConvertir.convertido_en_tarea = true;
+            cy.getElementById(nodoParaConvertir.id).data('convertido', true);
+            nodoParaConvertir = null;
+            actualizarPanelPropiedades();
+        } catch (error) {
+            console.error('Error al convertir:', error);
+        }
+    });
+
+    document.getElementById('prop-convertir').addEventListener('click', () => {
+        const nodo = nodoData(nodoSeleccionadoId);
+        if (nodo) abrirModalConvertir(nodo);
+    });
+
+    // ═══════════ CONTROLES DE ZOOM ═══════════
+    function zoomCentrado(factor) {
+        const caja = document.getElementById('cy-mapa').getBoundingClientRect();
+        const nivel = Math.min(cy.maxZoom(), Math.max(cy.minZoom(), cy.zoom() * factor));
+        cy.zoom({
+            level: nivel,
+            renderedPosition: { x: caja.width / 2, y: caja.height / 2 }
+        });
+    }
+
+    document.getElementById('zoom-mas').addEventListener('click', () => zoomCentrado(1.15));
+    document.getElementById('zoom-menos').addEventListener('click', () => zoomCentrado(1 / 1.15));
+    document.getElementById('zoom-reset').addEventListener('click', () => cy.fit(undefined, 40));
+
+    cy.on('zoom', () => {
+        document.getElementById('texto-zoom').textContent = `${Math.round(cy.zoom() * 100)}%`;
+    });
+
+    // ═══════════ CERRAR SESIÓN ═══════════
+    document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
+
+    // Carga inicial
+    cargarMapa();
+    inicializarNotificaciones();
+</script>
+</body>
+</html>

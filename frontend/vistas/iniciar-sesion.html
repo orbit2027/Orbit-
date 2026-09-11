@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<div class="auth">
+
+    <div class="glass-card-strong auth__card">
+
+        <!-- Encabezado con logo -->
+        <div class="auth__header">
+            <div class="logo-orbit auth__logo">
+                <i class="bi bi-circle-half auth__logo-icon"></i>
+            </div>
+            <span class="nombre-logo auth__brand">orbit</span>
+            <h2 class="auth__title">
+                Bienvenido de nuevo
+            </h2>
+            <p class="auth__subtitle">
+                Ingresa tus credenciales para continuar
+            </p>
+        </div>
+
+        <form id="formulario-login" novalidate>
+
+            <!-- Error genérico (No se especifica qué campo falló al iniciar sesión) -->
+            <div id="error-login" class="alerta-error-box auth__alert">
+                <i class="bi bi-exclamation-circle auth__alert-icon"></i>
+                <span>Las credenciales ingresadas no son correctas.</span>
+            </div>
+
+            <!-- Correo -->
+            <div class="auth__field auth__field--email">
+                <label class="etiqueta-form" for="correo">Correo electrónico</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-envelope"></i>
+                    <input class="input-dark" type="email" id="correo"
+                           placeholder="tucorreo@ejemplo.com" autocomplete="email">
+                </div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="auth__field auth__field--password">
+                <label class="etiqueta-form" for="contrasena">Contraseña</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-lock"></i>
+                    <input class="input-dark" type="password" id="contrasena"
+                           placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" class="toggle-pass" id="btn-mostrar-pass">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- reCAPTCHA v2 -->
+            <div class="d-flex justify-content-center auth__captcha">
+                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            </div>
+
+            <button type="submit" class="btn-primary auth__submit" id="btn-login">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <p class="auth__footer">
+            ¿No tienes cuenta?
+            <a class="auth__link" href="registrarse.html">Crear una cuenta</a>
+        </p>
+    </div>
+</div>
+
+<!-- Axios desde CDN  -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+    import { iniciarSesion, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
+
+    // Si ya hay sesión activa, redirigir según rol
+    if (estaAutenticado()) {
+        redirigirSegunRol();
+    }
+
+    const formulario = document.getElementById('formulario-login');
+    const errorBox = document.getElementById('error-login');
+    const btnLogin = document.getElementById('btn-login');
+
+    // Mostrar/ocultar contraseña
+    document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
+        const input = document.getElementById('contrasena');
+        const icono = document.querySelector('#btn-mostrar-pass i');
+        const visible = input.type === 'text';
+        input.type = visible ? 'password' : 'text';
+        icono.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+
+    formulario.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+
+        const correo = document.getElementById('correo').value.trim();
+        const contrasena = document.getElementById('contrasena').value;
+
+        if (!correo || !contrasena) {
+            errorBox.style.display = 'flex';
+            return;
+        }
+
+        const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+        const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        if (!captchaToken && !esDesarrolloLocal) {
+            errorBox.querySelector('span').textContent = 'Por favor completa el captcha.';
+            errorBox.style.display = 'flex';
+            return;
+        }
+
+        try {
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<span class="loader-mini"></span> Iniciando...';
+
+            await iniciarSesion(correo, contrasena, captchaToken);
+            redirigirSegunRol();
+
+        } catch (error) {
+            // Error genérico: no se revela si el correo existe o la contraseña es incorrecta
+            errorBox.querySelector('span').textContent = 'Las credenciales ingresadas no son correctas.';
+            errorBox.style.display = 'flex';
+            grecaptcha.reset();
+        } finally {
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Iniciar sesión';
+        }
+    });
+</script>
+</body>
+</html>
+
+
+
+
+

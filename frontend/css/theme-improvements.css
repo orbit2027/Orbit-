@@ -1,0 +1,53 @@
+:root{
+  --transition-fast: 160ms;
+}
+
+/* Buttons */
+.boton{
+  background: linear-gradient(90deg,var(--color-primario),var(--color-exito));
+  color: white;
+  border: none;
+  padding: .6rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(10,25,47,0.25);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.boton:hover{ transform: translateY(-2px); box-shadow: 0 10px 24px rgba(10,25,47,0.32); }
+.boton:active{ transform: translateY(0); }
+
+/* Inputs */
+.campo{ transition: box-shadow var(--transition-fast), border-color var(--transition-fast); }
+.campo:focus{ outline: none; box-shadow: 0 6px 18px rgba(0,229,255,0.08); border-color: var(--color-primario); }
+
+/* Small loader used inside buttons */
+.loader{ display:inline-block; width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color: white; animation: spin 800ms linear infinite; vertical-align: middle; }
+@keyframes spin{ to{ transform: rotate(360deg); } }
+
+/* Cards and task tiles */
+.tarjeta{ border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding: 1rem; }
+.tarjeta-tarea{ background: rgba(255,255,255,0.02); border-radius:10px; padding: 0.8rem; margin-bottom: 0.6rem; box-shadow: 0 6px 14px rgba(2,6,23,0.35); }
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+  .sidebar{ display:none; }
+  .contenido-principal{ padding: 1rem; }
+}
+
+/* Kanban specific */
+.columna-kanban{ background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); border-radius: 12px; padding: 12px; min-height: 220px; }
+.columna-titulo{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.lista-tareas{ min-height: 120px; }
+
+.tarjeta-tarea{ transition: transform 180ms ease, box-shadow 180ms ease; }
+.tarjeta-tarea:hover{ transform: translateY(-6px); box-shadow: 0 18px 36px rgba(2,6,23,0.45); }
+
+/* Small responsive adjustments for cards */
+@media (max-width: 992px){
+  .columna-kanban{ padding: 10px; }
+  .tarjeta-tarea{ padding: 0.6rem; }
+}
+
+/* Subtle transition for sidebar links */
+.sidebar-enlace{ transition: background 160ms, color 160ms; border-radius:8px; padding: 8px 10px; display:flex; align-items:center; gap:8px; }
+.sidebar-enlace:hover{ background: rgba(255,255,255,0.02); }
+

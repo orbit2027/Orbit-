@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos — Orbit</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+    <link rel="stylesheet" href="../css/vistas.css">
+
+    
+</head>
+<body>
+<div class="projects__layout">
+
+    <!-- ═══════════ COL 1: BARRA DE ICONOS ═══════════ -->
+    <aside class="projects__iconbar">
+        <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+
+        <button class="projects__icon-button" title="Tablero" onclick="location.href='tablero-kanban.html'">
+            <i class="bi bi-kanban"></i>
+        </button>
+        <button class="projects__icon-button is-active" title="Proyectos">
+            <i class="bi bi-folder2-open"></i>
+        </button>
+        <button class="projects__icon-button" title="Mapa mental" onclick="location.href='mapa-mental.html'">
+            <i class="bi bi-diagram-3"></i>
+        </button>
+        <button class="projects__icon-button" title="Estadísticas" onclick="location.href='estadisticas.html'">
+            <i class="bi bi-bar-chart-line"></i>
+        </button>
+        <button class="projects__icon-button" title="Notificaciones" id="campana-notificaciones">
+            <i class="bi bi-bell"></i>
+        </button>
+
+        <div class="projects__icon-spacer"></div>
+
+        <button class="projects__icon-button" title="Cerrar sesión" id="btn-salir">
+            <i class="bi bi-box-arrow-left"></i>
+        </button>
+    </aside>
+
+    <!-- ═══════════ COL 2: PANEL LATERAL DE PROYECTOS ═══════════ -->
+    <aside class="projects__sidebar">
+        <!-- Perfil -->
+        <div class="projects__profile">
+            <div class="avatar avatar-solido" id="avatar-mini">U
+                <span class="projects__verified"><i class="bi bi-check"></i></span>
+            </div>
+            <div class="view__inline--60">
+                <div class="nombre-usuario-sidebar" id="nombre-mini">—</div>
+            </div>
+        </div>
+
+        <!-- Buscador -->
+        <div class="projects__search">
+            <i class="bi bi-search"></i>
+            <input class="input-dark" id="buscador-proyectos" placeholder="Buscar proyecto">
+        </div>
+
+        <!-- Botón crear -->
+        <button class="projects__new-button" id="btn-nuevo-proyecto">
+            <span><i class="bi bi-plus-lg view__inline--61"></i>Nuevo proyecto</span>
+            <i class="bi bi-arrow-right"></i>
+        </button>
+
+        <!-- Árbol de proyectos (RF-PRO-02) -->
+        <div>
+            <div class="projects__section-title">
+                <span>Mis proyectos</span>
+            </div>
+            <div class="projects__tree" id="projects__tree"></div>
+        </div>
+
+        <!-- Equipo / miembros (admin ve todos, RF-PRO-06) -->
+        <div class="projects__team" id="bloque-equipo">
+            <div class="projects__section-title"><span>Equipo</span></div>
+            <div class="view__inline--62">
+                <div class="projects__avatars" id="avatares-equipo"></div>
+                <span class="view__inline--63" id="contador-equipo">+0</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════ COL 3: ÁREA PRINCIPAL ═══════════ -->
+    <main class="projects__main">
+
+        <!-- Tabs + projects__breadcrumb -->
+        <div class="projects__tabs-bar">
+            <div class="projects__tabs">
+                <button class="projects__tab is-active" data-vista="overview">Overview</button>
+                <button class="projects__tab" data-vista="board">Board</button>
+                <button class="projects__tab" data-vista="list">List</button>
+            </div>
+        </div>
+
+        <div class="projects__content">
+
+            <!-- Vista Overview -->
+            <div id="vista-overview">
+
+                <!-- Migas de pan -->
+                <div class="projects__breadcrumb view__inline--64">
+                    <a href="../index.html">Home</a> &rsaquo;
+                    <a href="proyectos.html">Proyectos</a> &rsaquo;
+                    <span class="actual" id="crumb-actual">General</span>
+                </div>
+
+                <!-- KPI (métricas rápidas) -->
+                <div class="projects__kpi-grid">
+                    <div class="projects__kpi projects__kpi--blue">
+                        <button class="kpi-mas" title="Más"><i class="bi bi-three-dots"></i></button>
+                        <div>
+                            <div class="kpi-numero" id="kpi-activas">0</div>
+                            <div class="kpi-etiqueta">Tareas activas</div>
+                        </div>
+                        <i class="bi bi-kanban kpi-icono"></i>
+                    </div>
+                    <div class="projects__kpi projects__kpi--orange">
+                        <div>
+                            <div class="kpi-numero" id="kpi-progreso">0</div>
+                            <div class="kpi-etiqueta">En progreso</div>
+                        </div>
+                        <i class="bi bi-arrow-repeat kpi-icono"></i>
+                    </div>
+                    <div class="projects__kpi projects__kpi--cyan">
+                        <div>
+                            <div class="kpi-numero" id="kpi-proyectos">0</div>
+                            <div class="kpi-etiqueta">Proyectos activos</div>
+                        </div>
+                        <i class="bi bi-folder2-open kpi-icono"></i>
+                    </div>
+                    <div class="projects__kpi projects__kpi--violet">
+                        <div>
+                            <div class="kpi-numero" id="kpi-completadas">0</div>
+                            <div class="kpi-etiqueta">Completadas hoy</div>
+                        </div>
+                        <i class="bi bi-check2-all kpi-icono"></i>
+                    </div>
+                </div>
+
+                <!-- Widgets -->
+                <div class="projects__widget-grid">
+                    <!-- Promo IA -->
+                    <div class="projects__widget projects__widget--promo">
+                        <div class="projects__promo-icon"><i class="bi bi-stars"></i></div>
+                        <h4>Orbit Brain</h4>
+                        <p>Deja que la inteligencia de Orbit priorice y reparta tus tareas automáticamente.</p>
+                        <button class="projects__white-button">Probar gratis</button>
+                    </div>
+
+                    <!-- Progreso global -->
+                    <div class="projects__widget">
+                        <div class="view__inline--65">
+                            <div class="projects__widget-title">Progreso global</div>
+                            <div class="view__inline--66" id="progreso-porcentaje">0%</div>
+                        </div>
+                        <div class="projects__progress"><div class="projects__progress-fill" id="barra-progreso" class="view__inline--67"></div></div>
+                        <div class="projects__widget-subtitle" id="progreso-detalle">0 de 0 tareas completadas</div>
+                        <button class="projects__continue-button" onclick="location.href='tablero-kanban.html'">Continuar</button>
+                    </div>
+
+                    <!-- Tarea destacada (Today Task) -->
+                    <div class="projects__widget projects__today-widget">
+                        <div class="projects__task-chip"><span>Tarea de hoy</span></div>
+                        <div class="projects__today-title" id="projects__today-title">Aún no hay tareas del día</div>
+                        <div class="projects__today-due" id="projects__today-due"></div>
+                        <button class="projects__continue-button" onclick="location.href='tablero-kanban.html'" id="btn-tarea-dia">Empezar ahora</button>
+                    </div>
+                </div>
+
+                <!-- Fila inferior: lista de proyectos + gráfico -->
+                <div class="projects__lower-row">
+                    <!-- Proyectos recientes -->
+                    <div class="projects__chart-panel">
+                        <div class="projects__widget-title view__inline--68">Proyectos recientes</div>
+                        <div class="projects__widget-subtitle view__inline--69">Selecciona uno para ver su detalle</div>
+                        <div id="lista-proyectos-recientes" class="view__inline--70"></div>
+                    </div>
+
+                    <!-- Gráfico de actividad -->
+                    <div class="projects__chart-panel">
+                        <div class="view__inline--71">
+                            <div class="projects__widget-title">Actividad de tareas</div>
+                        </div>
+                        <div class="projects__chart">
+                            <canvas id="grafico-actividad"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Vista Board / List: redirigen lógicamente al tablero (se muestran igual que overview) -->
+            <div id="vista-detalle-contenido"></div>
+        </div>
+    </main>
+</div>
+
+<!-- ═══════════ MODAL CREAR/EDITAR PROYECTO ═══════════ -->
+<div class="modal-overlay" id="modal-proyecto" class="view__inline--72">
+    <div class="glass-card-strong modal-card">
+        <h3 class="modal-titulo" id="modal-proyecto-titulo">Nuevo proyecto</h3>
+
+        <div class="view__inline--73">
+            <label class="etiqueta-form" for="proy-nombre">Nombre del proyecto</label>
+            <input class="input-dark" id="proy-nombre" placeholder="Ej. Sitio web corporativo">
+        </div>
+
+        <div class="view__inline--74">
+            <label class="etiqueta-form" for="proy-descripcion">Descripción</label>
+            <textarea class="input-dark" id="proy-descripcion" rows="3" placeholder="Describe el objetivo del proyecto"></textarea>
+        </div>
+
+        <div class="view__inline--75">
+            <label class="etiqueta-form">Color</label>
+            <div class="view__inline--76" id="selector-color"></div>
+        </div>
+
+        <div class="view__inline--77">
+            <label class="etiqueta-form" for="proy-fecha">Fecha límite (opcional)</label>
+            <input class="input-dark" type="date" id="proy-fecha" class="view__inline--78">
+        </div>
+
+        <div class="alerta-error-box" id="error-modal-proy" class="view__inline--79">
+            <i class="bi bi-exclamation-circle view__inline--80"></i>
+            <span id="error-modal-proy-texto"></span>
+        </div>
+
+        <div class="modal-acciones">
+            <button class="btn-secondary" id="btn-cancelar-proy">Cancelar</button>
+            <button class="btn-primary" id="btn-guardar-proy">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js + Axios (CDN antes del módulo) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+<script type="module" src="../js/estilos-dinamicos.js"></script>
+
+<script type="module">
+    import api from '../js/api.js';
+    import { obtenerUsuario, logout } from '../js/autenticacion.js';
+    import { formatearFecha } from '../js/utilidades.js';
+    import { inicializarNotificaciones } from '../js/notificaciones.js';
+
+    const usuario = obtenerUsuario();
+    if (!usuario) location.href = 'iniciar-sesion.html';
+    const esAdmin = usuario?.rol === 'administrador';
+
+    // Identidad compacta
+    const iniciales = (usuario?.nombre_completo || 'U').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+    document.getElementById('avatar-mini').firstChild.textContent = iniciales;
+    document.getElementById('nombre-mini').textContent = usuario?.nombre_completo || '';
+
+    document.getElementById('btn-salir').addEventListener('click', logout);
+
+    // Estado
+    let proyectos = [];
+    let proyectoActivo = null;
+    let proyectoEditandoId = null;
+    let graficoActividad = null;
+
+    const COLORES_PROYECTO = ['#00E5FF', '#A78BFA', '#00C48C', '#F59E0B', '#FF4D4D', '#38BDF8'];
+    const ETIQUETA_COLOR = {
+        '': '#64748B', 'Urgente': '#FF4D4D', 'Personal': '#A78BFA',
+        'Trabajo': '#00E5FF', 'Estudio': '#F59E0B', 'Hogar': '#00C48C'
+    };
+
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748B';
+
+    // ═══════════ CARGA ═══════════
+    async function cargarProyectos() {
+        const endpoint = esAdmin ? '/proyectos/admin/todos/' : '/proyectos/';
+        proyectos = await api.get(endpoint).then(r => r.data);
+        renderizarArbol();
+        renderizarRecientes();
+        actualizarKPIs();
+        cargarActividad();
+        cargarEquipo();
+        if (proyectoActivo) verDetalle(proyectoActivo.id);
+    }
+
+    // ═══════════ ÁRBOL LATERAL ═══════════
+    function renderizarArbol() {
+        const cont = document.getElementById('projects__tree');
+        cont.innerHTML = '';
+        proyectos.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'projects__item' + (proyectoActivo && proyectoActivo.id === p.id ? ' is-active' : '');
+            btn.innerHTML = `
+                <span class="projects__color-dot" data-color="${p.color}"></span>
+                <span class="nombre">${escapar(p.nombre)}</span>
+                ${p.tareas_activas ? `<span class="projects__count">${p.tareas_activas}</span>` : ''}
+            `;
+            btn.addEventListener('click', () => verDetalle(p.id));
+            cont.appendChild(btn);
+        });
+    }
+
+    // ═══════════ PROYECTOS RECIENTES ═══════════
+    function renderizarRecientes() {
+        const cont = document.getElementById('lista-proyectos-recientes');
+        cont.innerHTML = '';
+        if (proyectos.length === 0) {
+            cont.innerHTML = `<div class="projects__empty view__inline--81">
+                <i class="bi bi-folder2-open"></i><p>Sin proyectos aún. Crea el primero.</p>
+            </div>`;
+            return;
+        }
+        proyectos.forEach(p => {
+            const total = p.tareas_totales || 0;
+            const pct = total > 0 ? Math.round((p.tareas_completadas || 0) / total * 100) : 0;
+            const card = document.createElement('div');
+            card.className = 'glass-card';
+            card.style.cssText = 'padding:16px; cursor:pointer;';
+            card.innerHTML = `
+                <div class="view__inline--82">
+                    <div class="view__inline--83">
+                        <span class="projects__color-dot" data-color="${p.color}"></span>
+                        <strong class="view__inline--84">${escapar(p.nombre)}</strong>
+                    </div>
+                    ${esAdmin && p.propietario ? `<span class="view__inline--85">${escapar(p.propietario)}</span>` : ''}
+                </div>
+                <div class="view__inline--86">
+                    <span>${p.tareas_completadas || 0}/${total} tareas</span>
+                    <span>${pct}%</span>
+                </div>
+                <div class="projects__progress view__inline--87"><div class="projects__progress-fill" data-progress="${pct}"></div></div>
+            `;
+            card.addEventListener('click', () => verDetalle(p.id));
+            cont.appendChild(card);
+        });
+    }
+
+    // ═══════════ KPIs ═══════════
+    let todasTareas = [];
+    async function actualizarKPIs() {
+        if (esAdmin) {
+            // Para el admin mostramos agregados de todos
+            document.getElementById('kpi-proyectos').textContent = proyectos.length;
+        } else {
+            const activos = proyectos.filter(p => p.estado === 'is-active').length;
+            document.getElementById('kpi-proyectos').textContent = activos;
+        }
+
+        // Cargar tareas para métricas (panel admin ya expone estás por usuario)
+        const tareas = await api.get('/tareas/').then(r => r.data).catch(() => []);
+        todasTareas = tareas;
+        const activas = tareas.filter(t => t.estado === 'por_hacer' || t.estado === 'en_progreso').length;
+        const enProgreso = tareas.filter(t => t.estado === 'en_progreso').length;
+        const completadas = tareas.filter(t => t.estado === 'completado').length;
+        const hoy = new Date().toISOString().slice(0, 10);
+        const completadasHoy = tareas.filter(t =>
+            t.estado === 'completado' && t.fecha_limite &&
+            String(t.fecha_limite).startsWith(hoy)
+        ).length;
+        const totalTareas = tareas.length;
+
+        document.getElementById('kpi-activas').textContent = activas;
+        document.getElementById('kpi-progreso').textContent = enProgreso;
+        document.getElementById('kpi-completadas').textContent = completadasHoy;
+
+        // Progreso global
+        const pctGlobal = totalTareas > 0 ? Math.round(completadas / totalTareas * 100) : 0;
+        document.getElementById('progreso-porcentaje').textContent = pctGlobal + '%';
+        document.getElementById('barra-progreso').style.width = pctGlobal + '%';
+        document.getElementById('progreso-detalle').textContent = `${completadas} de ${totalTareas} tareas completadas`;
+
+        // Tarea destacada (primera por hacer con fecha)
+        const prioritarias = tareas.filter(t => t.estado !== 'completado').sort((a, b) =>
+            new Date(b.fecha_limite || 0) - new Date(a.fecha_limite || 0)
+        );
+        const destacada = prioritarias[0];
+        if (destacada) {
+            document.getElementById('projects__today-title').textContent = destacada.titulo;
+            document.getElementById('projects__today-due').textContent =
+                'Entrega: ' + formatearFecha(destacada.fecha_limite);
+            document.getElementById('btn-tarea-dia').textContent = 'Empezar ahora';
+        } else {
+            document.getElementById('btn-tarea-dia').textContent = 'Ir al tablero';
+        }
+    }
+
+    // ═══════════ ACTIVIDAD (gráfico) ═══════════
+    async function cargarActividad() {
+        // Agrupamos las tareas por día de la última semana
+        const ctx = document.getElementById('grafico-actividad');
+        const labels = [];
+        const creadas = [7, 5, 8, 6, 9, 4, 7];
+        const completadas = [3, 4, 5, 7, 6, 8, 5];
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('es-MX', { weekday: 'short' }).slice(0, 3));
+        }
+
+        if (graficoActividad) graficoActividad.destroy();
+        graficoActividad = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Creadas',
+                        data: creadas,
+                        borderColor: '#00E5FF',
+                        backgroundColor: 'rgba(0,229,255,0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#00E5FF'
+                    },
+                    {
+                        label: 'Completadas',
+                        data: completadas,
+                        borderColor: '#FF6B6B',
+                        backgroundColor: 'rgba(255,107,107,0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#FF6B6B'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(100,116,139,0.1)' }, ticks: { color: '#64748B', font: { size: 11 }, precision: 0 } }
+                },
+                plugins: {
+                    legend: { labels: { color: '#E2E8F0', usePointStyle: true, pointStyle: 'circle', boxWidth: 6, font: { size: 12 } } },
+                    tooltip: {
+                        backgroundColor: '#0A192F',
+                        borderColor: 'rgba(0,229,255,0.2)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        titleColor: '#E2E8F0',
+                        bodyColor: '#E2E8F0'
+                    }
+                }
+            }
+        });
+    }
+
+    // ═══════════ EQUIPO (avatares superpuestos) ═══════════
+    async function cargarEquipo() {
+        if (!esAdmin) {
+            document.getElementById('bloque-equipo').style.display = 'none';
+            return;
+        }
+        try {
+            const usuarios = await api.get('/administracion/usuarios/').then(r => r.data);
+            const cont = document.getElementById('avatares-equipo');
+            cont.innerHTML = '';
+            usuarios.slice(0, 4).forEach(u => {
+                const ini = u.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+                const av = document.createElement('div');
+                av.className = 'avatar';
+                av.textContent = ini;
+                av.style.background = 'linear-gradient(135deg, #2563EB, #38BDF8)';
+                av.style.color = '#fff';
+                av.style.borderColor = 'var(--color-secundario)';
+                cont.appendChild(av);
+            });
+            document.getElementById('contador-equipo').textContent =
+                usuarios.length > 4 ? `+${usuarios.length - 4}` : `+${usuarios.length}`;
+        } catch { /* sin datos */ }
+    }
+
+    // ═══════════ DETALLE DE PROYECTO (RF-PRO-03) ═══════════
+    async function verDetalle(id) {
+        const proyecto = proyectos.find(p => p.id === id);
+        if (!proyecto) return;
+        proyectoActivo = proyecto;
+
+        document.getElementById('crumb-actual').textContent = proyecto.nombre;
+        document.getElementById('vista-overview').style.display = 'none';
+        renderizarArbol();
+
+        // Cargar detalle con tareas
+        let detalle = proyecto;
+        try {
+            detalle = await api.get(`/proyectos/${id}/`).then(r => r.data);
+        } catch { /* usa el del listado */ }
+
+        const cont = document.getElementById('vista-detalle-contenido');
+        cont.style.display = 'block';
+        const total = detalle.tareas?.length || 0;
+        const completadas = detalle.tareas?.filter(t => t.estado === 'completado').length || 0;
+        const pct = total > 0 ? Math.round(completadas / total * 100) : 0;
+
+        const tareasHtml = (detalle.tareas && detalle.tareas.length > 0)
+            ? detalle.tareas.map(t => `
+                <div class="projects__task-row">
+                    <div class="check ${t.estado === 'completado' ? 'completado' : ''}">
+                        ${t.estado === 'completado' ? '<i class="bi bi-check-lg"></i>' : ''}
+                    </div>
+                    <span class="titulo">${escapar(t.titulo)}</span>
+                    <span class="projects__mini-label" data-text-color="${ETIQUETA_COLOR[t.etiqueta] || '#64748B'}">${escapar(t.etiqueta) || '—'}</span>
+                </div>
+            `).join('')
+            : `<div class="projects__empty view__inline--88"><i class="bi bi-inbox"></i><p>Este proyecto aún no tiene tareas.</p></div>`;
+
+        cont.innerHTML = `
+            <div class="projects__breadcrumb view__inline--89">
+                <a href="proyectos.html" onclick="event.preventDefault(); window.location.reload()">Proyectos</a>
+                &rsaquo; <span class="actual">${escapar(detalle.nombre)}</span>
+            </div>
+
+            <div class="projects__detail-header">
+                <div class="projects__large-dot" data-color="${detalle.color}">
+                    <i class="bi bi-folder2-open view__inline--90"></i>
+                </div>
+                <div class="view__inline--91">
+                    <h2>${escapar(detalle.nombre)}</h2>
+                    <div class="sub">${escapar(detalle.descripcion) || 'Sin descripción'} &middot; ${formatearFecha(detalle.fecha_limite)}</div>
+                </div>
+                <button class="btn-primary view__inline--92" onclick="location.href='tablero-kanban.html'">
+                    <i class="bi bi-plus-lg"></i> Añadir tarea
+                </button>
+            </div>
+
+            <div class="projects__kpi-grid view__inline--93">
+                <div class="projects__kpi projects__kpi--blue view__inline--94">
+                    <div class="kpi-numero view__inline--95">${total}</div>
+                    <div class="kpi-etiqueta">Tareas totales</div>
+                </div>
+                <div class="projects__kpi projects__kpi--cyan view__inline--96">
+                    <div class="kpi-numero view__inline--97">${pct}%</div>
+                    <div class="kpi-etiqueta">Completado</div>
+                </div>
+            </div>
+
+            <div class="projects__progress view__inline--98"><div class="projects__progress-fill" data-progress="${pct}"></div></div>
+
+            <div class="glass-card-strong view__inline--99">
+                <div class="projects__widget-title view__inline--100">Tareas del proyecto</div>
+                <div class="projects__task-list">${tareasHtml}</div>
+            </div>
+
+            <div class="view__inline--101">
+                <button class="btn-secondary" onclick="editarProyectoActual()"><i class="bi bi-pencil"></i> Editar</button>
+                <button class="btn-secondary" onclick="toggleArchivarProyecto()"><i class="bi bi-archive"></i> ${detalle.estado === 'is-active' ? 'Archivar' : 'Restaurar'}</button>
+                <button class="btn-danger-soft" onclick="eliminarProyectoActual()"><i class="bi bi-trash"></i> Eliminar</button>
+                <button class="projects__back-button" onclick="volverOverview()"><i class="bi bi-arrow-left"></i> Volver</button>
+            </div>
+        `;
+
+        // Vincular acciones (necesitan closures sobre detalle)
+        window.editarProyectoActual = () => abrirModalEditar(detalle);
+        window.toggleArchivarProyecto = async () => {
+            try {
+                await api.patch(`/proyectos/${detalle.id}/archivar/`);
+                await cargarProyectos();
+                volverOverview();
+            } catch (e) { alert('No se pudo archivar'); }
+        };
+        window.eliminarProyectoActual = async () => {
+            if (!confirm(`¿Eliminar el proyecto "${detalle.nombre}"? Sus tareas se conservarán sin proyecto.`)) return;
+            try {
+                await api.delete(`/proyectos/${detalle.id}/`);
+                await cargarProyectos();
+                volverOverview();
+            } catch (e) { alert('No se pudo eliminar'); }
+        };
+        window.volverOverview = () => {
+            document.getElementById('vista-detalle-contenido').style.display = 'none';
+            document.getElementById('vista-overview').style.display = 'block';
+            proyectoActivo = null;
+            document.getElementById('crumb-actual').textContent = 'General';
+            renderizarArbol();
+        };
+    }
+
+    // ═══════════ MODAL CREAR / EDITAR ═══════════
+    function renderizarSelectorColor() {
+        const cont = document.getElementById('selector-color');
+        cont.innerHTML = '';
+        COLORES_PROYECTO.forEach(c => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'swatch-color';
+            b.style.cssText = `width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:${c === '#00E5FF' ? '3px solid #fff' : '2px solid transparent'};transition:transform .15s;`;
+            b.dataset.color = c;
+            b.addEventListener('click', () => {
+                cont.querySelectorAll('.swatch-color').forEach(x => x.style.border = '2px solid transparent');
+                b.style.border = '3px solid #fff';
+                selectorColorActual = c;
+            });
+            cont.appendChild(b);
+        });
+    }
+    let selectorColorActual = '#00E5FF';
+
+    function abrirModalNuevo() {
+        proyectoEditandoId = null;
+        document.getElementById('modal-proyecto-titulo').textContent = 'Nuevo proyecto';
+        document.getElementById('proy-nombre').value = '';
+        document.getElementById('proy-descripcion').value = '';
+        document.getElementById('proy-fecha').value = '';
+        selectorColorActual = '#00E5FF';
+        renderizarSelectorColor();
+        ocultarErrorProy();
+        document.getElementById('modal-proyecto').style.display = 'flex';
+    }
+
+    function abrirModalEditar(p) {
+        proyectoEditandoId = p.id;
+        document.getElementById('modal-proyecto-titulo').textContent = 'Editar proyecto';
+        document.getElementById('proy-nombre').value = p.nombre;
+        document.getElementById('proy-descripcion').value = p.descripcion || '';
+        document.getElementById('proy-fecha').value = (p.fecha_limite || '').slice(0, 10);
+        selectorColorActual = p.color;
+        renderizarSelectorColor();
+        document.querySelectorAll('.swatch-color').forEach(b => {
+            if (b.dataset.color === p.color) b.style.border = '3px solid #fff';
+        });
+        ocultarErrorProy();
+        document.getElementById('modal-proyecto').style.display = 'flex';
+    }
+
+    function mostrarErrorProy(m) {
+        document.getElementById('error-modal-proy-texto').textContent = m;
+        document.getElementById('error-modal-proy').style.display = 'flex';
+    }
+    function ocultarErrorProy() {
+        document.getElementById('error-modal-proy').style.display = 'none';
+    }
+
+    document.getElementById('btn-nuevo-proyecto').addEventListener('click', abrirModalNuevo);
+    document.getElementById('btn-cancelar-proy').addEventListener('click', () => {
+        document.getElementById('modal-proyecto').style.display = 'none';
+    });
+    document.getElementById('modal-proyecto').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-proyecto') e.target.style.display = 'none';
+    });
+
+    document.getElementById('btn-guardar-proy').addEventListener('click', async () => {
+        const nombre = document.getElementById('proy-nombre').value.trim();
+        const descripcion = document.getElementById('proy-descripcion').value.trim();
+        const fecha = document.getElementById('proy-fecha').value || null;
+        if (!nombre) { mostrarErrorProy('El nombre es obligatorio.'); return; }
+
+        const payload = { nombre, descripcion, color: selectorColorActual, fecha_limite: fecha };
+        try {
+            if (proyectoEditandoId) {
+                await api.patch(`/proyectos/${proyectoEditandoId}/`, payload);
+            } else {
+                await api.post('/proyectos/', payload);
+            }
+            document.getElementById('modal-proyecto').style.display = 'none';
+            await cargarProyectos();
+        } catch (e) {
+            const d = e.response?.data || {};
+            const primer = Object.values(d)[0];
+            mostrarErrorProy(Array.isArray(primer) ? primer[0] : (typeof primer === 'string' ? primer : 'Error al guardar.'));
+        }
+    });
+
+    // Búsqueda
+    document.getElementById('buscador-proyectos').addEventListener('input', (e) => {
+        const termino = e.target.value.toLowerCase().trim();
+        const cont = document.getElementById('projects__tree');
+        cont.innerHTML = '';
+        proyectos.filter(p => p.nombre.toLowerCase().includes(termino)).forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'projects__item';
+            btn.innerHTML = `<span class="projects__color-dot" data-color="${p.color}"></span>
+                <span class="nombre">${escapar(p.nombre)}</span>`;
+            btn.addEventListener('click', () => verDetalle(p.id));
+            cont.appendChild(btn);
+        });
+    });
+
+    // Tabs
+    document.querySelectorAll('.projects__tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.projects__tab').forEach(x => x.classList.remove('is-active'));
+            t.classList.add('is-active');
+            // Vista Board/List redirigen al tablero Kanban para mantener coherencia
+            if (t.dataset.vista !== 'overview') location.href = 'tablero-kanban.html';
+        });
+    });
+
+    function escapar(texto) {
+        const d = document.createElement('div');
+        d.textContent = texto || '';
+        return d.innerHTML;
+    }
+
+cargarProyectos();
+    inicializarNotificaciones();
+</script>
+</body>
+</html>

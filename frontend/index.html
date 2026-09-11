@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit — Tus ideas en órbita</title>
+
+    <!-- Tipografía Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Estilos de Orbit -->
+    <link rel="stylesheet" href="css/orbit.css">
+    <link rel="stylesheet" href="css/componentes.css">
+    <link rel="stylesheet" href="css/vistas.css">
+</head>
+<body>
+<div class="landing__page">
+
+    <!-- Navbar -->
+    <nav class="landing__navbar" id="navbar-landing">
+        <div class="landing__brand">
+            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <span class="nombre-logo landing__brand-name">orbit</span>
+        </div>
+        <div class="landing__actions">
+            <button class="btn-secondary landing__button" onclick="location.href='vistas/iniciar-sesion.html'">Iniciar sesión</button>
+            <button class="btn-primary landing__button" onclick="location.href='vistas/registrarse.html'">Registrarse</button>
+        </div>
+    </nav>
+
+    <!-- Hero con órbitas animadas -->
+    <section class="landing__hero">
+        <div class="landing__orbits">
+            <!-- Anillos estáticos concéntricos -->
+            <div class="landing__orbit-ring landing__orbit-ring--small"></div>
+            <div class="landing__orbit-ring landing__orbit-ring--medium"></div>
+            <div class="landing__orbit-ring landing__orbit-ring--large"></div>
+            <div class="landing__orbit-ring landing__orbit-ring--xlarge"></div>
+
+            <!-- Planetas orbitando -->
+            <div class="landing__planet-wrapper landing__planet-wrapper--one">
+                <div class="landing__planet landing__planet--cyan landing__planet--large"></div>
+            </div>
+            <div class="landing__planet-wrapper landing__planet-wrapper--two">
+                <div class="landing__planet landing__planet--green landing__planet--medium"></div>
+            </div>
+            <div class="landing__planet-wrapper landing__planet-wrapper--three">
+                <div class="landing__planet landing__planet--cyan landing__planet--xlarge"></div>
+            </div>
+            <div class="landing__planet-wrapper landing__planet-wrapper--four">
+                <div class="landing__planet landing__planet--amber landing__planet--small"></div>
+            </div>
+        </div>
+
+        <div class="landing__content">
+            <div class="flotante-anim">
+                <h1 class="landing__title">
+                    Tus ideas en <span>órbita</span>,<br>tus tareas en acción
+                </h1>
+            </div>
+            <p class="landing__subtitle">
+                Orbit no es un gestor más. Captura tus ideas en un mapa mental
+                y conviértelas en tareas cuando estén listas. Tu progreso,
+                visualizado de forma creativa.
+            </p>
+            <button class="btn-primary glow-cyan landing__button--hero"
+                    onclick="location.href='vistas/registrarse.html'">
+                Comenzar gratis
+            </button>
+            <p class="landing__note">
+                Sin tarjeta de crédito. Sin complicaciones.
+            </p>
+        </div>
+    </section>
+
+    <!-- Características -->
+    <section class="landing__features">
+        <h2 class="landing__section-title">
+            ¿Qué hace Orbit diferente?
+        </h2>
+        <p class="landing__section-subtitle">
+            Herramientas pensadas para mentes creativas
+        </p>
+
+        <div class="landing__feature-grid">
+            <div class="glass-card landing__feature">
+                <i class="bi bi-kanban"></i>
+                <h3>Tablero Kanban visual</h3>
+                <p>Organiza tus tareas en columnas arrastrables: Por hacer, En progreso y Completado. Con etiquetas, fechas y filtros inteligentes.</p>
+            </div>
+
+            <div class="glass-card landing__feature">
+                <span class="landing__badge">Diferenciador</span>
+                <i class="bi bi-diagram-3"></i>
+                <h3>Mapa mental interactivo</h3>
+                <p>Captura tus ideas libremente en un mapa infinito y conviértelas en tareas con un clic. El verdadero diferenciador de Orbit.</p>
+            </div>
+
+            <div class="glass-card landing__feature">
+                <i class="bi bi-bar-chart-line"></i>
+                <h3>Estadísticas motivadoras</h3>
+                <p>Visualiza tu progreso de forma creativa con gráficos de distribución y barras de tareas completadas por semana.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA final -->
+    <section class="landing__cta">
+        <div class="landing__cta-box">
+            <h2>¿Listo para poner tus tareas en órbita?</h2>
+            <button class="btn-primary glow-cyan landing__button--hero"
+                    onclick="location.href='vistas/registrarse.html'">
+                Crear mi cuenta gratis
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing__footer">
+        <div class="landing__footer-brand">
+            <i class="bi bi-circle-half landing__footer-icon"></i>
+            <span class="landing__footer-name">orbit</span>
+        </div>
+        <p class="landing__copyright">
+            © 2025 Orbit · SAS
+        </p>
+    </footer>
+</div>
+
+<script>
+    // Efecto de navbar al hacer scroll
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar-landing').classList.toggle('con-scroll', window.scrollY > 40);
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
