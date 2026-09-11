@@ -6,8 +6,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
 
+from .api_root import api_root
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', api_root, name='api-root'),
     path('api/usuarios/', include('apps.usuarios.rutas')),
     path('api/tareas/', include('apps.tareas.rutas')),
     path('api/mapa-mental/', include('apps.mapa_mental.rutas')),
