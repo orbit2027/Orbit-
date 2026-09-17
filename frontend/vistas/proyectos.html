@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyectos — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,16 +13,15 @@
 
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
-    <link rel="stylesheet" href="../css/vistas.css">
-
-    
+    <link rel="stylesheet" href="../css/vistas.css"> 
 </head>
+
 <body>
 <div class="projects__layout">
 
     <!-- ═══════════ COL 1: BARRA DE ICONOS ═══════════ -->
     <aside class="projects__iconbar">
-        <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+        <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
 
         <button class="projects__icon-button" title="Tablero" onclick="location.href='tablero-kanban.html'">
             <i class="bi bi-kanban"></i>
@@ -41,6 +41,9 @@
 
         <div class="projects__icon-spacer"></div>
 
+        <button class="projects__icon-button" title="Mi perfil" onclick="location.href='perfil.html'">
+            <i class="bi bi-person-gear"></i>
+        </button>
         <button class="projects__icon-button" title="Cerrar sesión" id="btn-salir">
             <i class="bi bi-box-arrow-left"></i>
         </button>
@@ -204,7 +207,7 @@
 </div>
 
 <!-- ═══════════ MODAL CREAR/EDITAR PROYECTO ═══════════ -->
-<div class="modal-overlay" id="modal-proyecto" class="view__inline--72">
+<div class="modal-overlay" id="modal-proyecto">
     <div class="glass-card-strong modal-card">
         <h3 class="modal-titulo" id="modal-proyecto-titulo">Nuevo proyecto</h3>
 
@@ -250,6 +253,8 @@
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { formatearFecha } from '../js/utilidades.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
+    import { confirmar, alertar } from '../js/dialogos.js';
+    import { abrirDialogoCompartir } from '../js/compartir.js';
 
     const usuario = obtenerUsuario();
     if (!usuario) location.href = 'iniciar-sesion.html';
@@ -552,12 +557,22 @@
             </div>
 
             <div class="view__inline--101">
-                <button class="btn-secondary" onclick="editarProyectoActual()"><i class="bi bi-pencil"></i> Editar</button>
-                <button class="btn-secondary" onclick="toggleArchivarProyecto()"><i class="bi bi-archive"></i> ${detalle.estado === 'is-active' ? 'Archivar' : 'Restaurar'}</button>
-                <button class="btn-danger-soft" onclick="eliminarProyectoActual()"><i class="bi bi-trash"></i> Eliminar</button>
+                ${String(detalle.usuario) === String(usuario.id) ? `
+                    <button class="btn-secondary" data-accion="compartir"><i class="bi bi-people"></i> Compartir</button>
+                    <button class="btn-secondary" onclick="editarProyectoActual()"><i class="bi bi-pencil"></i> Editar</button>
+                    <button class="btn-secondary" onclick="toggleArchivarProyecto()"><i class="bi bi-archive"></i> ${detalle.estado === 'is-active' ? 'Archivar' : 'Restaurar'}</button>
+                    <button class="btn-danger-soft" onclick="eliminarProyectoActual()"><i class="bi bi-trash"></i> Eliminar</button>
+                ` : ''}
                 <button class="projects__back-button" onclick="volverOverview()"><i class="bi bi-arrow-left"></i> Volver</button>
             </div>
         `;
+
+        const btnCompartir = cont.querySelector('[data-accion="compartir"]');
+        if (btnCompartir) {
+            btnCompartir.addEventListener('click', () =>
+                abrirDialogoCompartir({ tipo: 'proyecto', objetoId: detalle.id, titulo: detalle.nombre })
+            );
+        }
 
         // Vincular acciones (necesitan closures sobre detalle)
         window.editarProyectoActual = () => abrirModalEditar(detalle);
@@ -566,15 +581,26 @@
                 await api.patch(`/proyectos/${detalle.id}/archivar/`);
                 await cargarProyectos();
                 volverOverview();
-            } catch (e) { alert('No se pudo archivar'); }
+            } catch (e) {
+                await alertar({ titulo: 'No se pudo archivar', mensaje: 'Inténtalo de nuevo en unos momentos.' });
+            }
         };
         window.eliminarProyectoActual = async () => {
-            if (!confirm(`¿Eliminar el proyecto "${detalle.nombre}"? Sus tareas se conservarán sin proyecto.`)) return;
+            const confirmado = await confirmar({
+                titulo: 'Eliminar proyecto',
+                mensaje: `¿Eliminar el proyecto "${detalle.nombre}"? Sus tareas se conservarán sin proyecto.`,
+                confirmarTexto: 'Eliminar',
+                cancelarTexto: 'Cancelar',
+                peligro: true
+            });
+            if (!confirmado) return;
             try {
                 await api.delete(`/proyectos/${detalle.id}/`);
                 await cargarProyectos();
                 volverOverview();
-            } catch (e) { alert('No se pudo eliminar'); }
+            } catch (e) {
+                await alertar({ titulo: 'No se pudo eliminar', mensaje: 'Inténtalo de nuevo en unos momentos.' });
+            }
         };
         window.volverOverview = () => {
             document.getElementById('vista-detalle-contenido').style.display = 'none';

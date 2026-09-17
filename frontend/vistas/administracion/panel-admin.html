@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +22,7 @@
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <div class="logo-orbit"><img src="../../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
             <span class="nombre-logo">orbit</span>
         </div>
 
@@ -31,6 +32,9 @@
             </button>
             <button class="sidebar-item" onclick="location.href='../proyectos.html'">
                 <i class="bi bi-folder2-open"></i><span>Proyectos</span>
+            </button>
+            <button class="sidebar-item" onclick="location.href='../perfil.html'">
+                <i class="bi bi-person-gear"></i><span>Perfil</span>
             </button>
         </nav>
 
@@ -42,8 +46,7 @@
                     <span class="badge-admin">Administrador</span>
                 </div>
             </div>
-            <button class="btn-secondary" id="btn-cerrar-sesion"
-                    class="view__inline--132">
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
                 <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
             </button>
         </div>
@@ -117,8 +120,7 @@
                             <i class="bi bi-search"></i>
                             <input class="input-dark" id="buscador-usuarios" placeholder="Buscar usuario">
                         </div>
-                        <button class="btn-primary" id="btn-crear-usuario"
-                                class="view__inline--145">
+                        <button class="btn-primary btn-accion-topbar" id="btn-crear-usuario">
                             <i class="bi bi-plus"></i> Crear usuario
                         </button>
                     </div>
@@ -144,8 +146,8 @@
                 <div class="view__inline--147">
                     <span class="view__inline--148" id="info-paginacion"></span>
                     <div class="view__inline--149">
-                        <button class="btn-secondary" id="btn-pagina-anterior" class="view__inline--150">Anterior</button>
-                        <button class="btn-secondary" id="btn-pagina-siguiente" class="view__inline--151">Siguiente</button>
+                        <button class="btn-secondary btn-accion-compacta" id="btn-pagina-anterior">Anterior</button>
+                        <button class="btn-secondary btn-accion-compacta" id="btn-pagina-siguiente">Siguiente</button>
                     </div>
                 </div>
             </div>
@@ -164,7 +166,7 @@
 </div>
 
 <!-- ═══════════ MODAL CREAR/EDITAR USUARIO ═══════════ -->
-<div class="modal-overlay" id="modal-usuario" class="view__inline--154">
+<div class="modal-overlay" id="modal-usuario">
     <div class="glass-card-strong modal-card">
         <h3 class="modal-titulo" id="modal-usuario-titulo">Crear usuario</h3>
 
@@ -186,14 +188,14 @@
 
         <div class="view__inline--158">
             <label class="etiqueta-form" for="usuario-rol">Rol</label>
-            <select class="input-dark" id="usuario-rol" class="view__inline--159">
+            <select class="input-dark" id="usuario-rol">
                 <option value="usuario">Usuario</option>
                 <option value="administrador">Administrador</option>
             </select>
         </div>
 
-        <div class="alerta-error-box" id="error-modal-usuario" class="view__inline--160">
-            <i class="bi bi-exclamation-circle view__inline--161"></i>
+        <div class="alerta-error-box" id="error-modal-usuario">
+            <i class="bi bi-exclamation-circle"></i>
             <span id="error-modal-texto"></span>
         </div>
 
@@ -205,8 +207,8 @@
 </div>
 
 <!-- Modal: Detalle de usuario -->
-<div class="modal-overlay" id="modal-detalle" class="view__inline--162">
-    <div class="glass-card-strong modal-card view__inline--163">
+<div class="modal-overlay" id="modal-detalle">
+    <div class="glass-card-strong modal-card">
         <h3 class="modal-titulo">Detalle de usuario</h3>
         <div id="contenido-detalle"></div>
         <div class="modal-acciones">
@@ -225,6 +227,8 @@ import api from '../../js/api.js';
     import { obtenerUsuario, logout } from '../../js/autenticacion.js';
     import { formatearFecha } from '../../js/utilidades.js';
     import { inicializarNotificaciones } from '../../js/notificaciones.js';
+    import { confirmar } from '../../js/dialogos.js';
+    import { inicializarMenuMovil } from '../../js/menu-movil.js';
 
     // Protección de ruta: solo administradores
     const admin = obtenerUsuario();
@@ -233,6 +237,7 @@ import api from '../../js/api.js';
     }
 
     inicializarNotificaciones();
+    inicializarMenuMovil();
 
     const iniciales = admin.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
     document.getElementById('avatar-admin').textContent = iniciales;
@@ -483,7 +488,14 @@ import api from '../../js/api.js';
     // ═══════════  ACTIVAR / DESACTIVAR (nunca se elimina) ═══════════
     async function alternarEstado(usuario) {
         const accion = usuario.activo ? 'desactivar' : 'activar';
-        if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${usuario.nombre_completo}?`)) return;
+        const confirmado = await confirmar({
+            titulo: accion === 'activar' ? 'Activar usuario' : 'Desactivar usuario',
+            mensaje: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} a ${usuario.nombre_completo}?`,
+            confirmarTexto: accion === 'activar' ? 'Activar' : 'Desactivar',
+            cancelarTexto: 'Cancelar',
+            peligro: accion !== 'activar'
+        });
+        if (!confirmado) return;
 
         try {
             await api.patch(`/administracion/usuarios/${usuario.id}/toggle/`);

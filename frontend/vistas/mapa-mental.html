@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi mapa mental — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +22,7 @@
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
             <span class="nombre-logo">orbit</span>
         </div>
 
@@ -38,6 +39,9 @@
             <button class="sidebar-item" onclick="location.href='estadisticas.html'">
                 <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
             </button>
+            <button class="sidebar-item" onclick="location.href='perfil.html'">
+                <i class="bi bi-person-gear"></i><span>Perfil</span>
+            </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -47,7 +51,7 @@
                     <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
                 </div>
             </div>
-            <button class="btn-secondary" id="btn-cerrar-sesion">
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
                 <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
             </button>
         </div>
@@ -182,7 +186,7 @@
         </div>
 
         <div>
-            <label class="etiqueta-form" for="convertir-fecha">Fecha límite (opcional)</label>
+            <label class="etiqueta-form" for="convertir-fecha">Fecha límite</label>
             <input class="input-dark" type="date" id="convertir-fecha">
         </div>
 
@@ -201,6 +205,8 @@
     import api from '../js/api.js';
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
+    import { confirmar, alertar, preguntarTexto } from '../js/dialogos.js';
+    import { inicializarMenuMovil } from '../js/menu-movil.js';
 
     const COLORES = ['#00E5FF', '#00C48C', '#F59E0B', '#FF4D4D', '#A78BFA', '#64748B'];
     const COLORES_ETIQUETA = {
@@ -496,7 +502,14 @@
     }
 
     async function eliminarNodo(id) {
-        if (!confirm('¿Eliminar esta idea y sus conexiones?')) return;
+        const confirmado = await confirmar({
+            titulo: 'Eliminar idea',
+            mensaje: '¿Eliminar esta idea y sus conexiones?',
+            confirmarTexto: 'Eliminar',
+            cancelarTexto: 'Cancelar',
+            peligro: true
+        });
+        if (!confirmado) return;
         try {
             await api.delete(`/mapa-mental/nodos/${id}/`);
             nodos = nodos.filter(n => n.id !== id);
@@ -539,9 +552,17 @@
 
     // ═══════════ EDICIÓN DE TEXTO ═══════════
     function editarTextoNodo(nodo) {
-        const nuevoTexto = prompt('Editar idea:', nodo.texto);
-        if (nuevoTexto === null || !nuevoTexto.trim()) return;
-        actualizarNodo(nodo.id, { texto: nuevoTexto.trim() });
+        preguntarTexto({
+            titulo: 'Editar idea',
+            mensaje: '¿Cómo quieres llamar a esta idea?',
+            valorInicial: nodo.texto,
+            placeholder: 'Escribe la idea',
+            confirmarTexto: 'Guardar',
+            cancelarTexto: 'Cancelar'
+        }).then((nuevoTexto) => {
+            if (nuevoTexto === null || !nuevoTexto.trim()) return;
+            actualizarNodo(nodo.id, { texto: nuevoTexto.trim() });
+        });
     }
 
     async function actualizarNodo(id, datos) {
@@ -644,7 +665,10 @@
     // ═══════════ RF-MAP-06: CONVERTIR EN TAREA ═══════════
     function abrirModalConvertir(nodo) {
         if (nodo.convertido_en_tarea) {
-            alert('Esta idea ya fue convertida en tarea.');
+            alertar({
+                titulo: 'Ya convertida',
+                mensaje: 'Esta idea ya fue convertida en tarea.'
+            });
             return;
         }
         nodoParaConvertir = nodo;
@@ -713,6 +737,7 @@
     // Carga inicial
     cargarMapa();
     inicializarNotificaciones();
+    inicializarMenuMovil();
 </script>
 </body>
 </html>

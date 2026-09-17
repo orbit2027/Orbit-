@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi progreso — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +22,7 @@
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
             <span class="nombre-logo">orbit</span>
         </div>
 
@@ -38,6 +39,9 @@
             <button class="sidebar-item active" onclick="location.href='estadisticas.html'">
                 <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
             </button>
+            <button class="sidebar-item" onclick="location.href='perfil.html'">
+                <i class="bi bi-person-gear"></i><span>Perfil</span>
+            </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -47,8 +51,7 @@
                     <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
                 </div>
             </div>
-            <button class="btn-secondary" id="btn-cerrar-sesion"
-                    class="view__inline--2">
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
                 <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
             </button>
         </div>
@@ -151,6 +154,7 @@
     import api from '../js/api.js';
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
+    import { inicializarMenuMovil } from '../js/menu-movil.js';
 
     let graficoDona = null;
     let graficoBarras = null;
@@ -166,10 +170,10 @@
 
     // Mensajes motivacionales según porcentaje de avance
     function obtenerMotivacion(porcentaje) {
-        if (porcentaje <= 30) return { texto: 'Cada gran viaje comienza con el primer paso', emoji: '🚀' };
-        if (porcentaje <= 70) return { texto: 'Vas por buen camino, ¡sigue en órbita!', emoji: '⭐' };
-        if (porcentaje < 100) return { texto: '¡Casi lo logras, la meta está cerca!', emoji: '✨' };
-        return { texto: '¡Misión cumplida, eres increíble!', emoji: '🎉' };
+        if (porcentaje <= 30) return { texto: 'Cada gran viaje comienza con el primer paso' };
+        if (porcentaje <= 70) return { texto: 'Vas por buen camino, ¡sigue en órbita!'};
+        if (porcentaje < 100) return { texto: '¡Casi lo logras, la meta está cerca!' };
+        return { texto: '¡Misión cumplida, eres increíble!' };
     }
 
     // Configuración global de Chart.js con la tipografía de Orbit
@@ -337,6 +341,7 @@
     document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
 
     inicializarNotificaciones();
+    inicializarMenuMovil();
     cargarEstadisticas();
 </script>
 </body>

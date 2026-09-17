@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi tablero — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +22,7 @@
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-orbit"><i class="bi bi-circle-half"></i></div>
+            <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
             <span class="nombre-logo">orbit</span>
         </div>
 
@@ -38,6 +39,9 @@
             <button class="sidebar-item" onclick="location.href='estadisticas.html'">
                 <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
             </button>
+            <button class="sidebar-item" onclick="location.href='perfil.html'">
+                <i class="bi bi-person-gear"></i><span>Perfil</span>
+            </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -47,8 +51,7 @@
                     <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
                 </div>
             </div>
-            <button class="btn-secondary" id="btn-cerrar-sesion"
-                    class="view__inline--103">
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
                 <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
             </button>
         </div>
@@ -63,8 +66,7 @@
                 <h1 class="topbar-titulo">Mi tablero</h1>
             </div>
             <div class="view__inline--105">
-                <button class="btn-primary" id="btn-nueva-tarea-topbar"
-                        class="view__inline--106">
+                <button class="btn-primary btn-accion-topbar" id="btn-nueva-tarea-topbar">
                     <i class="bi bi-plus"></i> Nueva tarea
                 </button>
                 <button class="campana-notificacion" id="campana-notificaciones"><i class="bi bi-bell"></i></button>
@@ -78,7 +80,7 @@
             <div class="view__inline--107">
                 <div>
                     <h2 class="view__inline--108">
-                        ¡Bienvenido, <span id="primer-nombre">Usuario</span>! 👋
+                        ¡Bienvenido, <span id="primer-nombre">Usuario</span>!
                     </h2>
                     <p class="view__inline--109">
                         Aquí están todas tus tareas activas
@@ -133,7 +135,7 @@
 </div>
 
 <!-- ═══════════ MODAL CREAR/EDITAR TAREA ═══════════ -->
-<div class="modal-overlay" id="modal-tarea" class="view__inline--117">
+<div class="modal-overlay" id="modal-tarea">
     <div class="glass-card-strong modal-card" id="modal-tarea-caja">
         <h3 class="modal-titulo" id="modal-tarea-titulo">Nueva tarea</h3>
 
@@ -185,6 +187,9 @@
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { formatearFecha } from '../js/utilidades.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
+    import { confirmar } from '../js/dialogos.js';
+    import { inicializarMenuMovil } from '../js/menu-movil.js';
+    import { abrirDialogoCompartir } from '../js/compartir.js';
 
     // Colores oficiales por etiqueta
     const COLORES_ETIQUETA = {
@@ -264,9 +269,11 @@
 
     function crearTarjeta(tarea) {
         const color = COLORES_ETIQUETA[tarea.etiqueta] || '#00E5FF';
+        const esPropietario = usuario && String(tarea.usuario) === String(usuario.id);
         const div = document.createElement('div');
         div.className = 'kanban-card glass-card';
         div.dataset.id = tarea.id;
+        if (!esPropietario) div.classList.add('kanban-card--ajena');
 
         div.innerHTML = `
             <div class="view__inline--127">
@@ -274,6 +281,10 @@
                     ${tarea.etiqueta}
                 </span>
                 <div class="view__inline--128">
+                    ${esPropietario ? `
+                        <button class="btn-share-tarea" data-accion="compartir" title="Compartir">
+                            <i class="bi bi-people"></i>
+                        </button>` : ''}
                     <button class="btn-menu-tarea view__inline--129">
                         <i class="bi bi-three-dots"></i>
                     </button>
@@ -293,26 +304,36 @@
             </div>
         `;
 
+        // Compartir (solo propietario)
+        const btnCompartir = div.querySelector('[data-accion="compartir"]');
+        if (btnCompartir) {
+            btnCompartir.addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirDialogoCompartir({ tipo: 'tarea', objetoId: tarea.id, titulo: tarea.titulo });
+            });
+        }
+
         // Menú contextual de la tarjeta
         div.querySelector('.btn-menu-tarea').addEventListener('click', (e) => {
             e.stopPropagation();
             cerrarMenus();
             menuAbiertoId = tarea.id;
-            const menu = crearMenuTarea(tarea);
+            const menu = crearMenuTarea(tarea, esPropietario);
             div.querySelector('.btn-menu-tarea').parentElement.appendChild(menu);
         });
 
         return div;
     }
 
-    function crearMenuTarea(tarea) {
+    function crearMenuTarea(tarea, esPropietario) {
         const menu = document.createElement('div');
         menu.className = 'menu-opciones';
         menu.innerHTML = `
             <button class="menu-opcion" data-opcion="editar"><i class="bi bi-pencil"></i> Editar tarea</button>
-            <button class="menu-opcion" data-opcion="eliminar" class="view__inline--130">
-                <i class="bi bi-trash"></i> Eliminar tarea
-            </button>
+            ${esPropietario ? `
+                <button class="menu-opcion" data-opcion="eliminar" style="color: var(--color-error);">
+                    <i class="bi bi-trash"></i> Eliminar tarea
+                </button>` : ''}
         `;
         menu.addEventListener('click', async (e) => {
             const opcion = e.target.closest('[data-opcion]')?.dataset.opcion;
@@ -342,6 +363,7 @@
             group: 'tareas',
             animation: 200,
             ghostClass: 'sortable-ghost',
+            filter: '.kanban-card--ajena',
             onEnd: async (evento) => {
                 const tareaId = evento.item.dataset.id;
                 const nuevoEstado = evento.to.dataset.lista;
@@ -471,7 +493,14 @@
 
     // ═══════════ ELIMINAR TAREA ═══════════
     async function eliminarTarea(id) {
-        if (!confirm('¿Eliminar esta tarea permanentemente?')) return;
+        const confirmado = await confirmar({
+            titulo: 'Eliminar tarea',
+            mensaje: '¿Eliminar esta tarea permanentemente?',
+            confirmarTexto: 'Eliminar',
+            cancelarTexto: 'Cancelar',
+            peligro: true
+        });
+        if (!confirmado) return;
         try {
             await api.delete(`/tareas/${id}/`);
             cargarTareas();
@@ -485,6 +514,7 @@
 
     // Carga inicial
     inicializarNotificaciones();
+    inicializarMenuMovil();
     cargarTareas();
     cargarProyectos();
 </script>
