@@ -25,7 +25,7 @@ def main():
     contrasena = "Proyecto123"
 
     # Registrar y loguear un usuario normal
-    r = requests.post(f"{BASE}/api/usuarios/registro/", json={
+    r = requests.post(f"{BASE}/api/v1/usuarios/registro/", json={
         'nombre_completo': 'Probador de Proyectos',
         'correo': correo, 'contrasena': contrasena, 'captcha_token': CAPTCHA,
     }, timeout=10)
@@ -34,7 +34,7 @@ def main():
     h = {'Authorization': f'Bearer {token}'}
 
     # RF-PRO-01: crear proyecto
-    r = requests.post(f"{BASE}/api/proyectos/", headers=h, json={
+    r = requests.post(f"{BASE}/api/v1/proyectos/", headers=h, json={
         'nombre': 'Sitio Web Corporativo',
         'descripcion': 'Rediseño del sitio principal',
         'color': '#00E5FF',
@@ -45,19 +45,19 @@ def main():
     verificar("Crear proyecto retorna id", bool(pid))
 
     # RF-PRO-02: listar proyectos propios
-    r = requests.get(f"{BASE}/api/proyectos/", headers=h, timeout=10)
+    r = requests.get(f"{BASE}/api/v1/proyectos/", headers=h, timeout=10)
     verificar("Listar proyectos propios",
               r.status_code == 200 and any(p['id'] == pid for p in r.json()),
               str(r.status_code))
 
     # Vincular una tarea a un proyecto
-    t = requests.post(f"{BASE}/api/tareas/", headers=h, json={
+    t = requests.post(f"{BASE}/api/v1/tareas/", headers=h, json={
         'titulo': 'Diseñar home', 'proyecto': pid,
     }, timeout=10)
     verificar("Crear tarea vinculada", t.status_code == 201, str(t.status_code))
 
     # RF-PRO-03: ver detalle con tareas y métricas
-    r = requests.get(f"{BASE}/api/proyectos/{pid}/", headers=h, timeout=10)
+    r = requests.get(f"{BASE}/api/v1/proyectos/{pid}/", headers=h, timeout=10)
     datos = r.json()
     verificar("Detalle proyecto con tareas",
               r.status_code == 200 and len(datos.get('tareas', [])) == 1 and
@@ -65,7 +65,7 @@ def main():
               f"tareas={len(datos.get('tareas', []))}, total={datos.get('tareas_totales')}")
 
     # RF-PRO-04: editar proyecto
-    r = requests.patch(f"{BASE}/api/proyectos/{pid}/", headers=h, json={
+    r = requests.patch(f"{BASE}/api/v1/proyectos/{pid}/", headers=h, json={
         'nombre': 'Sitio Web Corporativo v2'
     }, timeout=10)
     verificar("Editar proyecto", r.status_code == 200 and
@@ -73,21 +73,21 @@ def main():
               str(r.status_code))
 
     # Archivar / restaurar
-    r = requests.patch(f"{BASE}/api/proyectos/{pid}/archivar/", headers=h, timeout=10)
+    r = requests.patch(f"{BASE}/api/v1/proyectos/{pid}/archivar/", headers=h, timeout=10)
     verificar("Archivar proyecto", r.status_code == 200 and
               r.json().get('estado') == 'archivado')
-    r = requests.patch(f"{BASE}/api/proyectos/{pid}/archivar/", headers=h, timeout=10)
+    r = requests.patch(f"{BASE}/api/v1/proyectos/{pid}/archivar/", headers=h, timeout=10)
     verificar("Restaurar proyecto", r.status_code == 200 and
               r.json().get('estado') == 'activo')
 
     # RF-PRO-06: admin ve todos
-    admin = requests.post(f"{BASE}/api/usuarios/login/", json={
+    admin = requests.post(f"{BASE}/api/v1/usuarios/login/", json={
         'correo': 'admin@orbit.local', 'contrasena': 'Admin1234',
         'captcha_token': CAPTCHA,
     }, timeout=10)
     if admin.status_code == 200:
         ah = {'Authorization': f"Bearer {admin.json()['tokens']['access']}"}
-        r = requests.get(f"{BASE}/api/proyectos/admin/todos/", headers=ah, timeout=10)
+        r = requests.get(f"{BASE}/api/v1/proyectos/admin/todos/", headers=ah, timeout=10)
         verificar("Admin ve todos los proyectos",
                   r.status_code == 200 and any(p.get('id') == pid for p in r.json()),
                   str(r.status_code))
@@ -99,13 +99,13 @@ def main():
         verificar("Login admin", False, str(admin.status_code))
 
     # RF-PRO-06 bloqueado para usuario normal
-    r = requests.get(f"{BASE}/api/proyectos/admin/todos/", headers=h, timeout=10)
+    r = requests.get(f"{BASE}/api/v1/proyectos/admin/todos/", headers=h, timeout=10)
     verificar("Admin/todos bloqueado para usuario", r.status_code == 403, str(r.status_code))
 
     # RF-PRO-05: eliminar proyecto (la tarea debe quedar sin proyecto)
-    r = requests.delete(f"{BASE}/api/proyectos/{pid}/", headers=h, timeout=10)
+    r = requests.delete(f"{BASE}/api/v1/proyectos/{pid}/", headers=h, timeout=10)
     verificar("Eliminar proyecto", r.status_code == 200, str(r.status_code))
-    t = requests.get(f"{BASE}/api/tareas/", headers=h, timeout=10)
+    t = requests.get(f"{BASE}/api/v1/tareas/", headers=h, timeout=10)
     tarea = next((x for x in t.json() if x.get('proyecto') == '' and x.get('origen_nodo') == ''), None)
     verificar("Tarea desvinculada tras eliminar proyecto",
               t.status_code == 200 and tarea is not None)

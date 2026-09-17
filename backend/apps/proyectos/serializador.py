@@ -61,3 +61,32 @@ class ProyectoSerializador(serializers.Serializer):
             ),
             'usuario': str(instancia.usuario.id),
         }
+
+
+# ── Serializadores de salida (documentación OpenAPI) ──────────────────────
+
+class TareaResumenProyectoSerializador(serializers.Serializer):
+    """Resumen de una tarea dentro del detalle de un proyecto."""
+    id = serializers.CharField()
+    titulo = serializers.CharField()
+    estado = serializers.CharField()
+    etiqueta = serializers.CharField()
+    color_etiqueta = serializers.CharField()
+    fecha_limite = serializers.DateField(allow_null=True)
+
+
+class ProyectoConMetricasSerializador(ProyectoSerializador):
+    """Proyecto con conteo de tareas asociadas."""
+    tareas_totales = serializers.IntegerField()
+    tareas_completadas = serializers.IntegerField()
+    tareas_activas = serializers.IntegerField()
+
+
+class ProyectoDetalleSerializador(ProyectoConMetricasSerializador):
+    """Proyecto con métricas y su lista de tareas."""
+    tareas = TareaResumenProyectoSerializador(many=True)
+
+
+class ProyectoConPropietarioSerializador(ProyectoConMetricasSerializador):
+    """Proyecto con métricas más el nombre del propietario (vista admin)."""
+    propietario = serializers.CharField()

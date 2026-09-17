@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema
 
 from .modelo import Usuario
 from .serializador import (
@@ -15,13 +16,24 @@ from .serializador import (
     LoginUsuarioSerializador,
     PerfilUsuarioSerializador,
     EditarUsuarioSerializador,
-    EliminarCuentaSerializador
+    EliminarCuentaSerializador,
+    RegistroRespuestaSerializador,
+    AutenticacionRespuestaSerializador,
+    EditarPerfilRespuestaSerializador,
+    MensajeRespuestaSerializador,
 )
 from apps.tareas.modelo import Tarea
 from apps.proyectos.modelo import Proyecto
 from apps.mapa_mental.modelo import NodoMapa, ConexionNodo
 from apps.comparticion.modelo import Comparticion
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Registrar un nuevo usuario',
+    description='RF-USU-01. Crea la cuenta y devuelve tokens JWT (auto-login).',
+    request=RegistroUsuarioSerializador,
+    responses={201: RegistroRespuestaSerializador, 400: None},
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def registrar_usuario(request):
@@ -45,6 +57,13 @@ def registrar_usuario(request):
     return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Iniciar sesión',
+    description='RF-USU-02. Valida credenciales y devuelve tokens JWT.',
+    request=LoginUsuarioSerializador,
+    responses={200: AutenticacionRespuestaSerializador, 400: None, 401: None},
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def iniciar_sesion(request):
@@ -81,6 +100,12 @@ def iniciar_sesion(request):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Ver perfil propio',
+    description='Devuelve los datos del usuario autenticado.',
+    responses={200: PerfilUsuarioSerializador},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ver_perfil(request):
@@ -89,6 +114,13 @@ def ver_perfil(request):
     return Response(serializador.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Editar perfil propio',
+    description='RF-USU-04. Permite cambiar nombre, correo y contraseña.',
+    request=EditarUsuarioSerializador,
+    responses={200: EditarPerfilRespuestaSerializador, 400: None},
+)
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def editar_perfil(request):
@@ -129,6 +161,13 @@ def editar_perfil(request):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Eliminar cuenta propia',
+    description='RF-USU-05. Elimina la cuenta y todos sus datos (cascada).',
+    request=EliminarCuentaSerializador,
+    responses={200: MensajeRespuestaSerializador, 400: None},
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def eliminar_cuenta(request):
@@ -161,6 +200,13 @@ def eliminar_cuenta(request):
         status=status.HTTP_200_OK
     )
 
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Cerrar sesión',
+    description='El JWT se elimina del lado del cliente; esta vista solo confirma.',
+    request=None,
+    responses={200: MensajeRespuestaSerializador},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cerrar_sesion(request):

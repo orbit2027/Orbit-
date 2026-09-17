@@ -2,10 +2,11 @@
 Vistas API para el módulo de compartición.
 Permiten compartir tareas y proyectos con otros usuarios por correo.
 """
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
@@ -16,11 +17,16 @@ from .serializador import (
     ComparticionSerializador,
     PermisoSerializador,
     ComparticionSalidaSerializador,
+    ComparticionConmigoSalidaSerializador,
 )
 from .permisos import (
     nivel_sobre_tarea,
     nivel_sobre_proyecto,
     puede_administrar,
+)
+
+MensajeSerializador = inline_serializer(
+    name='ComparticionMensaje', fields={'mensaje': serializers.CharField()}
 )
 
 
@@ -54,6 +60,13 @@ def _titulo_objeto(tipo_objeto, objeto_id):
     return tarea.titulo if tarea else 'Tarea eliminada'
 
 
+@extend_schema(
+    tags=['Compartición'],
+    summary='Compartir tarea o proyecto',
+    description='Comparte un objeto con otro usuario por correo (requiere ser dueño o administrar).',
+    request=ComparticionSerializador,
+    responses={200: ComparticionSalidaSerializador, 400: None, 403: None, 404: None},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_comparticion(request):
@@ -106,6 +119,12 @@ def crear_comparticion(request):
     )
 
 
+@extend_schema(
+    tags=['Compartición'],
+    summary='Listar comparticiones de un objeto',
+    description='Lista quién tiene acceso al objeto (solo dueño o con permiso administrar).',
+    responses={200: ComparticionSalidaSerializador(many=True), 403: None},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lista_comparticiones(request, tipo_objeto, objeto_id):
@@ -125,6 +144,17 @@ def lista_comparticiones(request, tipo_objeto, objeto_id):
     )
 
 
+@extend_schema(
+    tags=['Compartición'],
+    summary='Cambiar permiso de una compartición',
+    request=PermisoSerializador,
+    responses={200: ComparticionSalidaSerializador, 400: None, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Compartición'],
+    summary='Eliminar una compartición',
+    responses={200: MensajeSerializador, 403: None, 404: None},
+)
 @api_view(['PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def detalle_comparticion(request, comparticion_id):
@@ -165,6 +195,12 @@ def detalle_comparticion(request, comparticion_id):
     )
 
 
+@extend_schema(
+    tags=['Compartición'],
+    summary='Objetos compartidos conmigo',
+    description='Lista tareas y proyectos que otros usuarios compartieron con el autenticado.',
+    responses={200: ComparticionConmigoSalidaSerializador(many=True)},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def compartidos_conmigo(request):

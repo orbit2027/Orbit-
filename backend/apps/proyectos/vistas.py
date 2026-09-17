@@ -2,11 +2,12 @@
 Vistas API para el módulo de proyectos.
 Implementa CRUD y la consulta global del admin.
 """
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
@@ -19,7 +20,20 @@ from apps.comparticion.permisos import (
 )
 from apps.middlewares.roles import requerir_rol
 from .modelo import Proyecto
-from .serializador import ProyectoSerializador
+from .serializador import (
+    ProyectoSerializador,
+    ProyectoConMetricasSerializador,
+    ProyectoDetalleSerializador,
+    ProyectoConPropietarioSerializador,
+)
+
+MensajeEstadoSerializador = inline_serializer(
+    name='ProyectoMensajeEstado',
+    fields={'mensaje': serializers.CharField(), 'estado': serializers.CharField()},
+)
+MensajeSerializador = inline_serializer(
+    name='ProyectoMensaje', fields={'mensaje': serializers.CharField()}
+)
 
 def _serializar_con_metricas(proyecto):
     """Serializa un proyecto y le añade conteo de tareas asociadas."""
@@ -32,6 +46,18 @@ def _serializar_con_metricas(proyecto):
     ).count()
     return datos
 
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Listar proyectos',
+    description='Proyectos propios y compartidos con el usuario.',
+    responses={200: ProyectoConMetricasSerializador(many=True)},
+)
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Crear proyecto',
+    request=ProyectoSerializador,
+    responses={201: ProyectoSerializador, 400: None},
+)
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def lista_proyectos(request):
@@ -63,6 +89,24 @@ def lista_proyectos(request):
         )
 
 
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Ver detalle de proyecto',
+    description='Incluye métricas y la lista de tareas del proyecto.',
+    responses={200: ProyectoDetalleSerializador, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Editar proyecto',
+    request=ProyectoSerializador,
+    responses={200: ProyectoConMetricasSerializador, 400: None, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Eliminar proyecto',
+    description='Las tareas asociadas se conservan y quedan sin proyecto.',
+    responses={200: MensajeSerializador, 403: None, 404: None},
+)
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def detalle_proyecto(request, proyecto_id):
@@ -142,6 +186,13 @@ def detalle_proyecto(request, proyecto_id):
         )
 
 
+@extend_schema(
+    tags=['Proyectos'],
+    summary='Archivar o restaurar proyecto',
+    description='Alterna el estado del proyecto entre activo y archivado.',
+    request=None,
+    responses={200: MensajeEstadoSerializador, 403: None, 404: None},
+)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def archivar_proyecto(request, proyecto_id):
@@ -168,6 +219,12 @@ def archivar_proyecto(request, proyecto_id):
         'estado': proyecto.estado
     }, status=status.HTTP_200_OK)
 
+@extend_schema(
+    tags=['Administración'],
+    summary='Listar todos los proyectos (admin)',
+    description='Incluye el nombre del propietario en cada proyecto.',
+    responses={200: ProyectoConPropietarioSerializador(many=True), 403: None},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')

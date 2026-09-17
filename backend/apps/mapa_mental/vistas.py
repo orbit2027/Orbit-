@@ -2,16 +2,33 @@
 Vistas API para el módulo de mapa mental.
 Implementa nodos, conexiones y conversión a tarea (RF-MAP-06).
 """
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from .modelo import NodoMapa, ConexionNodo
-from .serializador import NodoMapaSerializador, ConexionNodoSerializador
+from .serializador import (
+    NodoMapaSerializador,
+    ConexionNodoSerializador,
+    MapaCompletoSerializador,
+    ConvertirNodoSerializador,
+    ConvertirNodoRespuestaSerializador,
+)
 from apps.tareas.modelo import Tarea
 
+MensajeSerializador = inline_serializer(
+    name='MapaMensaje', fields={'mensaje': serializers.CharField()}
+)
 
+
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Obtener el mapa mental completo',
+    description='RF-MAP-05. Devuelve todos los nodos y conexiones del usuario.',
+    responses={200: MapaCompletoSerializador},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def mapa_completo(request):
@@ -28,6 +45,13 @@ def mapa_completo(request):
     }, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Crear nodo',
+    description='RF-MAP-01. Crea un nuevo nodo en el mapa mental.',
+    request=NodoMapaSerializador,
+    responses={201: NodoMapaSerializador, 400: None},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_nodo(request):
@@ -44,6 +68,19 @@ def crear_nodo(request):
         status=status.HTTP_400_BAD_REQUEST
     )
 
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Editar nodo',
+    description='RF-MAP-03. Actualiza texto, color y posición del nodo.',
+    request=NodoMapaSerializador,
+    responses={200: NodoMapaSerializador, 400: None, 404: None},
+)
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Eliminar nodo',
+    description='RF-MAP-04. Elimina el nodo y sus conexiones asociadas.',
+    responses={200: MensajeSerializador, 404: None},
+)
 @api_view(['PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def detalle_nodo(request, nodo_id):
@@ -80,6 +117,13 @@ def detalle_nodo(request, nodo_id):
         )
 
 
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Crear conexión',
+    description='RF-MAP-02. Crea una conexión visual entre dos nodos.',
+    request=ConexionNodoSerializador,
+    responses={201: ConexionNodoSerializador, 400: None},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crearConexion(request):
@@ -96,6 +140,12 @@ def crearConexion(request):
         status=status.HTTP_400_BAD_REQUEST
     )
 
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Eliminar conexión',
+    request=None,
+    responses={200: MensajeSerializador, 404: None},
+)
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def eliminarConexion(request, conexion_id):
@@ -116,6 +166,13 @@ def eliminarConexion(request, conexion_id):
         )
 
 
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Convertir nodo en tarea',
+    description='RF-MAP-06. Crea una tarea a partir del nodo y lo marca como convertido.',
+    request=ConvertirNodoSerializador,
+    responses={201: ConvertirNodoRespuestaSerializador, 400: None, 404: None},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def convertir_nodo_en_tarea(request, nodo_id):

@@ -1,10 +1,15 @@
 """
 Enrutador principal de URLs del proyecto Orbit.
-Incluye las rutas de todos los módulos del proyecto.
+Incluye las rutas de todos los módulos del proyecto bajo /api/v1/.
 """
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 from .api_root import api_root
 from .vistas_publicas import pagina_privacidad
@@ -12,14 +17,21 @@ from .vistas_publicas import pagina_privacidad
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('privacidad/', pagina_privacidad, name='privacidad'),
-    path('api/', api_root, name='api-root'),
-    path('api/usuarios/', include('apps.usuarios.rutas')),
-    path('api/tareas/', include('apps.tareas.rutas')),
-    path('api/mapa-mental/', include('apps.mapa_mental.rutas')),
-    path('api/estadisticas/', include('apps.estadisticas.rutas')),
-    path('api/administracion/', include('apps.administracion.rutas')),
-    path('api/proyectos/', include('apps.proyectos.rutas')),
-    path('api/compartir/', include('apps.comparticion.rutas')),
+
+    # API versión 1
+    path('api/v1/', api_root, name='api-root'),
+    path('api/v1/usuarios/', include('apps.usuarios.rutas')),
+    path('api/v1/tareas/', include('apps.tareas.rutas')),
+    path('api/v1/mapa-mental/', include('apps.mapa_mental.rutas')),
+    path('api/v1/estadisticas/', include('apps.estadisticas.rutas')),
+    path('api/v1/administracion/', include('apps.administracion.rutas')),
+    path('api/v1/proyectos/', include('apps.proyectos.rutas')),
+    path('api/v1/compartir/', include('apps.comparticion.rutas')),
+
+    # Documentación OpenAPI (drf-spectacular)
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/v1/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 # En producción (DEBUG=False) Django sirve además el frontend estático,

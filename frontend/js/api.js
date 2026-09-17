@@ -6,12 +6,12 @@
 
 // URL base del backend Django.
 // Si la página se sirve desde el propio Django (mismo origen, p. ej. PythonAnywhere
-// o no local), usamos '/api' relativo. Solo en desarrollo local con Live Server
+// o no local), usamos '/api/v1' relativo. Solo en desarrollo local con Live Server
 // (puerto 5500) apuntamos al backend en el puerto 8000.
 const esDesarrolloLocal = window.location.port === '5500';
 const API_BASE_URL = esDesarrolloLocal
-    ? 'http://localhost:8000/api'
-    : `${window.location.origin}/api`;
+    ? 'http://localhost:8000/api/v1'
+    : `${window.location.origin}/api/v1`;
 
 /**
  * Resuelve la ruta hacia el login según la profundidad de la página actual.

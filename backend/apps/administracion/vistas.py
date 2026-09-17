@@ -3,10 +3,11 @@ Vistas API para el modulo de administracion.
 Gestion de usuarios y estadisticas globales del sistema.
 """
 from datetime import datetime, timedelta
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
@@ -14,9 +15,20 @@ from apps.middlewares.roles import requerir_rol
 from .serializador import (
     UsuarioAdminSerializador,
     CrearUsuarioAdminSerializador,
-    EditarUsuarioAdminSerializador
+    EditarUsuarioAdminSerializador,
+    EstadisticasGlobalesSerializador,
+    ToggleUsuarioRespuestaSerializador,
 )
 
+MensajeSerializador = inline_serializer(
+    name='AdminMensaje', fields={'mensaje': serializers.CharField()}
+)
+
+@extend_schema(
+    tags=['Administración'],
+    summary='Estadísticas globales (admin)',
+    responses={200: EstadisticasGlobalesSerializador, 403: None},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')
@@ -60,6 +72,12 @@ def estadisticas_globales(request):
     })
 
 
+@extend_schema(
+    tags=['Administración'],
+    summary='Listar usuarios (admin)',
+    description='RF-GES-02. Todos los usuarios registrados.',
+    responses={200: UsuarioAdminSerializador(many=True), 403: None},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')
@@ -70,6 +88,12 @@ def listar_usuarios(request):
     return Response(serializador.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Administración'],
+    summary='Crear usuario (admin)',
+    request=CrearUsuarioAdminSerializador,
+    responses={201: UsuarioAdminSerializador, 400: None, 403: None},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')
@@ -84,6 +108,17 @@ def crear_usuario(request):
     return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    tags=['Administración'],
+    summary='Ver detalle de usuario (admin)',
+    responses={200: UsuarioAdminSerializador, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Administración'],
+    summary='Editar usuario (admin)',
+    request=EditarUsuarioAdminSerializador,
+    responses={200: UsuarioAdminSerializador, 400: None, 403: None, 404: None},
+)
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')
@@ -122,6 +157,12 @@ def detalle_usuario(request, usuario_id):
         return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    tags=['Administración'],
+    summary='Activar o desactivar usuario (admin)',
+    request=None,
+    responses={200: ToggleUsuarioRespuestaSerializador, 403: None, 404: None},
+)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')

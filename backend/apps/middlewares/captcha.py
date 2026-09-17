@@ -40,8 +40,8 @@ class VerificarCaptchaMiddleware:
     """
     # Rutas que requieren verificación de CAPTCHA
     RUTAS_CAPTCHA = [
-        '/api/usuarios/registro/',
-        '/api/usuarios/login/',
+        '/api/v1/usuarios/registro/',
+        '/api/v1/usuarios/login/',
     ]
 
     def __init__(self, get_response):

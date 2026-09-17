@@ -62,3 +62,26 @@ class EditarUsuarioAdminSerializador(serializers.Serializer):
         if Usuario.objects.filter(correo=valor).exclude(id=usuario_id).first():
             raise serializers.ValidationError("Este correo ya esta en uso.")
         return valor.lower().strip()
+
+
+# ── Serializadores de salida (documentación OpenAPI) ──────────────────────
+
+class CrecimientoMensualSerializador(serializers.Serializer):
+    """Registros nuevos en un mes."""
+    mes = serializers.CharField()
+    registros = serializers.IntegerField()
+
+
+class EstadisticasGlobalesSerializador(serializers.Serializer):
+    """Métricas globales del sistema."""
+    total_usuarios = serializers.IntegerField()
+    tareas_activas = serializers.IntegerField()
+    completadas_hoy = serializers.IntegerField()
+    activos_hoy = serializers.IntegerField()
+    crecimiento_mensual = CrecimientoMensualSerializador(many=True)
+
+
+class ToggleUsuarioRespuestaSerializador(serializers.Serializer):
+    """Resultado de activar/desactivar un usuario."""
+    mensaje = serializers.CharField()
+    activo = serializers.BooleanField()

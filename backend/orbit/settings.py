@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'corsheaders',
     'apps.usuarios',
     'apps.tareas',
@@ -65,6 +66,23 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Documentación de la API con drf-spectacular (OpenAPI 3)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Orbit API',
+    'DESCRIPTION': (
+        'API REST de Orbit: autenticación JWT, tareas, proyectos, mapa mental, '
+        'estadísticas, administración y compartición de tareas/proyectos.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+        'displayRequestDuration': True,
+    },
 }
 
 # Configuración de JWT

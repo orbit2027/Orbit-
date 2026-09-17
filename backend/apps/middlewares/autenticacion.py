@@ -5,7 +5,21 @@ Verifica la validez del token en peticiones protegidas.
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import AccessToken
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from apps.usuarios.modelo import Usuario
+
+
+class EsquemaAutenticacionJWT(OpenApiAuthenticationExtension):
+    """Describe el esquema Bearer JWT en la documentación OpenAPI."""
+    target_class = 'apps.middlewares.autenticacion.AutenticacionJWT'
+    name = 'jwtAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
 
 
 class AutenticacionJWT(BaseAuthentication):

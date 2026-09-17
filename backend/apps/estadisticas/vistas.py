@@ -6,10 +6,18 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema
 
 from apps.tareas.modelo import Tarea
+from .serializador import EstadisticasUsuarioSerializador
 
 
+@extend_schema(
+    tags=['Estadísticas'],
+    summary='Estadísticas del usuario',
+    description='RF-EST-01/02/03. Contadores por estado, progreso y datos semanales.',
+    responses={200: EstadisticasUsuarioSerializador},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def estadisticas_usuario(request):

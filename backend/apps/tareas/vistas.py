@@ -1,15 +1,32 @@
 
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema, inline_serializer
 
 from .modelo import Tarea
 from .serializador import TareaSerializador, MoverTareaSerializador
 from apps.comparticion.modelo import Comparticion
 from apps.comparticion.permisos import nivel_sobre_tarea, puede_ver, puede_editar, puede_administrar
 
+MensajeSerializador = inline_serializer(
+    name='TareaMensaje', fields={'mensaje': serializers.CharField()}
+)
+
+@extend_schema(
+    tags=['Tareas'],
+    summary='Listar tareas',
+    description='Propias + compartidas directamente + de proyectos compartidos.',
+    responses={200: TareaSerializador(many=True)},
+)
+@extend_schema(
+    tags=['Tareas'],
+    summary='Crear tarea',
+    request=TareaSerializador,
+    responses={201: TareaSerializador, 400: None},
+)
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def lista_tareas(request):
@@ -48,6 +65,22 @@ def lista_tareas(request):
         )
 
 
+@extend_schema(
+    tags=['Tareas'],
+    summary='Ver detalle de tarea',
+    responses={200: TareaSerializador, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Tareas'],
+    summary='Editar tarea',
+    request=TareaSerializador,
+    responses={200: TareaSerializador, 400: None, 403: None, 404: None},
+)
+@extend_schema(
+    tags=['Tareas'],
+    summary='Eliminar tarea',
+    responses={200: MensajeSerializador, 403: None, 404: None},
+)
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def detalle_tarea(request, tarea_id):

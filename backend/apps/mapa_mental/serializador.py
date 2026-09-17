@@ -96,3 +96,25 @@ class ConexionNodoSerializador(serializers.Serializer):
             'nodo_origen': str(instancia.nodo_origen.id),
             'nodo_destino': str(instancia.nodo_destino.id),
         }
+
+
+# ── Serializadores de salida (documentación OpenAPI) ──────────────────────
+
+class MapaCompletoSerializador(serializers.Serializer):
+    """Mapa mental completo: nodos y conexiones."""
+    nodos = NodoMapaSerializador(many=True)
+    conexiones = ConexionNodoSerializador(many=True)
+
+
+class ConvertirNodoSerializador(serializers.Serializer):
+    """Campos opcionales al convertir un nodo en tarea."""
+    descripcion = serializers.CharField(required=False, allow_blank=True, default='')
+    etiqueta = serializers.CharField(required=False, allow_blank=True)
+    color_etiqueta = serializers.CharField(required=False)
+    fecha_limite = serializers.DateField(required=False, allow_null=True)
+
+
+class ConvertirNodoRespuestaSerializador(serializers.Serializer):
+    """Resultado de convertir un nodo en tarea."""
+    mensaje = serializers.CharField()
+    tarea_id = serializers.CharField()

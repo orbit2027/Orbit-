@@ -37,3 +37,9 @@ class ComparticionSalidaSerializador(serializers.Serializer):
                 if instancia.fecha_compartida else None
             ),
         }
+
+
+class ComparticionConmigoSalidaSerializador(ComparticionSalidaSerializador):
+    """Compartición recibida, con título del objeto y propietario legibles."""
+    titulo = serializers.CharField()
+    propietario = serializers.CharField()

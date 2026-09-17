@@ -25,7 +25,7 @@ def obtener_token_para(correo):
 
 def probar_acceso(token):
     base = os.environ.get('API_BASE_URL', 'http://127.0.0.1:8000')
-    url = f"{base}/api/tareas/"
+    url = f"{base}/api/v1/tareas/"
     headers = {'Authorization': f'Bearer {token}'}
     try:
         r = requests.get(url, headers=headers, timeout=5)

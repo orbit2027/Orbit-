@@ -110,3 +110,35 @@ class EliminarCuentaSerializador(serializers.Serializer):
         if not usuario.verificar_contrasena(valor):
             raise serializers.ValidationError("Contraseña incorrecta.")
         return valor
+
+
+# ── Serializadores de salida (documentación OpenAPI) ──────────────────────
+
+class TokenParSerializador(serializers.Serializer):
+    """Par de tokens JWT devuelto tras autenticarse."""
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class RegistroRespuestaSerializador(serializers.Serializer):
+    """Respuesta del registro con auto-login."""
+    mensaje = serializers.CharField()
+    usuario = PerfilUsuarioSerializador()
+    tokens = TokenParSerializador()
+
+
+class AutenticacionRespuestaSerializador(serializers.Serializer):
+    """Respuesta del inicio de sesión."""
+    usuario = PerfilUsuarioSerializador()
+    tokens = TokenParSerializador()
+
+
+class EditarPerfilRespuestaSerializador(serializers.Serializer):
+    """Respuesta al editar el perfil."""
+    mensaje = serializers.CharField()
+    usuario = PerfilUsuarioSerializador()
+
+
+class MensajeRespuestaSerializador(serializers.Serializer):
+    """Respuesta genérica con un mensaje."""
+    mensaje = serializers.CharField()
