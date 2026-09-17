@@ -148,6 +148,12 @@ DEFAULT_FROM_EMAIL = config(
     default='Orbit <no-responder@orbit.local>',
 )
 
+# Envío por API HTTP (gratuito, sin SMTP): útil en hosts que bloquean el puerto
+# 587 (p. ej. PythonAnywhere gratis). Se usa con
+# EMAIL_BACKEND=apps.email_api.EmailBackendAPI
+EMAIL_API_PROVIDER = config('EMAIL_API_PROVIDER', default='brevo')
+EMAIL_API_KEY = config('EMAIL_API_KEY', default='')
+
 # URL base del frontend para construir el enlace de restablecimiento.
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5500')
 

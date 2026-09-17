@@ -15,7 +15,7 @@ import logging
 import secrets
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -64,12 +64,25 @@ def enviar_correo_restablecimiento(usuario, token):
         "actual seguirá funcionando hasta que restablezcas una nueva.\n\n"
         "— Equipo de Orbit"
     )
-    send_mail(
-        subject=asunto,
-        message=cuerpo,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[usuario.correo],
+    cuerpo_html = (
+        f"<p>Hola {usuario.nombre_completo}:</p>"
+        "<p>Recibimos una solicitud para restablecer tu contraseña. "
+        "Usa el siguiente enlace (válido por 30 minutos y de un solo uso):</p>"
+        f'<p><a href="{enlace}">Restablecer mi contraseña</a></p>'
+        f'<p style="color:#666">Si el botón no funciona, copia esta dirección: '
+        f"<br>{enlace}</p>"
+        "<p>Si no solicitaste este cambio, ignora este correo. Tu contraseña "
+        "actual seguirá funcionando hasta que restablezcas una nueva.</p>"
+        "<p>— Equipo de Orbit</p>"
     )
+    correo = EmailMultiAlternatives(
+        subject=asunto,
+        body=cuerpo,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[usuario.correo],
+    )
+    correo.attach_alternative(cuerpo_html, 'text/html')
+    correo.send(fail_silently=False)
 
 
 @extend_schema(
