@@ -3,15 +3,34 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 from .modelo import Tarea
 from .serializador import TareaSerializador, MoverTareaSerializador
+from apps.comparticion.modelo import Comparticion
+from apps.comparticion.permisos import nivel_sobre_tarea, puede_ver, puede_editar, puede_administrar
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def lista_tareas(request):
     if request.method == 'GET':
-        tareas = Tarea.objects.filter(usuario=request.user).order_by('-fecha_creacion')
+        # Propias + compartidas directamente + tareas de proyectos compartidos
+        tareas_compartidas = Comparticion.objects.filter(
+            compartido_con=request.user
+        ).values_list('objeto_id', 'tipo_objeto')
+
+        ids_tareas = [oid for oid, tipo in tareas_compartidas if tipo == 'tarea']
+        proyectos_compartidos = [
+            oid for oid, tipo in tareas_compartidas if tipo == 'proyecto'
+        ]
+
+        filtro = Q(usuario=request.user)
+        if ids_tareas:
+            filtro |= Q(id__in=ids_tareas)
+        if proyectos_compartidos:
+            filtro |= Q(proyecto__in=proyectos_compartidos)
+
+        tareas = Tarea.objects.filter(filtro).order_by('-fecha_creacion')
         serializador = TareaSerializador(tareas, many=True)
         return Response(serializador.data, status=status.HTTP_200_OK)
 
@@ -34,18 +53,30 @@ def lista_tareas(request):
 def detalle_tarea(request, tarea_id):
 
     try:
-        tarea = Tarea.objects.get(id=tarea_id, usuario=request.user)
+        tarea = Tarea.objects.get(id=tarea_id)
     except Tarea.DoesNotExist:
         return Response(
             {'error': 'Tarea no encontrada'},
             status=status.HTTP_404_NOT_FOUND
         )
 
+    nivel = nivel_sobre_tarea(request.user, tarea)
+
     if request.method == 'GET':
+        if not puede_ver(nivel):
+            return Response(
+                {'error': 'No tienes acceso a esta tarea.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializador = TareaSerializador(tarea)
         return Response(serializador.data, status=status.HTTP_200_OK)
 
     elif request.method in ['PUT', 'PATCH']:
+        if not puede_editar(nivel):
+            return Response(
+                {'error': 'No tienes permisos para editar esta tarea.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializador = TareaSerializador(
             tarea, data=request.data, partial=(request.method == 'PATCH')
         )
@@ -58,6 +89,11 @@ def detalle_tarea(request, tarea_id):
         )
 
     elif request.method == 'DELETE':
+        if not puede_administrar(nivel):
+            return Response(
+                {'error': 'No tienes permisos para eliminar esta tarea.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         tarea.delete()
         return Response(
             {'mensaje': 'Tarea eliminada'},

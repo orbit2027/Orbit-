@@ -7,9 +7,11 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 
 from .api_root import api_root
+from .vistas_publicas import pagina_privacidad
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('privacidad/', pagina_privacidad, name='privacidad'),
     path('api/', api_root, name='api-root'),
     path('api/usuarios/', include('apps.usuarios.rutas')),
     path('api/tareas/', include('apps.tareas.rutas')),
@@ -17,6 +19,7 @@ urlpatterns = [
     path('api/estadisticas/', include('apps.estadisticas.rutas')),
     path('api/administracion/', include('apps.administracion.rutas')),
     path('api/proyectos/', include('apps.proyectos.rutas')),
+    path('api/compartir/', include('apps.comparticion.rutas')),
 ]
 
 # En producción (DEBUG=False) Django sirve además el frontend estático,

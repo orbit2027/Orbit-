@@ -65,6 +65,7 @@ class TareaSerializador(serializers.Serializer):
             ),
             'origen_nodo': instancia.origen_nodo or '',
             'proyecto': instancia.proyecto or '',
+            'usuario': str(instancia.usuario.id),
             'fecha_creacion': (
                 instancia.fecha_creacion.isoformat()
                 if instancia.fecha_creacion else None

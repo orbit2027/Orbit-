@@ -59,4 +59,5 @@ class ProyectoSerializador(serializers.Serializer):
                 instancia.fecha_creacion.isoformat()
                 if instancia.fecha_creacion else None
             ),
+            'usuario': str(instancia.usuario.id),
         }

@@ -6,9 +6,17 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
+from apps.comparticion.modelo import Comparticion
+from apps.comparticion.permisos import (
+    nivel_sobre_proyecto,
+    puede_ver,
+    puede_editar,
+    puede_administrar,
+)
 from apps.middlewares.roles import requerir_rol
 from .modelo import Proyecto
 from .serializador import ProyectoSerializador
@@ -29,7 +37,13 @@ def _serializar_con_metricas(proyecto):
 def lista_proyectos(request):
     """Crear o visualizar los proyectos propios."""
     if request.method == 'GET':
-        proyectos = Proyecto.objects.filter(usuario=request.user).order_by('-fecha_creacion')
+        # Propios + compartidos con el usuario
+        proyectos_compartidos = Comparticion.objects.filter(
+            compartido_con=request.user, tipo_objeto='proyecto'
+        ).values_list('objeto_id', flat=True)
+        proyectos = Proyecto.objects.filter(
+            Q(usuario=request.user) | Q(id__in=list(proyectos_compartidos))
+        ).order_by('-fecha_creacion')
         return Response(
             [_serializar_con_metricas(p) for p in proyectos],
             status=status.HTTP_200_OK
@@ -60,14 +74,21 @@ def detalle_proyecto(request, proyecto_id):
     DELETE: elimina el proyecto. Las tareas asociadas quedan sin proyecto.
     """
     try:
-        proyecto = Proyecto.objects.get(id=proyecto_id, usuario=request.user)
+        proyecto = Proyecto.objects.get(id=proyecto_id)
     except Proyecto.DoesNotExist:
         return Response(
             {'error': 'Proyecto no encontrado'},
             status=status.HTTP_404_NOT_FOUND
         )
 
+    nivel = nivel_sobre_proyecto(request.user, proyecto)
+
     if request.method == 'GET':
+        if not puede_ver(nivel):
+            return Response(
+                {'error': 'No tienes acceso a este proyecto.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         datos = _serializar_con_metricas(proyecto)
         datos['tareas'] = [
             {
@@ -85,6 +106,11 @@ def detalle_proyecto(request, proyecto_id):
         return Response(datos, status=status.HTTP_200_OK)
 
     elif request.method in ['PUT', 'PATCH']:
+        if not puede_editar(nivel):
+            return Response(
+                {'error': 'No tienes permisos para editar este proyecto.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializador = ProyectoSerializador(
             proyecto,
             data=request.data,
@@ -102,6 +128,11 @@ def detalle_proyecto(request, proyecto_id):
         )
 
     elif request.method == 'DELETE':
+        if not puede_administrar(nivel):
+            return Response(
+                {'error': 'No tienes permisos para eliminar este proyecto.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         # Las tareas del proyecto se conservan, solo se desvinculan
         Tarea.objects.filter(proyecto=str(proyecto.id)).update(proyecto='')
         proyecto.delete()
@@ -116,11 +147,17 @@ def detalle_proyecto(request, proyecto_id):
 def archivar_proyecto(request, proyecto_id):
     """Archivar/restaurar un proyecto cambiando su estado."""
     try:
-        proyecto = Proyecto.objects.get(id=proyecto_id, usuario=request.user)
+        proyecto = Proyecto.objects.get(id=proyecto_id)
     except Proyecto.DoesNotExist:
         return Response(
             {'error': 'Proyecto no encontrado'},
             status=status.HTTP_404_NOT_FOUND
+        )
+
+    if not puede_editar(nivel_sobre_proyecto(request.user, proyecto)):
+        return Response(
+            {'error': 'No tienes permisos para archivar este proyecto.'},
+            status=status.HTTP_403_FORBIDDEN
         )
 
     proyecto.estado = 'archivado' if proyecto.estado == 'activo' else 'activo'

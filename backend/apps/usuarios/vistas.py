@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Q
 
 from .modelo import Usuario
 from .serializador import (
@@ -16,6 +17,10 @@ from .serializador import (
     EditarUsuarioSerializador,
     EliminarCuentaSerializador
 )
+from apps.tareas.modelo import Tarea
+from apps.proyectos.modelo import Proyecto
+from apps.mapa_mental.modelo import NodoMapa, ConexionNodo
+from apps.comparticion.modelo import Comparticion
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -140,7 +145,15 @@ def eliminar_cuenta(request):
 
     usuario = request.user
 
-    # Eliminar en cascada: tareas, conexiones y nodos se borran con FK CASCADE
+    # Borrado explícito en orden de dependencias: evita fallos de integridad
+    # del FastDelete de Django con foreign keys "INITIALLY DEFERRED" de SQLite.
+    Comparticion.objects.filter(
+        Q(propietario=usuario) | Q(compartido_con=usuario)
+    ).delete()
+    Tarea.objects.filter(usuario=usuario).delete()
+    Proyecto.objects.filter(usuario=usuario).delete()
+    NodoMapa.objects.filter(usuario=usuario).delete()
+    ConexionNodo.objects.filter(usuario=usuario).delete()
     usuario.delete()
 
     return Response(

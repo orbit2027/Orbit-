@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.estadisticas',
     'apps.administracion',
     'apps.proyectos',
+    'apps.comparticion',
 ]
 
 MIDDLEWARE = [
