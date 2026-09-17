@@ -131,3 +131,27 @@ a {
     color: var(--color-primario);
     text-decoration: none;
 }
+
+.orbit-brand-icon {
+    width: 45px;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));
+    transition: transform 0.3s ease;
+}
+
+.orbit-brand-icon:hover {
+    transform: scale(1.08);
+}
+
+.logo-orbit .orbit-brand-icon {
+    width: 34px;
+}
+
+.auth__logo .orbit-brand-icon {
+    width: 48px;
+}
+
+.landing__footer .orbit-brand-icon {
+    width: 28px;
+}

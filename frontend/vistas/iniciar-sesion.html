@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +26,7 @@
         <!-- Encabezado con logo -->
         <div class="auth__header">
             <div class="logo-orbit auth__logo">
-                <i class="bi bi-circle-half auth__logo-icon"></i>
+                <img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon">
             </div>
             <span class="nombre-logo auth__brand">orbit</span>
             <h2 class="auth__title">
@@ -39,7 +40,7 @@
         <form id="formulario-login" novalidate>
 
             <!-- Error genérico (No se especifica qué campo falló al iniciar sesión) -->
-            <div id="error-login" class="alerta-error-box auth__alert">
+            <div id="error-login" class="alerta-error-box auth__alert" style="display: none;">
                 <i class="bi bi-exclamation-circle auth__alert-icon"></i>
                 <span>Las credenciales ingresadas no son correctas.</span>
             </div>
@@ -148,8 +149,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
