@@ -120,6 +120,11 @@ async function obtenerPerfil() {
 async function editarPerfil(datos) {
     const respuesta = await api.put('/usuarios/editar/', datos);
     localStorage.setItem(CLAVE_USUARIO, JSON.stringify(respuesta.data.usuario));
+    // Si se cambió la contraseña, el backend invalida la sesión anterior y
+    // re-emite un par de tokens nuevo: hay que reemplazar el almacenado.
+    if (respuesta.data.tokens) {
+        guardarSesion(respuesta.data.tokens, respuesta.data.usuario);
+    }
     return respuesta.data;
 }
 

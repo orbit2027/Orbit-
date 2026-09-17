@@ -12,7 +12,7 @@ django.setup()
 
 
 from apps.usuarios.modelo import Usuario
-from rest_framework_simplejwt.tokens import RefreshToken
+from apps.usuarios.tokens import crear_tokens_para
 from rest_framework_simplejwt.tokens import AccessToken
 
 def obtener_token_para(correo):
@@ -20,8 +20,7 @@ def obtener_token_para(correo):
     if not usuario:
         print('NO_USER')
         return None
-    refresh = RefreshToken.for_user(usuario)
-    return str(refresh.access_token)
+    return crear_tokens_para(usuario)['access']
 
 def probar_acceso(token):
     base = os.environ.get('API_BASE_URL', 'http://127.0.0.1:8000')

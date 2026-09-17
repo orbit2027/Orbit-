@@ -56,6 +56,12 @@
 .auth__field--email { margin-bottom: 16px; }
 .auth__field--password { margin-bottom: 20px; }
 .auth__captcha { margin-bottom: 20px; }
+.auth__recuperar {
+    display: flex;
+    justify-content: flex-end;
+    margin: -6px 0 20px;
+}
+.auth__recuperar .auth__link { font-size: 13px; }
 .auth__submit { width: 100%; padding: 12px; }
 .auth__alert { display: none; }
 .auth__alert-icon { color: var(--color-error); font-size: 14px; }

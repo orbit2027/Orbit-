@@ -137,6 +137,7 @@ class EditarPerfilRespuestaSerializador(serializers.Serializer):
     """Respuesta al editar el perfil."""
     mensaje = serializers.CharField()
     usuario = PerfilUsuarioSerializador()
+    tokens = TokenParSerializador(required=False)
 
 
 class MensajeRespuestaSerializador(serializers.Serializer):

@@ -45,6 +45,14 @@ class AutenticacionJWT(BaseAuthentication):
             if not usuario:
                 raise AuthenticationFailed("Usuario no encontrado o desactivado.")
 
+            # Verificar versión de sesión: al cambiar la contraseña se incrementa
+            # session_version, invalidando todos los JWT emitidos antes.
+            if (
+                'sv' not in token_acceso or
+                token_acceso['sv'] != usuario.session_version
+            ):
+                raise AuthenticationFailed("Sesión revocada.")
+
             return (usuario, token)
         except Exception as e:
             raise AuthenticationFailed("Token inválido o expirado.")

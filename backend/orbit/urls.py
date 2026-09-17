@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/v1/administracion/', include('apps.administracion.rutas')),
     path('api/v1/proyectos/', include('apps.proyectos.rutas')),
     path('api/v1/compartir/', include('apps.comparticion.rutas')),
+    path('api/v1/restablecimiento/', include('apps.restablecimiento.rutas')),
 
     # Documentación OpenAPI (drf-spectacular)
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -6,9 +6,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema
+
+from apps.usuarios.tokens import crear_tokens_para
 
 from .modelo import Usuario
 from .serializador import (
@@ -45,14 +46,11 @@ def registrar_usuario(request):
     if serializador.is_valid():
         usuario = serializador.save()
         # Auto-login: generar tokens después del registro
-        refresh = RefreshToken.for_user(usuario)
+        tokens = crear_tokens_para(usuario)
         return Response({
             'mensaje': 'Usuario registrado exitosamente',
             'usuario': PerfilUsuarioSerializador(usuario).data,
-            'tokens': {
-                'access': str(refresh.access_token),
-                'refresh': str(refresh)
-            }
+            'tokens': tokens
         }, status=status.HTTP_201_CREATED)
     return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -90,13 +88,10 @@ def iniciar_sesion(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    refresh = RefreshToken.for_user(usuario)
+    tokens = crear_tokens_para(usuario)
     return Response({
         'usuario': PerfilUsuarioSerializador(usuario).data,
-        'tokens': {
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        }
+        'tokens': tokens
     }, status=status.HTTP_200_OK)
 
 
@@ -146,6 +141,7 @@ def editar_perfil(request):
         usuario.correo = datos['correo']
 
     # Cambiar contraseña solo si se proporcionan ambos campos
+    contrasena_cambiada = False
     if 'contrasena_nueva' in datos and 'contrasena_actual' in datos:
         if not usuario.verificar_contrasena(datos['contrasena_actual']):
             return Response(
@@ -153,12 +149,19 @@ def editar_perfil(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         usuario.set_contrasena(datos['contrasena_nueva'])
+        # Invalida todas las sesiones previas y re-emite tokens vigentes
+        usuario.session_version += 1
+        contrasena_cambiada = True
 
     usuario.save()
-    return Response({
+    respuesta = {
         'mensaje': 'Perfil actualizado exitosamente',
         'usuario': PerfilUsuarioSerializador(usuario).data
-    }, status=status.HTTP_200_OK)
+    }
+    if contrasena_cambiada:
+        respuesta['tokens'] = crear_tokens_para(usuario)
+
+    return Response(respuesta, status=status.HTTP_200_OK)
 
 
 @extend_schema(

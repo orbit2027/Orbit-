@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'apps.administracion',
     'apps.proyectos',
     'apps.comparticion',
+    'apps.restablecimiento',
 ]
 
 MIDDLEWARE = [
@@ -48,10 +49,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'apps.middlewares.captcha.VerificarCaptchaMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5500', cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
+
+# reCAPTCHA v2 (vacío => verificación desactivada)
+RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY', default='')
+RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY', default='')
 
 # Configuración de REST Framework con JWT
 REST_FRAMEWORK = {
@@ -125,6 +131,34 @@ USE_TZ = True
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "static/"
+
+# Correo saliente: configurable por .env. En desarrollo (sin SMTP) Django
+# imprime los correos en la consola del servidor (backend de consola).
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='Orbit <no-responder@orbit.local>',
+)
+
+# URL base del frontend para construir el enlace de restablecimiento.
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5500')
+
+# Parámetros del restablecimiento de contraseña.
+from datetime import timedelta as _timedelta
+RESTABLECIMIENTO_TOKEN_DURACION = _timedelta(
+    minutes=config('RESTABLECIMIENTO_TOKEN_MINUTOS', default=30, cast=int)
+)
+RESTABLECIMIENTO_REINTENTO_SEGUNDOS = config(
+    'RESTABLECIMIENTO_REINTENTO_SEGUNDOS', default=120, cast=int
+)
 
 # Directorio raíz del frontend (se sirve por Django cuando DEBUG=False)
 FRONTEND_DIR = BASE_DIR.parent / "frontend"

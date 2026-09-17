@@ -1,0 +1,1 @@
+"""App de recuperación de contraseña por correo."""

@@ -14,6 +14,7 @@ class Usuario(models.Model):
     )
     activo = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(default=timezone.now)
+    session_version = models.PositiveIntegerField(default=0)
 
     def set_contrasena(self, contrasena_plana):
         salt = bcrypt.gensalt(rounds=10)

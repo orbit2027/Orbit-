@@ -145,11 +145,16 @@ a {
 }
 
 .logo-orbit .orbit-brand-icon {
-    width: 34px;
+    width: 30px;
+}
+
+.logo-orbit.auth__logo {
+    width: 48px;
+    height: 48px;
 }
 
 .auth__logo .orbit-brand-icon {
-    width: 48px;
+    width: 40px;
 }
 
 .landing__footer .orbit-brand-icon {

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer contraseña — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=3">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<div class="auth">
+
+    <div class="glass-card-strong auth__card auth__card--restablecer">
+
+        <!-- Encabezado con logo -->
+        <div class="auth__header">
+            <div class="logo-orbit auth__logo">
+                <img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon">
+            </div>
+            <span class="nombre-logo auth__brand">orbit</span>
+            <h2 class="auth__title" id="titulo-formulario">Recuperar contraseña</h2>
+            <p class="auth__subtitle" id="subtitulo-formulario">
+                Te enviaremos un enlace seguro para restablecerla.
+            </p>
+        </div>
+
+        <!-- Error genérico -->
+        <div id="error-box" class="alerta-error-box auth__alert" style="display: none;">
+            <i class="bi bi-exclamation-circle auth__alert-icon"></i>
+            <span>Hubo un problema. Inténtalo de nuevo.</span>
+        </div>
+
+        <!-- Éxito -->
+        <div id="exito-box" class="alerta-exito-box auth__alert" style="display: none;">
+            <i class="bi bi-check-circle auth__alert-icon"></i>
+            <span></span>
+        </div>
+
+        <!-- Formulario de solicitud (sin token) -->
+        <form id="formulario-solicitud" novalidate>
+            <div class="auth__field auth__field--email">
+                <label class="etiqueta-form" for="correo">Correo electrónico</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-envelope"></i>
+                    <input class="input-dark" type="email" id="correo"
+                           placeholder="tucorreo@ejemplo.com" autocomplete="email">
+                </div>
+            </div>
+
+            <!-- reCAPTCHA v2 -->
+            <div class="d-flex justify-content-center auth__captcha">
+                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            </div>
+
+            <button type="submit" class="btn-primary auth__submit" id="btn-solicitar">
+                Enviar enlace de recuperación
+            </button>
+        </form>
+
+        <!-- Formulario de nueva contraseña (con token) -->
+        <form id="formulario-confirmar" novalidate style="display: none;">
+            <div class="auth__field auth__field--password">
+                <label class="etiqueta-form" for="contrasena-nueva">Nueva contraseña</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-lock"></i>
+                    <input class="input-dark" type="password" id="contrasena-nueva"
+                           placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número"
+                           autocomplete="new-password">
+                    <button type="button" class="toggle-pass" id="btn-mostrar-pass">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="auth__field auth__field--password">
+                <label class="etiqueta-form" for="contrasena-confirmar">Confirmar nueva contraseña</label>
+                <div class="campo-con-icono">
+                    <i class="bi bi-lock"></i>
+                    <input class="input-dark" type="password" id="contrasena-confirmar"
+                           placeholder="Repite la nueva contraseña" autocomplete="new-password">
+                </div>
+            </div>
+
+            <!-- reCAPTCHA v2 -->
+            <div class="d-flex justify-content-center auth__captcha">
+                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            </div>
+
+            <button type="submit" class="btn-primary auth__submit" id="btn-confirmar">
+                Restablecer contraseña
+            </button>
+        </form>
+
+        <p class="auth__footer">
+            ¿Recordaste tu contraseña?
+            <a class="auth__link" href="iniciar-sesion.html">Iniciar sesión</a>
+        </p>
+    </div>
+</div>
+
+<!-- Axios desde CDN  -->
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+    import api from '../js/api.js';
+
+    const parametros = new URLSearchParams(window.location.search);
+    const token = (parametros.get('token') || '').trim();
+
+    const errorBox = document.getElementById('error-box');
+    const exitoBox = document.getElementById('exito-box');
+    const formSolicitud = document.getElementById('formulario-solicitud');
+    const formConfirmar = document.getElementById('formulario-confirmar');
+    const esDesarrolloLocal = window.location.port === '5500';
+
+    function mostrarError(mensaje) {
+        exitoBox.style.display = 'none';
+        errorBox.querySelector('span').textContent = mensaje;
+        errorBox.style.display = 'flex';
+    }
+
+    function mostrarExito(mensaje) {
+        errorBox.style.display = 'none';
+        exitoBox.querySelector('span').textContent = mensaje;
+        exitoBox.style.display = 'flex';
+    }
+
+    function captchaToken() {
+        if (typeof grecaptcha === 'undefined') return '';
+        return grecaptcha.getResponse();
+    }
+
+    function restablecerCaptcha() {
+        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+    }
+
+    if (token) {
+        formSolicitud.style.display = 'none';
+        formConfirmar.style.display = 'block';
+        document.getElementById('titulo-formulario').textContent = 'Nueva contraseña';
+        document.getElementById('subtitulo-formulario').textContent =
+            'Elige una contraseña nueva para tu cuenta de Orbit.';
+    }
+
+    // Mostrar/ocultar contraseña
+    document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
+        const input = document.getElementById('contrasena-nueva');
+        const icono = document.querySelector('#btn-mostrar-pass i');
+        const visible = input.type === 'text';
+        input.type = visible ? 'password' : 'text';
+        icono.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+
+    // Paso 1: solicitar el enlace
+    formSolicitud.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+        exitoBox.style.display = 'none';
+
+        const correo = document.getElementById('correo').value.trim();
+        if (!correo) {
+            mostrarError('Ingresa tu correo electrónico.');
+            return;
+        }
+
+        const captcha = captchaToken();
+        if (!captcha && !esDesarrolloLocal) {
+            mostrarError('Por favor completa el captcha.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-solicitar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader-mini"></span> Enviando...';
+        try {
+            const respuesta = await api.post('/restablecimiento/solicitar/', {
+                correo: correo,
+                captcha_token: captcha
+            });
+            mostrarExito(respuesta.data.mensaje);
+        } catch (error) {
+            const data = error.response?.data;
+            const mensaje = data?.error || 'No pudimos enviar el enlace. Inténtalo más tarde.';
+            mostrarError(mensaje);
+            restablecerCaptcha();
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Enviar enlace de recuperación';
+        }
+    });
+
+    // Paso 2: confirmar restablecimiento con el token
+    formConfirmar.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorBox.style.display = 'none';
+        exitoBox.style.display = 'none';
+
+        const contrasena = document.getElementById('contrasena-nueva').value;
+        const confirmar = document.getElementById('contrasena-confirmar').value;
+        const criterios = /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(contrasena);
+
+        if (!contrasena) {
+            mostrarError('Escribe una nueva contraseña.');
+            return;
+        }
+        if (!criterios) {
+            mostrarError('La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.');
+            return;
+        }
+        if (contrasena !== confirmar) {
+            mostrarError('Las contraseñas nuevas no coinciden.');
+            return;
+        }
+
+        const captcha = captchaToken();
+        if (!captcha && !esDesarrolloLocal) {
+            mostrarError('Por favor completa el captcha.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-confirmar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loader-mini"></span> Guardando...';
+        try {
+            const respuesta = await api.post('/restablecimiento/confirmar/', {
+                token: token,
+                contrasena: contrasena,
+                captcha_token: captcha
+            });
+            formConfirmar.style.display = 'none';
+            mostrarExito(respuesta.data.mensaje);
+            setTimeout(() => {
+                window.location.href = 'iniciar-sesion.html';
+            }, 2500);
+        } catch (error) {
+            const data = error.response?.data;
+            const mensaje = data?.error || 'El enlace es inválido o ya expiró.';
+            mostrarError(mensaje);
+            restablecerCaptcha();
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Restablecer contraseña';
+        }
+    });
+</script>
+</body>
+</html>
