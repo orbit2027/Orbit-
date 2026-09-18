@@ -71,7 +71,6 @@ def estadisticas_globales(request):
         'crecimiento_mensual': crecimiento
     })
 
-
 @extend_schema(
     tags=['Administración'],
     summary='Listar usuarios (admin)',

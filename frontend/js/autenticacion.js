@@ -67,7 +67,7 @@ function resolverRutaVista(nombreArchivo) {
 }
 
 /**
- * RF-USU-01: Registro de nuevo usuario con auto-login.
+ * Registro de nuevo usuario con auto-login.
  * El backend retorna tokens; se guardan para entrar directo al tablero.
  */
 async function registrar(nombreCompleto, correo, contrasena, captchaToken) {
@@ -83,7 +83,7 @@ async function registrar(nombreCompleto, correo, contrasena, captchaToken) {
 }
 
 /**
- * RF-USU-02: Inicio de sesión.
+ * Inicio de sesión.
  * Almacena tokens y datos del usuario.
  */
 async function iniciarSesion(correo, contrasena, captchaToken) {
@@ -98,7 +98,7 @@ async function iniciarSesion(correo, contrasena, captchaToken) {
 }
 
 /**
- * RF-USU-06: Cierre de sesión.
+ * Cierre de sesión.
  * Limpia localStorage y redirige al login.
  */
 function logout() {
@@ -107,7 +107,7 @@ function logout() {
 }
 
 /**
- * RF-USU-03: Obtener perfil del usuario autenticado
+ * Obtener perfil del usuario autenticado
  */
 async function obtenerPerfil() {
     const respuesta = await api.get('/usuarios/perfil/');
@@ -115,7 +115,7 @@ async function obtenerPerfil() {
 }
 
 /**
- * RF-USU-04: Editar perfil y sincronizar localStorage
+ * Editar perfil y sincronizar localStorage
  */
 async function editarPerfil(datos) {
     const respuesta = await api.put('/usuarios/editar/', datos);
@@ -129,7 +129,7 @@ async function editarPerfil(datos) {
 }
 
 /**
- * RF-USU-05: Eliminar cuenta con confirmación de contraseña
+ * Eliminar cuenta con confirmación de contraseña
  */
 async function eliminarCuenta(contrasena) {
     const respuesta = await api.delete('/usuarios/eliminar/', {

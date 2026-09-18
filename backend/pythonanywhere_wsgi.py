@@ -1,12 +1,6 @@
 """
 WSGI auxiliar para PythonAnywhere.
 
-Uso:
-1. Crea una Web App tipo "Manual configuration".
-2. En el apartado "Code" -> "WSGI configuration file" apunta a este archivo:
-   /home/TU_USUARIO/Orbit/backend/pythonanywhere_wsgi.py
-3. Asegúrate de que backend/.env exista en tu servidor con ALLOWED_HOSTS
-   incluyendo TU_USUARIO.pythonanywhere.com y DEBUG=False.
 """
 import os
 import sys
@@ -19,6 +13,6 @@ os.chdir(RUTA_PROYECTO)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'orbit.settings')
 
-from django.core.wsgi import get_wsgi_application  # noqa: E402
+from django.core.wsgi import get_wsgi_application 
 
 application = get_wsgi_application()

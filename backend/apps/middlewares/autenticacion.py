@@ -21,7 +21,6 @@ class EsquemaAutenticacionJWT(OpenApiAuthenticationExtension):
             'bearerFormat': 'JWT',
         }
 
-
 class AutenticacionJWT(BaseAuthentication):
     """
     Clase de autenticación personalizada que verifica JWT.

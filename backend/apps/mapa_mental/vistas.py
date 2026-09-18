@@ -22,7 +22,6 @@ MensajeSerializador = inline_serializer(
     name='MapaMensaje', fields={'mensaje': serializers.CharField()}
 )
 
-
 @extend_schema(
     tags=['Mapa mental'],
     summary='Obtener el mapa mental completo',
@@ -109,7 +108,7 @@ def detalle_nodo(request, nodo_id):
         )
 
     elif request.method == 'DELETE':
-        # RF-MAP-04: Las conexiones asociadas se eliminan por FK CASCADE
+        # Las conexiones asociadas se eliminan por FK CASCADE
         nodo.delete()
         return Response(
             {'mensaje': 'Nodo y conexiones eliminados'},

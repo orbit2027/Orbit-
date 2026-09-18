@@ -1,16 +1,17 @@
 /**
  * dialogos.js - Diálogos propios de Orbit.
- * Reemplazan confirm/alert/prompt nativos con el sistema visual de Orbit.
  */
 
 let dialogoActivo = null;
 
+// Función para escapar texto y prevenir inyección de HTML
 function escapar(texto) {
     const div = document.createElement('div');
     div.textContent = texto === null || texto === undefined ? '' : String(texto);
     return div.innerHTML;
 }
 
+// Función para crear el overlay del diálogo
 function crearOverlay() {
     if (dialogoActivo) dialogoActivo.remove();
     const overlay = document.createElement('div');

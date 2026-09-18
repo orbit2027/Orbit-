@@ -1,0 +1,503 @@
+/*
+ * sidebar.css de Orbit.
+ * Componente flotante, colapsable, con modo claro/oscuro.
+ * Se inyecta con js/sidebar.js en todas las vistas internas.
+ */
+
+.sidebar {
+    --sb-ancho: 264px;
+    --sb-ancho-mini: 82px;
+    width: var(--sb-ancho);
+    min-width: var(--sb-ancho);
+    height: calc(100vh - 24px);
+    margin: 12px 0 12px 12px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background: var(--sidebar-fondo, rgba(13, 33, 55, 0.92));
+    border: 1px solid var(--borde-cian);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 12px 32px rgba(2, 6, 23, 0.35);
+    overflow: hidden;
+    position: relative;
+    z-index: 5;
+    transition: width 0.3s ease, min-width 0.3s ease, box-shadow 0.3s ease,
+        transform 0.3s ease;
+}
+
+.sidebar__inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ═══════════ ENCABEZADO / PERFIL ═══════════ */
+.sidebar__perfil {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 16px 14px;
+}
+
+.sidebar__avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--color-primario), #7C3AED);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
+}
+
+.sidebar__perfil-datos {
+    flex: 1;
+    min-width: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar__nombre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-texto);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__rol {
+    font-size: 11px;
+    color: var(--color-terciario);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__toggle {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    border: 1px solid var(--borde-sutil);
+    background: transparent;
+    color: var(--color-terciario);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sidebar__toggle:hover {
+    color: var(--color-primario);
+    border-color: var(--borde-cian-fuerte);
+    background: var(--superficie-hover);
+}
+
+/* ═══════════ BÚSQUEDA ═══════════ */
+.sidebar__buscar {
+    position: relative;
+    margin: 0 14px 12px;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar__buscar > i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-terciario);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.sidebar__buscador {
+    width: 100%;
+    padding: 9px 46px 9px 34px;
+    border-radius: 12px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie);
+    color: var(--color-texto);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sidebar__buscador::placeholder {
+    color: var(--color-terciario);
+}
+
+.sidebar__buscador:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+}
+
+.sidebar__kbd {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    font-family: inherit;
+    color: var(--color-terciario);
+    background: var(--superficie-hover);
+    border: 1px solid var(--borde-sutil);
+    border-radius: 6px;
+    padding: 1px 6px;
+    pointer-events: none;
+}
+
+/* ═══════════ NAVEGACIÓN ═══════════ */
+.sidebar__nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 12px 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar__grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar__grupo + .sidebar__grupo {
+    margin-top: 14px;
+}
+
+.sidebar__grupo-titulo {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--color-terciario);
+    padding: 6px 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--color-terciario);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: left;
+    position: relative;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.sidebar-item i {
+    font-size: 19px;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+}
+
+.sidebar-item:hover {
+    background: var(--superficie-hover);
+    color: var(--color-texto);
+}
+
+.sidebar-item.active {
+    background: rgba(0, 229, 255, 0.14);
+    color: var(--color-primario);
+    font-weight: 600;
+}
+
+.sidebar-item--peligro:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: #FCA5A5;
+}
+
+.sidebar__texto {
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-item__badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--color-primario);
+    color: var(--color-secundario);
+    font-size: 10.5px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-item__badge.visible {
+    display: inline-flex;
+}
+
+.sidebar-item__badge--suave {
+    background: rgba(167, 139, 250, 0.18);
+    color: #A78BFA;
+    min-width: auto;
+    padding: 0 8px;
+    font-size: 10px;
+    display: inline-flex;
+}
+
+/* ═══════════ PIE DE CONTROLES ═══════════ */
+.sidebar__footer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 12px 14px 16px;
+    border-top: 1px solid var(--borde-sutil);
+    transition: all 0.3s ease;
+}
+
+.sidebar__control {
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie);
+    color: var(--color-terciario);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    transition: all 0.2s;
+}
+
+.sidebar__control:hover {
+    color: var(--color-primario);
+    border-color: var(--borde-cian-fuerte);
+    background: var(--superficie-hover);
+    transform: translateY(-1px);
+}
+
+.sidebar__control--accion {
+    background: var(--color-primario);
+    color: var(--color-secundario);
+    border-color: transparent;
+    box-shadow: 0 6px 16px rgba(0, 229, 255, 0.28);
+}
+
+.sidebar__control--accion:hover {
+    color: var(--color-secundario);
+    filter: brightness(1.06);
+}
+
+/* ═══════════ TOOLTIP (JS) ═══════════ */
+.sidebar__tooltip {
+    position: fixed;
+    z-index: 200;
+    background: var(--color-secundario);
+    color: var(--color-texto);
+    border: 1px solid var(--borde-cian-fuerte);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+/* ═══════════ HAMBURGUESA MÓVIL ═══════════ */
+.sidebar__hamburguesa {
+    display: none;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    background: var(--superficie);
+    border: 1px solid var(--borde-sutil);
+    border-radius: 10px;
+    color: var(--color-texto);
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.sidebar__hamburguesa i {
+    pointer-events: none;
+}
+
+/* ═══════════ COLAPSADO (solo escritorio) ═══════════ */
+@media (min-width: 901px) {
+    .sidebar--colapsado {
+        width: var(--sb-ancho-mini);
+        min-width: var(--sb-ancho-mini);
+    }
+
+    .sidebar--colapsado .sidebar__texto,
+    .sidebar--colapsado .sidebar__perfil-datos,
+    .sidebar--colapsado .sidebar__kbd,
+    .sidebar--colapsado .sidebar-item__badge--suave {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+        pointer-events: none;
+        margin: 0;
+    }
+
+    .sidebar--colapsado .sidebar__toggle {
+        display: none;
+    }
+
+    .sidebar--colapsado .sidebar__perfil {
+        justify-content: center;
+        padding: 18px 8px 14px;
+    }
+
+    .sidebar--colapsado .sidebar__buscar,
+    .sidebar--colapsado .sidebar__grupo-titulo {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .sidebar--colapsado .sidebar-item {
+        justify-content: center;
+        padding: 11px 0;
+    }
+
+    .sidebar--colapsado .sidebar-item i {
+        width: auto;
+    }
+
+    .sidebar--colapsado .sidebar-item__badge {
+        position: absolute;
+        top: 4px;
+        right: 8px;
+        margin: 0;
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        padding: 0 4px;
+    }
+
+    .sidebar--colapsado .sidebar__footer {
+        grid-template-columns: 1fr 1fr;
+        padding: 12px 12px 16px;
+    }
+}
+
+/* ═══════════ MÓVIL / TABLET: PANEL DESLIZABLE ═══════════ */
+@media (max-width: 900px) {
+    .layout-principal > .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: auto;
+        height: 100vh;
+        width: 276px;
+        min-width: 276px;
+        margin: 0;
+        border-radius: 0 20px 20px 0;
+        align-items: stretch;
+        transform: translateX(-100%);
+        z-index: 90;
+        box-shadow: none;
+    }
+
+    .layout-principal > .sidebar.abierto {
+        transform: translateX(0);
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+    }
+
+    .sidebar__toggle {
+        display: none;
+    }
+
+    .sidebar__hamburguesa {
+        display: inline-flex;
+        margin-right: 4px;
+    }
+
+    /* Neutraliza reglas heredadas del layout antiguo */
+    .layout-principal > .sidebar .sidebar-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        width: 100%;
+        margin: 0;
+        padding: 10px 12px;
+        gap: 12px;
+        font-size: 13.5px;
+        border: none;
+    }
+
+    .layout-principal > .sidebar .sidebar-item .sidebar__texto {
+        display: inline;
+    }
+
+    .layout-principal > .sidebar .sidebar-item .sidebar-item__badge.visible,
+    .layout-principal > .sidebar .sidebar-item .sidebar-item__badge--suave {
+        display: inline-flex;
+    }
+}
+
+/* ═══════════ INTEGRACIÓN CON LA VISTA DE PROYECTOS ═══════════ */
+.projects__workspace {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.projects__workspace > .projects__sidebar {
+    width: 280px;
+    min-width: 280px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+    .projects__workspace > .projects__sidebar {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    .projects__main {
+        padding-bottom: 0;
+    }
+
+    .projects__tabs-bar {
+        padding: 12px 14px;
+        flex-wrap: nowrap;
+    }
+
+    .projects__tabs {
+        width: auto;
+        flex: 1;
+        margin: 0;
+        justify-content: center;
+    }
+}

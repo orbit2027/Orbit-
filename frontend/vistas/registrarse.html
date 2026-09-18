@@ -179,7 +179,7 @@
             nivel = 1; etiqueta = 'Débil'; color = 'var(--color-error)';
         }
 
-        // Pintar segmentos hasta el nivel alcanzado
+        // Se muestra el nivel hasta que cumpla los requisitos mínimos (8 caracteres, mayúscula y número)
         document.querySelectorAll('.segmento-fortaleza').forEach(seg => {
             seg.style.background = Number(seg.dataset.nivel) <= nivel ? color : 'rgba(100,116,139,0.2)';
         });

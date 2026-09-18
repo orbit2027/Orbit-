@@ -29,7 +29,6 @@ MensajeSerializador = inline_serializer(
     name='ComparticionMensaje', fields={'mensaje': serializers.CharField()}
 )
 
-
 def _puede_administrar_objeto(usuario, tipo_objeto, objeto_id):
     """El requester es dueño o tiene permiso administrar sobre el objeto."""
     if tipo_objeto == 'proyecto':
@@ -58,7 +57,6 @@ def _titulo_objeto(tipo_objeto, objeto_id):
         return proyecto.nombre if proyecto else 'Proyecto eliminado'
     tarea = Tarea.objects.filter(id=objeto_id).first()
     return tarea.titulo if tarea else 'Tarea eliminada'
-
 
 @extend_schema(
     tags=['Compartición'],

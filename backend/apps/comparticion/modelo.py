@@ -17,7 +17,6 @@ PERMISOS = [
     ('administrar', 'administrar'),
 ]
 
-
 class Comparticion(models.Model):
     """Representa el acceso que un usuario tiene sobre un objeto compartido."""
 

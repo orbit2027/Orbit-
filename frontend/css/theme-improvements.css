@@ -49,4 +49,3 @@
 /* Subtle transition for sidebar links */
 .sidebar-enlace{ transition: background 160ms, color 160ms; border-radius:8px; padding: 8px 10px; display:flex; align-items:center; gap:8px; }
 .sidebar-enlace:hover{ background: rgba(255,255,255,0.02); }
-

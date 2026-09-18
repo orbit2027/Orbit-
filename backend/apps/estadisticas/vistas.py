@@ -15,14 +15,14 @@ from .serializador import EstadisticasUsuarioSerializador
 @extend_schema(
     tags=['Estadísticas'],
     summary='Estadísticas del usuario',
-    description='RF-EST-01/02/03. Contadores por estado, progreso y datos semanales.',
+    description='Contadores por estado, progreso y datos semanales.',
     responses={200: EstadisticasUsuarioSerializador},
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def estadisticas_usuario(request):
     """
-    RF-EST-01/02/03: Estadísticas individuales del usuario.
+    Estadísticas individuales del usuario.
     Retorna contadores por estado, progreso y datos semanales.
     """
     usuario = request.user

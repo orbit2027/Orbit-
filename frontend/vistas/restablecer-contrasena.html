@@ -162,7 +162,7 @@
         icono.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
     });
 
-    // Paso 1: solicitar el enlace
+    // 1. Solicitar el enlace para restablecer la contraseña
     formSolicitud.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorBox.style.display = 'none';
@@ -200,7 +200,7 @@
         }
     });
 
-    // Paso 2: confirmar restablecimiento con el token
+    // 2. Confirmar restablecimiento con el token
     formConfirmar.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorBox.style.display = 'none';

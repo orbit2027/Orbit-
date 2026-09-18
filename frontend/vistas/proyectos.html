@@ -11,45 +11,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <script>
+        (function () {
+            document.documentElement.dataset.tema = localStorage.getItem('orbit_tema') || 'oscuro';
+        })();
+    </script>
+
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
     <link rel="stylesheet" href="../css/vistas.css"> 
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 
 <body>
-<div class="projects__layout">
+<div class="layout-principal">
 
-    <!-- ═══════════ COL 1: BARRA DE ICONOS ═══════════ -->
-    <aside class="projects__iconbar">
-        <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar" id="app-sidebar"></aside>
 
-        <button class="projects__icon-button" title="Tablero" onclick="location.href='tablero-kanban.html'">
-            <i class="bi bi-kanban"></i>
-        </button>
-        <button class="projects__icon-button is-active" title="Proyectos">
-            <i class="bi bi-folder2-open"></i>
-        </button>
-        <button class="projects__icon-button" title="Mapa mental" onclick="location.href='mapa-mental.html'">
-            <i class="bi bi-diagram-3"></i>
-        </button>
-        <button class="projects__icon-button" title="Estadísticas" onclick="location.href='estadisticas.html'">
-            <i class="bi bi-bar-chart-line"></i>
-        </button>
-        <button class="projects__icon-button" title="Notificaciones" id="campana-notificaciones">
-            <i class="bi bi-bell"></i>
-        </button>
+    <div class="projects__workspace">
 
-        <div class="projects__icon-spacer"></div>
-
-        <button class="projects__icon-button" title="Mi perfil" onclick="location.href='perfil.html'">
-            <i class="bi bi-person-gear"></i>
-        </button>
-        <button class="projects__icon-button" title="Cerrar sesión" id="btn-salir">
-            <i class="bi bi-box-arrow-left"></i>
-        </button>
-    </aside>
-
-    <!-- ═══════════ COL 2: PANEL LATERAL DE PROYECTOS ═══════════ -->
+    <!-- ═══════════ PANEL LATERAL DE PROYECTOS ═══════════ -->
     <aside class="projects__sidebar">
         <!-- Perfil -->
         <div class="projects__profile">
@@ -73,7 +56,7 @@
             <i class="bi bi-arrow-right"></i>
         </button>
 
-        <!-- Árbol de proyectos (RF-PRO-02) -->
+        <!-- Árbol de proyectos -->
         <div>
             <div class="projects__section-title">
                 <span>Mis proyectos</span>
@@ -81,7 +64,7 @@
             <div class="projects__tree" id="projects__tree"></div>
         </div>
 
-        <!-- Equipo / miembros (admin ve todos, RF-PRO-06) -->
+        <!-- Equipo / miembros -->
         <div class="projects__team" id="bloque-equipo">
             <div class="projects__section-title"><span>Equipo</span></div>
             <div class="view__inline--62">
@@ -101,6 +84,7 @@
                 <button class="projects__tab" data-vista="board">Board</button>
                 <button class="projects__tab" data-vista="list">List</button>
             </div>
+            <button class="campana-notificacion" id="campana-notificaciones"><i class="bi bi-bell"></i></button>
         </div>
 
         <div class="projects__content">
@@ -150,13 +134,6 @@
 
                 <!-- Widgets -->
                 <div class="projects__widget-grid">
-                    <!-- Promo IA -->
-                    <div class="projects__widget projects__widget--promo">
-                        <div class="projects__promo-icon"><i class="bi bi-stars"></i></div>
-                        <h4>Orbit Brain</h4>
-                        <p>Deja que la inteligencia de Orbit priorice y reparta tus tareas automáticamente.</p>
-                        <button class="projects__white-button">Probar gratis</button>
-                    </div>
 
                     <!-- Progreso global -->
                     <div class="projects__widget">
@@ -204,6 +181,7 @@
             <div id="vista-detalle-contenido"></div>
         </div>
     </main>
+    </div>
 </div>
 
 <!-- ═══════════ MODAL CREAR/EDITAR PROYECTO ═══════════ -->
@@ -250,11 +228,15 @@
 
 <script type="module">
     import api from '../js/api.js';
-    import { obtenerUsuario, logout } from '../js/autenticacion.js';
+    import { obtenerUsuario } from '../js/autenticacion.js';
     import { formatearFecha } from '../js/utilidades.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
     import { confirmar, alertar } from '../js/dialogos.js';
     import { abrirDialogoCompartir } from '../js/compartir.js';
+    import { inicializarSidebar } from '../js/sidebar.js';
+
+    // Barra lateral compartida
+    inicializarSidebar();
 
     const usuario = obtenerUsuario();
     if (!usuario) location.href = 'iniciar-sesion.html';
@@ -264,8 +246,6 @@
     const iniciales = (usuario?.nombre_completo || 'U').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
     document.getElementById('avatar-mini').firstChild.textContent = iniciales;
     document.getElementById('nombre-mini').textContent = usuario?.nombre_completo || '';
-
-    document.getElementById('btn-salir').addEventListener('click', logout);
 
     // Estado
     let proyectos = [];
@@ -460,7 +440,7 @@
         });
     }
 
-    // ═══════════ EQUIPO (avatares superpuestos) ═══════════
+    // ═══════════ EQUIPO ═══════════
     async function cargarEquipo() {
         if (!esAdmin) {
             document.getElementById('bloque-equipo').style.display = 'none';
@@ -485,7 +465,7 @@
         } catch { /* sin datos */ }
     }
 
-    // ═══════════ DETALLE DE PROYECTO (RF-PRO-03) ═══════════
+    // ═══════════ DETALLE DE PROYECTO ═══════════
     async function verDetalle(id) {
         const proyecto = proyectos.find(p => p.id === id);
         if (!proyecto) return;

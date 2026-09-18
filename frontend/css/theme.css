@@ -1,0 +1,206 @@
+/*
+ * theme.css - Tokens de tema (oscuro / claro) y ajustes de superficies.
+ * El tema se controla con <html data-tema="oscuro|claro">.
+ */
+
+:root {
+    color-scheme: dark;
+
+    /* Superficies semánticas (tema oscuro por defecto) */
+    --superficie: rgba(255, 255, 255, 0.05);
+    --superficie-fuerte: rgba(255, 255, 255, 0.07);
+    --superficie-hover: rgba(255, 255, 255, 0.06);
+    --borde-sutil: rgba(255, 255, 255, 0.08);
+    --sidebar-fondo: rgba(13, 33, 55, 0.92);
+    --sombra-panel: 0 12px 32px rgba(2, 6, 23, 0.35);
+}
+
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ═══════════ TEMA CLARO ═══════════ */
+[data-tema="claro"] {
+    color-scheme: light;
+
+    --color-primario: #0891B2;
+    --color-primario-hover: #0E7490;
+    --color-secundario: #EEF2F7;
+    --color-navy-light: #FFFFFF;
+    --color-terciario: #64748B;
+    --color-texto: #0F172A;
+
+    --gradiente-fondo: linear-gradient(160deg, #F8FAFC 0%, #EEF2F7 60%, #F8FAFC 100%);
+    --gradiente-auth: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+
+    --borde-cian: rgba(8, 145, 178, 0.16);
+    --borde-cian-fuerte: rgba(8, 145, 178, 0.34);
+    --borde-gris: rgba(100, 116, 139, 0.3);
+    --color-overlay: rgba(15, 23, 42, 0.45);
+
+    --superficie: rgba(15, 23, 42, 0.035);
+    --superficie-fuerte: #FFFFFF;
+    --superficie-hover: rgba(15, 23, 42, 0.055);
+    --borde-sutil: rgba(15, 23, 42, 0.09);
+    --sidebar-fondo: rgba(255, 255, 255, 0.92);
+    --sombra-panel: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+/* Tarjetas y superficies */
+[data-tema="claro"] .glass-card {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .glass-card-strong {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+/* Barra superior */
+[data-tema="claro"] .topbar {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .landing__navbar--scrolled {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* Formularios */
+[data-tema="claro"] .input-dark {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.16);
+    color: #0F172A;
+}
+[data-tema="claro"] .btn-secondary {
+    color: #0F172A;
+    border-color: rgba(15, 23, 42, 0.22);
+}
+
+/* Tablero */
+[data-tema="claro"] .columna-kanban {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .kanban-card {
+    background: #FFFFFF;
+}
+
+/* Notificaciones y menús flotantes */
+[data-tema="claro"] .panel-notificaciones,
+[data-tema="claro"] .menu-opciones,
+[data-tema="claro"] .mind-map__context-menu {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.12);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+}
+[data-tema="claro"] .panel-notificaciones__header {
+    background: #FFFFFF;
+    border-bottom-color: rgba(15, 23, 42, 0.1);
+}
+[data-tema="claro"] .notificacion-item:hover {
+    background: rgba(8, 145, 178, 0.08);
+}
+[data-tema="claro"] .menu-opciones .menu-opcion:hover {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+/* Tablas (admin) */
+[data-tema="claro"] .tabla-usuarios th {
+    border-bottom-color: rgba(15, 23, 42, 0.12);
+}
+[data-tema="claro"] .tabla-usuarios td {
+    color: #334155;
+    border-bottom-color: rgba(15, 23, 42, 0.06);
+}
+[data-tema="claro"] .tabla-usuarios tr:hover td {
+    background: rgba(15, 23, 42, 0.03);
+}
+[data-tema="claro"] .btn-accion-tabla {
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* Perfil */
+[data-tema="claro"] .tarjeta-perfil {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .tarjeta-perfil-header,
+[data-tema="claro"] .seccion-perfil {
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+/* Proyectos */
+[data-tema="claro"] .projects__sidebar {
+    background: #FFFFFF;
+    border-right-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .projects__widget,
+[data-tema="claro"] .projects__chart-panel {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .projects__tabs-bar {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .projects__tabs {
+    background: rgba(15, 23, 42, 0.05);
+}
+[data-tema="claro"] .projects__item:hover {
+    background: rgba(8, 145, 178, 0.08);
+}
+[data-tema="claro"] .projects__item.is-active {
+    background: rgba(8, 145, 178, 0.12);
+    color: var(--color-primario);
+}
+[data-tema="claro"] .projects__new-button {
+    background: rgba(8, 145, 178, 0.06);
+}
+[data-tema="claro"] .projects__verified {
+    border-color: #FFFFFF;
+}
+[data-tema="claro"] .projects__task-row {
+    background: rgba(8, 145, 178, 0.04);
+    border-color: rgba(8, 145, 178, 0.1);
+}
+[data-tema="claro"] .projects__progress {
+    background: rgba(15, 23, 42, 0.12);
+}
+
+/* Mapa mental */
+[data-tema="claro"] .mind-map__canvas {
+    background: #F1F5F9;
+}
+[data-tema="claro"] .panel-herramientas {
+    background: #FFFFFF;
+    border-right-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .panel-propiedades {
+    background: #FFFFFF;
+    border-left-color: rgba(15, 23, 42, 0.08);
+}
+[data-tema="claro"] .panel-propiedades__posicion > div {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+/* Selectores de fecha/nativos que forzaban esquema oscuro */
+[data-tema="claro"] .view__inline--57,
+[data-tema="claro"] .view__inline--59,
+[data-tema="claro"] .view__inline--78,
+[data-tema="claro"] .view__inline--124,
+[data-tema="claro"] .view__inline--126,
+[data-tema="claro"] .view__inline--159 {
+    color-scheme: light;
+}
+
+/* Sidebar en modo claro */
+[data-tema="claro"] .sidebar-item.active {
+    background: rgba(8, 145, 178, 0.12);
+}
+[data-tema="claro"] .sidebar__avatar {
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
+}
+[data-tema="claro"] .sidebar__buscador:focus {
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+}

@@ -6,7 +6,6 @@ from .modelo import Comparticion
 
 NIVELES = {'ver': 1, 'editar': 2, 'administrar': 3}
 
-
 def por_objeto(usuario, tipo_objeto, objeto_id):
     """Devuelve la Comparticion del usuario sobre el objeto o None."""
     return Comparticion.objects.filter(
@@ -23,7 +22,6 @@ def nivel_sobre_proyecto(usuario, proyecto):
     comparticion = por_objeto(usuario, 'proyecto', str(proyecto.id))
     return comparticion.permiso if comparticion else None
 
-
 def nivel_sobre_tarea(usuario, tarea):
     """Permiso del usuario sobre una tarea (incluye proyectos compartidos)."""
     if tarea.usuario_id == usuario.id:
@@ -36,7 +34,6 @@ def nivel_sobre_tarea(usuario, tarea):
         if comparticion_proyecto:
             return comparticion_proyecto.permiso
     return None
-
 
 def _supera(nivel, minimo):
     return nivel is not None and NIVELES[nivel] >= NIVELES[minimo]

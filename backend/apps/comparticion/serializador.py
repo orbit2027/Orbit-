@@ -4,7 +4,6 @@ Serializadores DRF para el módulo de compartición.
 from rest_framework import serializers
 from .modelo import Comparticion
 
-
 class ComparticionSerializador(serializers.Serializer):
     """Serializador para crear/editar una compartición."""
 
@@ -15,11 +14,9 @@ class ComparticionSerializador(serializers.Serializer):
         choices=['ver', 'editar', 'administrar'], default='ver'
     )
 
-
 class PermisoSerializador(serializers.Serializer):
     """Serializador para cambiar el permiso de una compartición."""
     permiso = serializers.ChoiceField(choices=['ver', 'editar', 'administrar'])
-
 
 class ComparticionSalidaSerializador(serializers.Serializer):
     """Serializador de salida: detalles legibles de la compartición."""
@@ -37,7 +34,6 @@ class ComparticionSalidaSerializador(serializers.Serializer):
                 if instancia.fecha_compartida else None
             ),
         }
-
 
 class ComparticionConmigoSalidaSerializador(ComparticionSalidaSerializador):
     """Compartición recibida, con título del objeto y propietario legibles."""

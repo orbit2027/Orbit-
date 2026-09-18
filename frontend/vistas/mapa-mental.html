@@ -12,50 +12,23 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <script>
+        (function () {
+            document.documentElement.dataset.tema = localStorage.getItem('orbit_tema') || 'oscuro';
+        })();
+    </script>
+
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
     <link rel="stylesheet" href="../css/vistas.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 <body>
 <div class="layout-principal">
 
     <!-- ═══════════ SIDEBAR ═══════════ -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="logo-orbit"><img src="../img/orbit-logo.svg" alt="Orbit Logo" class="orbit-brand-icon"></div>
-            <span class="nombre-logo">orbit</span>
-        </div>
-
-        <nav class="sidebar-nav">
-            <button class="sidebar-item" onclick="location.href='tablero-kanban.html'">
-                <i class="bi bi-kanban"></i><span>Tablero</span>
-            </button>
-            <button class="sidebar-item" onclick="location.href='proyectos.html'">
-                <i class="bi bi-folder2-open"></i><span>Proyectos</span>
-            </button>
-            <button class="sidebar-item active" onclick="location.href='mapa-mental.html'">
-                <i class="bi bi-diagram-3"></i><span>Mapa mental</span>
-            </button>
-            <button class="sidebar-item" onclick="location.href='estadisticas.html'">
-                <i class="bi bi-bar-chart-line"></i><span>Estadísticas</span>
-            </button>
-            <button class="sidebar-item" onclick="location.href='perfil.html'">
-                <i class="bi bi-person-gear"></i><span>Perfil</span>
-            </button>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="usuario-fila">
-                <div class="avatar" id="avatar-usuario">U</div>
-                <div>
-                    <div class="nombre-usuario-sidebar" id="nombre-usuario">Usuario</div>
-                </div>
-            </div>
-            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">
-                <i class="bi bi-box-arrow-left"></i><span>Cerrar sesión</span>
-            </button>
-        </div>
-    </aside>
+    <aside class="sidebar" id="app-sidebar"></aside>
 
     <!-- Panel de herramientas verticales -->
     <div class="panel-herramientas">
@@ -159,7 +132,7 @@
     <button class="menu-opcion" data-accion="eliminar"><i class="bi bi-trash"></i> Eliminar idea</button>
 </div>
 
-<!-- Modal: Convertir idea en tarea (RF-MAP-06) -->
+<!-- Modal: Convertir idea en tarea  -->
 <div class="modal-overlay" id="modal-convertir">
     <div class="glass-card-strong modal-card">
         <h3 class="modal-titulo">Convertir idea en tarea</h3>
@@ -206,7 +179,10 @@
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
     import { confirmar, alertar, preguntarTexto } from '../js/dialogos.js';
-    import { inicializarMenuMovil } from '../js/menu-movil.js';
+    import { inicializarSidebar } from '../js/sidebar.js';
+
+    // Barra lateral compartida
+    inicializarSidebar();
 
     const COLORES = ['#00E5FF', '#00C48C', '#F59E0B', '#FF4D4D', '#A78BFA', '#64748B'];
     const COLORES_ETIQUETA = {
@@ -662,7 +638,7 @@
         if (nodoSeleccionadoId) eliminarConexionesDeNodo(nodoSeleccionadoId);
     });
 
-    // ═══════════ RF-MAP-06: CONVERTIR EN TAREA ═══════════
+    // ═══════════ CONVERTIR EN TAREA LOS NODOS ═══════════
     function abrirModalConvertir(nodo) {
         if (nodo.convertido_en_tarea) {
             alertar({
@@ -737,7 +713,6 @@
     // Carga inicial
     cargarMapa();
     inicializarNotificaciones();
-    inicializarMenuMovil();
 </script>
 </body>
 </html>

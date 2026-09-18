@@ -1,5 +1,5 @@
 /**
- * utilidades.js - Funciones reutilizables para el frontend
+ * Funciones reutilizables para el frontend
  * Alertas, formateo de fechas y validaciones comunes
  */
 
