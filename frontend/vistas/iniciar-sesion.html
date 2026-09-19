@@ -14,9 +14,6 @@
 
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
-
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 <div class="auth">
@@ -72,9 +69,23 @@
                 <a class="auth__link" href="restablecer-contrasena.html">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <!-- reCAPTCHA v2 -->
-            <div class="d-flex justify-content-center auth__captcha">
-                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            <!-- CAPTCHA SVG local -->
+            <div class="captcha-proyecto auth__captcha">
+                <div class="captcha-proyecto__fila">
+                    <img id="captcha-imagen" class="captcha-proyecto__imagen"
+                         alt="Código de verificación" width="150" height="50">
+                    <button type="button" id="btn-refrescar-captcha"
+                            class="captcha-proyecto__refrescar"
+                            title="Generar otro código" aria-label="Nuevo código">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="campo-con-icono">
+                    <i class="bi bi-shield-check"></i>
+                    <input class="input-dark" id="captcha-input" type="text"
+                           autocomplete="off" placeholder="Escribe el código de la imagen"
+                           maxlength="5" style="text-transform: uppercase;">
+                </div>
             </div>
 
             <button type="submit" class="btn-primary auth__submit" id="btn-login">
@@ -94,11 +105,14 @@
 
 <script type="module">
     import { iniciarSesion, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
+    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
 
     // Si ya hay sesión activa, redirigir según rol
     if (estaAutenticado()) {
         redirigirSegunRol();
     }
+
+    inicializarCaptcha();
 
     const formulario = document.getElementById('formulario-login');
     const errorBox = document.getElementById('error-login');
@@ -125,7 +139,7 @@
             return;
         }
 
-        const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+        const captchaToken = obtenerCodigoCaptcha();
         const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
         if (!captchaToken && !esDesarrolloLocal) {
             errorBox.querySelector('span').textContent = 'Por favor completa el captcha.';
@@ -144,7 +158,7 @@
             // Error genérico: no se revela si el correo existe o la contraseña es incorrecta
             errorBox.querySelector('span').textContent = 'Las credenciales ingresadas no son correctas.';
             errorBox.style.display = 'flex';
-            grecaptcha.reset();
+            refrescarCaptcha();
         } finally {
             btnLogin.disabled = false;
             btnLogin.textContent = 'Iniciar sesión';

@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'apps.administracion',
     'apps.proyectos',
     'apps.comparticion',
+    'apps.email',
     'apps.restablecimiento',
+    'apps.captcha',
 ]
 
 MIDDLEWARE = [
@@ -49,15 +51,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'apps.middlewares.captcha.VerificarCaptchaMiddleware',
+    'apps.captcha.middleware.VerificarCaptchaMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5500', cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
 
-# reCAPTCHA v2 (vacío => verificación desactivada)
-RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY', default='')
-RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY', default='')
+# CAPTCHA SVG local (sin servicios externos). En producción pon
+# CAPTCHA_HABILITADO=True; en DEBUG la verificación se omite (dev local/pruebas).
+CAPTCHA_HABILITADO = config('CAPTCHA_HABILITADO', default=False, cast=bool)
+CAPTCHA_EXPIRACION_MINUTOS = config('CAPTCHA_EXPIRACION_MINUTOS', default=10, cast=int)
 
 # Configuración de REST Framework con JWT
 REST_FRAMEWORK = {
@@ -150,7 +153,7 @@ DEFAULT_FROM_EMAIL = config(
 
 # Envío por API HTTP (gratuito, sin SMTP): útil en hosts que bloquean el puerto
 # 587 (p. ej. PythonAnywhere gratis). Se usa con
-# EMAIL_BACKEND=apps.email_api.EmailBackendAPI
+# EMAIL_BACKEND=apps.email.backend.EmailBackendAPI
 EMAIL_API_PROVIDER = config('EMAIL_API_PROVIDER', default='brevo')
 EMAIL_API_KEY = config('EMAIL_API_KEY', default='')
 

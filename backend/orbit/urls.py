@@ -13,6 +13,7 @@ from drf_spectacular.views import (
 
 from .api_root import api_root
 from .vistas_publicas import pagina_privacidad
+from apps.captcha.vistas import vista_generar_captcha
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +29,9 @@ urlpatterns = [
     path('api/v1/proyectos/', include('apps.proyectos.rutas')),
     path('api/v1/compartir/', include('apps.comparticion.rutas')),
     path('api/v1/restablecimiento/', include('apps.restablecimiento.rutas')),
+
+    # CAPTCHA SVG local (imagen + código de verificación)
+    path('api/v1/captcha/', vista_generar_captcha, name='captcha'),
 
     # Documentación OpenAPI (drf-spectacular)
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

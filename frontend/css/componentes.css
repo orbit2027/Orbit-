@@ -56,6 +56,44 @@
 .auth__field--email { margin-bottom: 16px; }
 .auth__field--password { margin-bottom: 20px; }
 .auth__captcha { margin-bottom: 20px; }
+.captcha-proyecto {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.captcha-proyecto__fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.captcha-proyecto__imagen {
+    width: 150px;
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    background: #0A192F;
+    object-fit: cover;
+    display: block;
+}
+.captcha-proyecto__refrescar {
+    width: 44px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--borde-gris);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-terciario);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+.captcha-proyecto__refrescar:hover {
+    color: var(--color-primario);
+    border-color: rgba(0, 229, 255, 0.4);
+}
+.captcha-proyecto .campo-con-icono { width: 100%; }
 .auth__recuperar {
     display: flex;
     justify-content: flex-end;

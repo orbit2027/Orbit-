@@ -6,7 +6,7 @@ cuentas gratuitas de PythonAnywhere solo permiten HTTP/HTTPS). Evita SMTP por
 completo: envía con una petición HTTPS a la API del proveedor.
 
 Activación en .env:
-    EMAIL_BACKEND=apps.email_api.EmailBackendAPI
+    EMAIL_BACKEND=apps.email.backend.EmailBackendAPI
     EMAIL_API_PROVIDER=brevo          # o resend
     EMAIL_API_KEY=xxxxx
 
@@ -14,6 +14,7 @@ Proveedores soportados:
     - brevo:  POST https://api.brevo.com/v3/smtp/email   (300 correos/día gratis)
     - resend: POST https://api.resend.com/emails         (3.000/mes gratis)
 """
+import base64
 import json
 
 import requests
@@ -65,6 +66,9 @@ class EmailBackendAPI(BaseEmailBackend):
                 'subject': mensaje.subject,
                 'text': mensaje.body,
             }
+            adjuntos = self._adjuntos(mensaje, 'filename')
+            if adjuntos:
+                payload['attachments'] = adjuntos
             if html:
                 payload['html'] = html
         else:  # brevo (por defecto)
@@ -82,6 +86,11 @@ class EmailBackendAPI(BaseEmailBackend):
                 'subject': mensaje.subject,
                 'textContent': mensaje.body,
             }
+            adjuntos = self._adjuntos(mensaje, 'name')
+            if adjuntos:
+                payload['attachment'] = adjuntos
+                # Permite incrustar imágenes por CID (p. ej. el logo).
+                payload['inlineImageAttachment'] = True
             if html:
                 payload['htmlContent'] = html
 
@@ -103,3 +112,20 @@ class EmailBackendAPI(BaseEmailBackend):
             correo = remitente.split('<')[1].split('>')[0].strip()
             return (nombre or None), correo
         return None, remitente
+
+    def _adjuntos(self, mensaje, clave_nombre):
+        """Convierte mensaje.attachments a la lista base64 del proveedor."""
+        adjuntos = []
+        for adjunto in getattr(mensaje, 'attachments', []) or []:
+            if isinstance(adjunto, dict):
+                nombre = adjunto.get('name') or adjunto.get('filename', 'archivo')
+                contenido = adjunto.get('content', b'')
+            else:
+                nombre, contenido, _mimetype = adjunto
+            if isinstance(contenido, str):
+                contenido = contenido.encode('utf-8')
+            adjuntos.append({
+                clave_nombre: nombre,
+                'content': base64.b64encode(contenido).decode('ascii'),
+            })
+        return adjuntos or None

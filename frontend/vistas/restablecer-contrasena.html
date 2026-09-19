@@ -14,9 +14,6 @@
 
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
-
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 <div class="auth">
@@ -58,11 +55,6 @@
                 </div>
             </div>
 
-            <!-- reCAPTCHA v2 -->
-            <div class="d-flex justify-content-center auth__captcha">
-                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
-            </div>
-
             <button type="submit" class="btn-primary auth__submit" id="btn-solicitar">
                 Enviar enlace de recuperación
             </button>
@@ -92,15 +84,29 @@
                 </div>
             </div>
 
-            <!-- reCAPTCHA v2 -->
-            <div class="d-flex justify-content-center auth__captcha">
-                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
-            </div>
-
             <button type="submit" class="btn-primary auth__submit" id="btn-confirmar">
                 Restablecer contraseña
             </button>
         </form>
+
+        <!-- CAPTCHA SVG local (compartido por los dos formularios) -->
+        <div class="captcha-proyecto auth__captcha">
+            <div class="captcha-proyecto__fila">
+                <img id="captcha-imagen" class="captcha-proyecto__imagen"
+                     alt="Código de verificación" width="150" height="50">
+                <button type="button" id="btn-refrescar-captcha"
+                        class="captcha-proyecto__refrescar"
+                        title="Generar otro código" aria-label="Nuevo código">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="campo-con-icono">
+                <i class="bi bi-shield-check"></i>
+                <input class="input-dark" id="captcha-input" type="text"
+                       autocomplete="off" placeholder="Escribe el código de la imagen"
+                       maxlength="5" style="text-transform: uppercase;">
+            </div>
+        </div>
 
         <p class="auth__footer">
             ¿Recordaste tu contraseña?
@@ -114,6 +120,7 @@
 
 <script type="module">
     import api from '../js/api.js';
+    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
 
     const parametros = new URLSearchParams(window.location.search);
     const token = (parametros.get('token') || '').trim();
@@ -136,15 +143,6 @@
         exitoBox.style.display = 'flex';
     }
 
-    function captchaToken() {
-        if (typeof grecaptcha === 'undefined') return '';
-        return grecaptcha.getResponse();
-    }
-
-    function restablecerCaptcha() {
-        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
-    }
-
     if (token) {
         formSolicitud.style.display = 'none';
         formConfirmar.style.display = 'block';
@@ -152,6 +150,8 @@
         document.getElementById('subtitulo-formulario').textContent =
             'Elige una contraseña nueva para tu cuenta de Orbit.';
     }
+
+    inicializarCaptcha();
 
     // Mostrar/ocultar contraseña
     document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
@@ -174,7 +174,7 @@
             return;
         }
 
-        const captcha = captchaToken();
+        const captcha = obtenerCodigoCaptcha();
         if (!captcha && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
             return;
@@ -193,7 +193,7 @@
             const data = error.response?.data;
             const mensaje = data?.error || 'No pudimos enviar el enlace. Inténtalo más tarde.';
             mostrarError(mensaje);
-            restablecerCaptcha();
+            refrescarCaptcha();
         } finally {
             btn.disabled = false;
             btn.textContent = 'Enviar enlace de recuperación';
@@ -223,7 +223,7 @@
             return;
         }
 
-        const captcha = captchaToken();
+        const captcha = obtenerCodigoCaptcha();
         if (!captcha && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
             return;
@@ -247,7 +247,7 @@
             const data = error.response?.data;
             const mensaje = data?.error || 'El enlace es inválido o ya expiró.';
             mostrarError(mensaje);
-            restablecerCaptcha();
+            refrescarCaptcha();
         } finally {
             btn.disabled = false;
             btn.textContent = 'Restablecer contraseña';

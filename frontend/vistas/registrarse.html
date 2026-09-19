@@ -14,9 +14,6 @@
 
     <link rel="stylesheet" href="../css/orbit.css">
     <link rel="stylesheet" href="../css/componentes.css">
-
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 <div class="auth">
@@ -104,9 +101,23 @@
                 </div>
             </div>
 
-            <!-- reCAPTCHA v2 real -->
-            <div class="d-flex justify-content-center auth__captcha">
-                <div class="g-recaptcha" data-sitekey="6Lc52XctAAAAAP7gT_40VBYLrGRGHzr7hHmv2pgN"></div>
+            <!-- CAPTCHA SVG local -->
+            <div class="captcha-proyecto auth__captcha">
+                <div class="captcha-proyecto__fila">
+                    <img id="captcha-imagen" class="captcha-proyecto__imagen"
+                         alt="Código de verificación" width="150" height="50">
+                    <button type="button" id="btn-refrescar-captcha"
+                            class="captcha-proyecto__refrescar"
+                            title="Generar otro código" aria-label="Nuevo código">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="campo-con-icono">
+                    <i class="bi bi-shield-check"></i>
+                    <input class="input-dark" id="captcha-input" type="text"
+                           autocomplete="off" placeholder="Escribe el código de la imagen"
+                           maxlength="5" style="text-transform: uppercase;">
+                </div>
             </div>
 
             <button type="submit" class="btn-primary auth__submit" id="btn-registro">
@@ -127,10 +138,13 @@
 <script type="module">
     import { registrar, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
     import { validarContrasena } from '../js/utilidades.js';
+    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
 
     if (estaAutenticado()) {
         redirigirSegunRol();
     }
+
+    inicializarCaptcha();
 
     const formulario = document.getElementById('formulario-registro');
     const errorBox = document.getElementById('error-registro');
@@ -228,7 +242,7 @@
             return;
         }
 
-        const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+        const captchaToken = obtenerCodigoCaptcha();
         const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
         if (!captchaToken && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
@@ -251,7 +265,7 @@
                     : typeof primerError === 'string' ? primerError
                     : 'Error al crear la cuenta. Intenta de nuevo.'
             );
-            grecaptcha.reset();
+            refrescarCaptcha();
         } finally {
             btnRegistro.disabled = false;
             btnRegistro.textContent = 'Crear mi cuenta';

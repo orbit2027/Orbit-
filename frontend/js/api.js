@@ -39,6 +39,7 @@ function cerrarSesionYRedirigir() {
 // Crear instancia de Axios con configuración base
 const api = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json'
     }
@@ -74,3 +75,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+export { API_BASE_URL };

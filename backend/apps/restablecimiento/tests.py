@@ -1,18 +1,13 @@
 """
 Pruebas del módulo de restablecimiento de contraseña.
 """
-import json
 from datetime import timedelta
-from unittest.mock import patch
 
 from django.conf import settings
 from django.core import mail
-from django.core.mail import EmailMultiAlternatives
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
-
-from apps.email_api import EmailBackendAPI
 
 from apps.usuarios.modelo import Usuario
 from apps.usuarios.tokens import crear_tokens_para
@@ -29,9 +24,9 @@ class BaseRestablecimientoTest(TestCase):
     def setUp(self):
         self.api = APIClient()
         settings.EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
-        # El runner de tests fuerza DEBUG=False; desactivamos reCAPTCHA para
-        # no depender del verificación externa en las pruebas.
-        settings.RECAPTCHA_SECRET_KEY = ''
+        # El runner de tests fuerza DEBUG=False; el CAPTCHA local está
+        # desactivado por defecto (CAPTCHA_HABILITADO=False), así que las
+        # pruebas del restablecimiento no dependen de la verificación.
         self.crear_usuario('ana@orbit.local', 'Ana Perez')
 
     def crear_usuario(self, correo, nombre, contrasena='Prueba#123'):
@@ -139,6 +134,21 @@ class SolicitudSeguraTest(BaseRestablecimientoTest):
         self.assertEqual(guardado.token_hash, hash_token(token))
         self.assertEqual(len(token), len(generar_token()))
 
+    def test_correo_incluye_html_con_logo_y_boton(self):
+        self.api.post(SOLICITAR_URL, {'correo': 'ana@orbit.local'})
+        mensaje = mail.outbox[0]
+        html = [
+            contenido
+            for contenido, mimetype in mensaje.alternatives
+            if mimetype == 'text/html'
+        ]
+        self.assertTrue(html)
+        html = html[0]
+        self.assertIn('cid:orbit-logo', html)
+        self.assertIn('Restablece tu contraseña', html)
+        self.assertIn('Restablecer mi contraseña', html)
+        self.assertIn('orbit-logo.png', [a[0] for a in mensaje.attachments])
+
 
 class ConfirmacionSeguraTest(BaseRestablecimientoTest):
 
@@ -205,64 +215,3 @@ class ConfirmacionSeguraTest(BaseRestablecimientoTest):
             'contrasena': 'NuevaClave#99',
         })
         self.assertEqual(respuesta.status_code, 200)
-
-
-class _RespuestaFalsa:
-    status_code = 201
-    text = 'ok'
-
-
-class CorreoApiHttpTest(TestCase):
-    """Envío por API HTTP (gratuito, sin SMTP)."""
-
-    def _mensaje(self):
-        correo = EmailMultiAlternatives(
-            subject='Asunto de prueba',
-            body='Cuerpo de texto',
-            from_email='Orbit <remitente@orbit.local>',
-            to=['destino@orbit.local'],
-        )
-        correo.attach_alternative('<p>Cuerpo HTML</p>', 'text/html')
-        return correo
-
-    @override_settings(EMAIL_API_PROVIDER='brevo', EMAIL_API_KEY='clave-prueba')
-    @patch('apps.email_api.requests.post', return_value=_RespuestaFalsa())
-    def test_envia_a_brevo_con_el_payload_correcto(self, post):
-        enviados = EmailBackendAPI().send_messages([self._mensaje()])
-        self.assertEqual(enviados, 1)
-
-        url = post.call_args[0][0]
-        payload = json.loads(post.call_args.kwargs['data'])
-        self.assertEqual(url, 'https://api.brevo.com/v3/smtp/email')
-        self.assertEqual(payload['sender']['email'], 'remitente@orbit.local')
-        self.assertEqual(payload['sender']['name'], 'Orbit')
-        self.assertEqual(payload['to'], [{'email': 'destino@orbit.local'}])
-        self.assertEqual(payload['textContent'], 'Cuerpo de texto')
-        self.assertEqual(payload['htmlContent'], '<p>Cuerpo HTML</p>')
-
-    @override_settings(EMAIL_API_PROVIDER='resend', EMAIL_API_KEY='clave-prueba')
-    @patch('apps.email_api.requests.post', return_value=_RespuestaFalsa())
-    def test_envia_a_resend_con_el_payload_correcto(self, post):
-        enviados = EmailBackendAPI().send_messages([self._mensaje()])
-        self.assertEqual(enviados, 1)
-
-        url = post.call_args[0][0]
-        payload = json.loads(post.call_args.kwargs['data'])
-        self.assertEqual(url, 'https://api.resend.com/emails')
-        self.assertEqual(payload['to'], ['destino@orbit.local'])
-        self.assertEqual(payload['html'], '<p>Cuerpo HTML</p>')
-
-    @override_settings(EMAIL_API_PROVIDER='brevo', EMAIL_API_KEY='')
-    def test_falla_sin_api_key(self):
-        with self.assertRaises(ValueError):
-            EmailBackendAPI().send_messages([self._mensaje()])
-
-    def test_parsea_nombre_y_correo_del_remitente(self):
-        self.assertEqual(
-            EmailBackendAPI._parsear_remitente('Orbit <a@b.com>'),
-            ('Orbit', 'a@b.com'),
-        )
-        self.assertEqual(
-            EmailBackendAPI._parsear_remitente('a@b.com'),
-            (None, 'a@b.com'),
-        )
