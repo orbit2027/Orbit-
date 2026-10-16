@@ -10,8 +10,13 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 
-# Alfabeto sin caracteres ambiguos (0/O/1/I/L se omiten).
-CARACTERES = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+# Alfabeto mixto (mayúsculas y minúsculas) sin caracteres ambiguos.
+# Se omiten O/o, I/i, L/l y 0/1 para que las letras se lean sin confusión.
+CARACTERES = (
+    'ABCDEFGHJKMNPQRSTUVWXYZ'
+    'abcdefghjkmnpqrstuvwxyz'
+    '23456789'
+)
 LARGO_CODIGO = 5
 ANCHO = 150
 ALTO = 50
@@ -56,13 +61,16 @@ def generar_svg(codigo):
     colores = ['#00E5FF', '#A78BFA', '#F9FAFB', '#F59E0B']
     for indice, caracter in enumerate(codigo):
         x = margen + span * indice + span / 2
-        y = ALTO / 2 + 3
+        tam = azar.randint(23, 28)
+        # Línea base explícita para centrar el glifo sin depender de
+        # dominant-baseline (soporte irregular entre navegadores).
+        y = ALTO / 2 + tam * 0.36
         rotacion = azar.randint(-28, 28)
         partes.append(
             f'<text x="{x:.1f}" y="{y:.1f}" transform="rotate({rotacion} {x:.1f} {y:.1f})" '
             f'font-family="Arial, Helvetica, sans-serif" font-weight="700" '
-            f'font-size="{azar.randint(23, 28)}" fill="{azar.choice(colores)}" '
-            f'text-anchor="middle" dominant-baseline="middle">{caracter}</text>'
+            f'font-size="{tam}" fill="{azar.choice(colores)}" '
+            f'text-anchor="middle">{caracter}</text>'
         )
 
     partes.append('</svg>')

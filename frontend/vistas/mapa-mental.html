@@ -212,6 +212,11 @@
     }
 
     // ═══════════ CYTOSCAPE.JS ═══════════
+    // Color de las conexiones según el tema: en claro el cyan claro es casi invisible.
+    const temaActual = document.documentElement.dataset.tema || 'oscuro';
+    const COLOR_LINEA = temaActual === 'claro' ? '#0891B2' : '#22D3EE';
+    const COLOR_LINEA_SEL = temaActual === 'claro' ? '#0E7490' : '#00E5FF';
+
     const cy = cytoscape({
         container: document.getElementById('cy-mapa'),
         elements: [],
@@ -267,20 +272,20 @@
             {
                 selector: 'edge',
                 style: {
-                    'width': 2,
-                    'line-color': 'rgba(0,229,255,0.45)',
-                    'curve-style': 'bezier',
-                    'target-arrow-color': 'rgba(0,229,255,0.55)',
+                    'width': 2.5,
+                    'line-color': COLOR_LINEA,
+                    'target-arrow-color': COLOR_LINEA,
                     'target-arrow-shape': 'triangle',
-                    'arrow-scale': 0.9
+                    'arrow-scale': 1,
+                    'curve-style': 'bezier'
                 }
             },
             {
                 selector: 'edge:selected',
                 style: {
-                    'line-color': '#00E5FF',
-                    'target-arrow-color': '#00E5FF',
-                    'width': 3
+                    'line-color': COLOR_LINEA_SEL,
+                    'target-arrow-color': COLOR_LINEA_SEL,
+                    'width': 3.5
                 }
             }
         ]

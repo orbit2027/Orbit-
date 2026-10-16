@@ -3,17 +3,31 @@
  * La imagen la genera el backend en /api/v1/captcha/ y el código se
  * valida en el middleware con la sesión (el axios ya envía la cookie de
  * sesión gracias a withCredentials).
+ *
+ * La imagen se descarga por axios (mismo canal HTTP que el resto de la app,
+ * con sus cookies/credenciales) y se incrusta como Blob URL. Esto evita los
+ * bloqueos que algunos navegadores aplican a la petición directa de una
+ * <img> hacia la API (mixed content, cookies de terceros, caché).
  */
-import { API_BASE_URL } from './api.js';
+import api, { API_BASE_URL } from './api.js';
 
 const ID_IMAGEN = 'captcha-imagen';
 const ID_INPUT = 'captcha-input';
 const ID_BOTON = 'btn-refrescar-captcha';
 
-function cargarImagen() {
+let blobUrlActual = null;
+
+async function cargarImagen() {
     const imagen = document.getElementById(ID_IMAGEN);
-    if (imagen) {
-        // El parámetro ?v evita que el navegador sirva la imagen en caché.
+    if (!imagen) return;
+    try {
+        const { data: svg } = await api.get('/captcha/', { responseType: 'text' });
+        if (blobUrlActual) URL.revokeObjectURL(blobUrlActual);
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        blobUrlActual = URL.createObjectURL(blob);
+        imagen.src = blobUrlActual;
+    } catch (error) {
+        // Plan B: pedir la imagen directamente (sin incrustar el SVG).
         imagen.src = `${API_BASE_URL}/captcha/?v=${Date.now()}`;
     }
 }

@@ -163,6 +163,7 @@
     import { confirmar } from '../js/dialogos.js';
     import { inicializarSidebar } from '../js/sidebar.js';
     import { abrirDialogoCompartir } from '../js/compartir.js';
+    import { iniciarSincronizacion } from '../js/sincronizacion.js';
 
     // Barra lateral compartida
     inicializarSidebar();
@@ -183,6 +184,8 @@
     let menuAbiertoId = null;
     let tareaEditandoId = null;
     let etiquetaSeleccionada = 'Trabajo';
+    let arrastrando = false;
+    let firmaTareas = '';
 
     // Datos del usuario en la interfaz
     const usuario = obtenerUsuario();
@@ -202,10 +205,39 @@
                 ...t,
                 etiqueta: t.etiqueta || 'Trabajo'
             }));
+            firmaTareas = firmaDe(tareas);
             renderizarTablero();
         } catch (error) {
             console.error('Error al cargar tareas:', error);
         }
+    }
+
+    // Firma estable de la lista de tareas para detectar cambios externos.
+    function firmaDe(lista) {
+        return JSON.stringify(lista.map(t => [
+            t.id, t.titulo, t.descripcion, t.estado, t.etiqueta,
+            t.proyecto, t.fecha_limite, t.usuario, t.origen_nodo
+        ]));
+    }
+
+    async function consultarTareas() {
+        const respuesta = await api.get('/tareas/').catch(() => null);
+        if (!respuesta) return null;
+        const conEtiqueta = respuesta.data.map(t => ({ ...t, etiqueta: t.etiqueta || 'Trabajo' }));
+        return { firma: firmaDe(conEtiqueta), datos: conEtiqueta };
+    }
+
+    function aplicarTareasExternas({ firma, datos }) {
+        // No pisar el tablero mientras el usuario interactúa.
+        if (tareaEditandoId !== null || menuAbiertoId !== null ||
+            arrastrando || modal.style.display === 'flex') {
+            return false;
+        }
+        if (firma === firmaTareas) return false;
+        tareas = datos;
+        firmaTareas = firma;
+        renderizarTablero();
+        return true;
     }
 
     // ═══════════ CARGA DE PROYECTOS (para selector en modal) ═══════════
@@ -340,7 +372,9 @@
             animation: 200,
             ghostClass: 'sortable-ghost',
             filter: '.kanban-card--ajena',
+            onStart: () => { arrastrando = true; },
             onEnd: async (evento) => {
+                arrastrando = false;
                 const tareaId = evento.item.dataset.id;
                 const nuevoEstado = evento.to.dataset.lista;
 
@@ -492,6 +526,11 @@
     inicializarNotificaciones();
     cargarTareas();
     cargarProyectos();
+    iniciarSincronizacion({
+        consultar: consultarTareas,
+        alCambiar: aplicarTareasExternas,
+        intervalo: 5000
+    });
 </script>
 </body>
 </html>
