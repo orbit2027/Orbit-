@@ -2,6 +2,11 @@
 from django.http import HttpResponse
 
 
+def health_check(request):
+    """Endpoint simple para las comprobaciones de disponibilidad de Render."""
+    return HttpResponse('ok')
+
+
 def pagina_privacidad(request):
     html = """<!DOCTYPE html>
 <html lang="es">

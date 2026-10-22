@@ -2,23 +2,55 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
+from django.core.exceptions import ImproperlyConfigured
+import dj_database_url
 
 # Ruta base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Configuración de seguridad
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-cambiar-en-produccion')
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config(
+    'DEBUG',
+    default=not bool(os.environ.get('VERCEL')),
+    cast=bool,
+)
+if not DEBUG and (
+    not SECRET_KEY or SECRET_KEY.startswith('django-insecure-')
+):
+    raise ImproperlyConfigured(
+        'Configura una SECRET_KEY segura cuando DEBUG=False.'
+    )
 
 # Dominios permitidos
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+VERCEL_HOSTNAMES = (
+    os.environ.get('VERCEL_URL'),
+    os.environ.get('VERCEL_PROJECT_PRODUCTION_URL'),
+)
+for hostname in VERCEL_HOSTNAMES:
+    if hostname and hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(hostname)
 
-# Base de datos SQLite para Django admin y tablas de Django
+# PostgreSQL en producción; SQLite se conserva para desarrollo local y pruebas.
+DATABASE_URL = config('DATABASE_URL', default='')
+if os.environ.get('VERCEL') and not DATABASE_URL:
+    raise ImproperlyConfigured(
+        'Configura DATABASE_URL en Vercel para usar PostgreSQL persistente.'
+    )
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': (
+        dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+        if DATABASE_URL
+        else {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    )
 }
 
 # Aplicaciones instaladas
@@ -45,6 +77,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -52,14 +86,36 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.captcha.middleware.VerificarCaptchaMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5500', cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default=','.join(
+        f'https://{hostname}'
+        for hostname in VERCEL_HOSTNAMES
+        if hostname
+    ),
+    cast=Csv(),
+)
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
 # CAPTCHA SVG local (sin servicios externos). En producción pon
 # CAPTCHA_HABILITADO=True; en DEBUG la verificación se omite (dev local/pruebas).
-CAPTCHA_HABILITADO = config('CAPTCHA_HABILITADO', default=False, cast=bool)
+CAPTCHA_HABILITADO = config(
+    'CAPTCHA_HABILITADO',
+    default=not DEBUG,
+    cast=bool,
+)
 CAPTCHA_EXPIRACION_MINUTOS = config('CAPTCHA_EXPIRACION_MINUTOS', default=10, cast=int)
 
 # Configuración de REST Framework con JWT
@@ -134,6 +190,14 @@ USE_TZ = True
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "static/"
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Correo saliente: configurable por .env. En desarrollo (sin SMTP) Django
 # imprime los correos en la consola del servidor (backend de consola).
@@ -158,7 +222,17 @@ EMAIL_API_PROVIDER = config('EMAIL_API_PROVIDER', default='brevo')
 EMAIL_API_KEY = config('EMAIL_API_KEY', default='')
 
 # URL base del frontend para construir el enlace de restablecimiento.
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5500')
+VERCEL_PUBLIC_HOSTNAME = (
+    os.environ.get('VERCEL_PROJECT_PRODUCTION_URL')
+    or os.environ.get('VERCEL_URL')
+)
+FRONTEND_URL = config(
+    'FRONTEND_URL',
+    default=(
+        f'https://{VERCEL_PUBLIC_HOSTNAME}'
+        if VERCEL_PUBLIC_HOSTNAME else 'http://localhost:5500'
+    ),
+)
 
 # Parámetros del restablecimiento de contraseña.
 from datetime import timedelta as _timedelta

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "backend/orbit/wsgi.py": {
+      "maxDuration": 60,
+      "includeFiles": "frontend/**"
+    }
+  }
+}

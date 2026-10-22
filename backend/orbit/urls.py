@@ -12,10 +12,11 @@ from drf_spectacular.views import (
 )
 
 from .api_root import api_root
-from .vistas_publicas import pagina_privacidad
+from .vistas_publicas import health_check, pagina_privacidad
 from apps.captcha.vistas import vista_generar_captcha
 
 urlpatterns = [
+    path('health/', health_check, name='health-check'),
     path('admin/', admin.site.urls),
     path('privacidad/', pagina_privacidad, name='privacidad'),
 
