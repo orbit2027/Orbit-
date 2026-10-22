@@ -7,12 +7,13 @@ import dj_database_url
 
 # Ruta base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
+EN_VERCEL = bool(os.environ.get('VERCEL'))
 
 # Configuración de seguridad
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-cambiar-en-produccion')
 DEBUG = config(
     'DEBUG',
-    default=not bool(os.environ.get('VERCEL')),
+    default=not EN_VERCEL,
     cast=bool,
 )
 if not DEBUG and (
@@ -34,7 +35,7 @@ for hostname in VERCEL_HOSTNAMES:
 
 # PostgreSQL en producción; SQLite se conserva para desarrollo local y pruebas.
 DATABASE_URL = config('DATABASE_URL', default='')
-if os.environ.get('VERCEL') and not DATABASE_URL:
+if EN_VERCEL and not DATABASE_URL:
     raise ImproperlyConfigured(
         'Configura DATABASE_URL en Vercel para usar PostgreSQL persistente.'
     )
@@ -42,8 +43,10 @@ DATABASES = {
     'default': (
         dj_database_url.parse(
             DATABASE_URL,
-            conn_max_age=600,
+            conn_max_age=0 if EN_VERCEL else 600,
             conn_health_checks=True,
+            disable_server_side_cursors=EN_VERCEL,
+            ssl_require=EN_VERCEL,
         )
         if DATABASE_URL
         else {
@@ -52,6 +55,12 @@ DATABASES = {
         }
     )
 }
+if EN_VERCEL and DATABASE_URL:
+    # Supabase transaction pooler is designed for short-lived serverless
+    # connections and does not support prepared statements or server cursors.
+    DATABASES['default'].setdefault('OPTIONS', {}).update(
+        {'prepare_threshold': None}
+    )
 
 # Aplicaciones instaladas
 INSTALLED_APPS = [
