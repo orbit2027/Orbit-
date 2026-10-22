@@ -8,8 +8,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.usuarios.tokens import crear_tokens_para
+from apps.email.correos import correo_bienvenida
 
 from .modelo import Usuario
 from .serializador import (
@@ -18,9 +21,11 @@ from .serializador import (
     PerfilUsuarioSerializador,
     EditarUsuarioSerializador,
     EliminarCuentaSerializador,
+    RefrescarJwtSerializador,
     RegistroRespuestaSerializador,
     AutenticacionRespuestaSerializador,
     EditarPerfilRespuestaSerializador,
+    RefrescarJwtRespuestaSerializador,
     MensajeRespuestaSerializador,
 )
 from apps.tareas.modelo import Tarea
@@ -47,6 +52,8 @@ def registrar_usuario(request):
         usuario = serializador.save()
         # Auto-login: generar tokens después del registro
         tokens = crear_tokens_para(usuario)
+        # Correo de bienvenida (no bloquea el registro si falla)
+        correo_bienvenida(usuario)
         return Response({
             'mensaje': 'Usuario registrado exitosamente',
             'usuario': PerfilUsuarioSerializador(usuario).data,
@@ -93,6 +100,59 @@ def iniciar_sesion(request):
         'usuario': PerfilUsuarioSerializador(usuario).data,
         'tokens': tokens
     }, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Refrescar tokens JWT',
+    description='RF-USU-06. Canjea el refresh token por un nuevo par access/refresh.',
+    request=RefrescarJwtSerializador,
+    responses={200: RefrescarJwtRespuestaSerializador, 400: None, 401: None},
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def refrescar_jwt(request):
+    """
+    Refresco de tokens JWT.
+    Valida el refresh token y su versión de sesión (claim `sv`); si la
+    versión coincide con la del usuario, emite un par nuevo de tokens.
+    No requiere header Authorization (el access puede estar expirado).
+    """
+    serializador = RefrescarJwtSerializador(data=request.data)
+    if not serializador.is_valid():
+        return Response(
+            {'error': 'Token de refresco inválido'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    try:
+        refresco = RefreshToken(serializador.validated_data['refresh'])
+        usuario_id = refresco['user_id']
+    except (TokenError, KeyError):
+        return Response(
+            {'error': 'Token de refresco inválido'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    usuario = Usuario.objects.filter(id=usuario_id, activo=True).first()
+    if not usuario:
+        return Response(
+            {'error': 'Token de refresco inválido'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # Mismo criterio que el middleware: si el refresh no trae la versión
+    # vigente, la sesión fue revocada (p. ej. cambio de contraseña).
+    if refresco.get('sv') != usuario.session_version:
+        return Response(
+            {'error': 'Sesión revocada'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    return Response(
+        {'tokens': crear_tokens_para(usuario)},
+        status=status.HTTP_200_OK
+    )
 
 
 @extend_schema(

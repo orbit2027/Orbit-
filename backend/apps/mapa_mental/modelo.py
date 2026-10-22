@@ -12,10 +12,35 @@ class NodoMapa(models.Model):
     Modelo que representa un nodo visual en el mapa mental.
     Puede convertirse en tarea del tablero Kanban (RF-MAP-06).
     """
+    FORMAS = [
+        ('ellipse', 'Elipse'),
+        ('round-rectangle', 'Rectángulo redondeado'),
+        ('rectangle', 'Rectángulo'),
+        ('triangle', 'Triángulo'),
+        ('diamond', 'Rombo'),
+        ('pentagon', 'Pentágono'),
+        ('hexagon', 'Hexágono'),
+        ('star', 'Estrella'),
+        ('vee', 'En V'),
+        ('bar', 'Barra'),
+    ]
+
+    ESTILOS = [
+        ('cian', 'Cian sólido'),
+        ('cian-borde', 'Cian con borde'),
+        ('salmon', 'Naranja salmón'),
+        ('lila', 'Azul lila'),
+    ]
+
     texto = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True, default='')
     color = models.CharField(max_length=7, default='#00E5FF', blank=True)
+    color_texto = models.CharField(max_length=7, default='#E2E8F0', blank=True)
+    forma = models.CharField(max_length=20, choices=FORMAS, default='ellipse')
+    estilo = models.CharField(max_length=20, choices=ESTILOS, default='cian')
     posicion_x = models.FloatField(default=0.0)
     posicion_y = models.FloatField(default=0.0)
+    asignado = models.CharField(max_length=120, blank=True, default='')
     usuario = models.ForeignKey(
         Usuario, on_delete=models.CASCADE, related_name='nodos_mapa'
     )

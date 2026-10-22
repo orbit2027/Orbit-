@@ -11,6 +11,7 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
 from apps.proyectos.modelo import Proyecto
+from apps.email.correos import correo_asignacion_tarea, correo_invitacion_proyecto
 
 from .modelo import Comparticion
 from .serializador import (
@@ -101,7 +102,7 @@ def crear_comparticion(request):
             status=status.HTTP_403_FORBIDDEN
         )
 
-    comparticion, _creada = Comparticion.objects.update_or_create(
+    comparticion, creada = Comparticion.objects.update_or_create(
         compartido_con=invitado,
         tipo_objeto=tipo_objeto,
         objeto_id=objeto_id,
@@ -110,6 +111,17 @@ def crear_comparticion(request):
             'permiso': permiso,
         }
     )
+
+    # Aviso por correo: la persona recién agregada debe estar registrada.
+    if creada:
+        if tipo_objeto == 'proyecto':
+            proyecto = Proyecto.objects.filter(id=objeto_id).first()
+            if proyecto:
+                correo_invitacion_proyecto(invitado, request.user, proyecto)
+        else:
+            tarea = Tarea.objects.filter(id=objeto_id).first()
+            if tarea:
+                correo_asignacion_tarea(invitado, request.user, tarea)
 
     return Response(
         ComparticionSalidaSerializador(comparticion).data,

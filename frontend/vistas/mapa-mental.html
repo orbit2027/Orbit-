@@ -23,50 +23,74 @@
     <link rel="stylesheet" href="../css/vistas.css">
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/mapa-mental.css">
 </head>
 <body>
-<div class="layout-principal">
+<div class="layout-principal mapa-mental">
 
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar" id="app-sidebar"></aside>
 
-    <!-- Panel de herramientas verticales -->
-    <div class="panel-herramientas">
-        <button class="btn-herramienta activo" id="herr-seleccion" title="Selección"><i class="bi bi-cursor"></i></button>
-        <button class="btn-herramienta" id="herr-agregar" title="Agregar nodo"><i class="bi bi-plus-circle"></i></button>
-        <button class="btn-herramienta" id="herr-conectar" title="Conectar nodos"><i class="bi bi-share"></i></button>
-        <button class="btn-herramienta" id="herr-eliminar" title="Eliminar selección"><i class="bi bi-trash"></i></button>
-    </div>
-
     <!-- ═══════════ ZONA DEL MAPA ═══════════ -->
     <div class="zona-contenido">
 
-        <!-- Topbar con controles de zoom -->
+        <!-- Topbar: breadcrumb | zoom | acciones -->
         <header class="topbar">
-            <h1 class="topbar-titulo">Mi mapa mental</h1>
-            <p class="topbar-ayuda" id="ayuda-conectar">Toca dos nodos para conectarlos</p>
+            <nav class="topbar-crumbs">
+                <input class="topbar-crumb topbar-crumb--editable" id="crumb-proyecto"
+                       value="Proyecto Alpha" aria-label="Proyecto" spellcheck="false" maxlength="40">
+                <i class="bi bi-chevron-right topbar-crumbs__sep"></i>
+                <input class="topbar-crumb topbar-crumb--actual topbar-crumb--editable" id="crumb-doc"
+                       value="Arquitectura Core" aria-label="Documento" spellcheck="false" maxlength="40">
+            </nav>
 
             <div class="topbar-zoom">
-                <button class="btn-zoom" id="zoom-menos"><i class="bi bi-dash"></i></button>
-                <span id="texto-zoom">100%</span>
-                <button class="btn-zoom" id="zoom-mas"><i class="bi bi-plus"></i></button>
-                <button class="btn-zoom ancho" id="zoom-reset">Ajustar vista</button>
+                <button class="topbar-zoom__boton" id="zoom-menos" title="Alejar"><i class="bi bi-dash-lg"></i></button>
+                <div class="zoom-selector">
+                    <button class="topbar-zoom__boton topbar-zoom__boton--ancho" id="zoom-porcentaje" title="Nivel de zoom">
+                        <span id="texto-zoom">100%</span>
+                    </button>
+                    <div class="zoom-selector__menu" id="zoom-menu">
+                        <button data-zoom="0.25">25%</button>
+                        <button data-zoom="0.5">50%</button>
+                        <button data-zoom="0.75">75%</button>
+                        <button data-zoom="1">100%</button>
+                        <button data-zoom="1.5">150%</button>
+                        <button data-zoom="2">200%</button>
+                        <button data-zoom="ajustar" class="zoom-menu__ajustar"><i class="bi bi-arrows-fullscreen"></i> Ajustar vista</button>
+                    </div>
+                </div>
+                <button class="topbar-zoom__boton" id="zoom-mas" title="Acercar"><i class="bi bi-plus-lg"></i></button>
             </div>
 
-            <button class="campana-notificacion" id="campana-notificaciones">
-                <i class="bi bi-bell"></i>
-                <span class="campana-dot"></span>
-            </button>
-            <div class="avatar" id="avatar-topbar">U</div>
-
-            <button class="btn-primary" id="btn-agregar-idea">
-                <i class="bi bi-plus"></i> Agregar idea
-            </button>
+            <div class="topbar-derecha">
+                <button class="btn-primary topbar-agregar" id="btn-agregar-idea">
+                    <i class="bi bi-plus"></i> Agregar idea
+                </button>
+                <div class="topbar-icono-wrap">
+                    <button class="topbar-icono" id="campana-notificaciones" title="Notificaciones">
+                        <i class="bi bi-bell"></i>
+                        <span class="campana-dot"></span>
+                    </button>
+                </div>
+                <button class="avatar avatar--boton" id="avatar-topbar" title="Mi perfil">U</button>
+            </div>
         </header>
 
         <!-- Lienzo del mapa (Cytoscape.js) -->
         <div class="mind-map__canvas" id="lienzo-mapa">
             <div id="cy-mapa"></div>
+
+            <!-- Barra lateral flotante -->
+            <div class="mapa-rail" id="mapa-rail">
+                <button class="mapa-rail__boton activo" id="herr-seleccion" title="Selección" aria-label="Seleccionar ideas" aria-pressed="true"><i class="bi bi-cursor"></i></button>
+                <button class="mapa-rail__boton" id="herr-agregar" title="Agregar idea" aria-label="Agregar idea"><i class="bi bi-plus-square"></i></button>
+                <button class="mapa-rail__boton" id="herr-conectar" title="Conectar ideas" aria-label="Conectar ideas" aria-pressed="false"><i class="bi bi-share"></i></button>
+                <button class="mapa-rail__boton" id="herr-texto" title="Editar título" aria-label="Editar título"><i class="bi bi-type"></i></button>
+                <button class="mapa-rail__boton mapa-rail__boton--peligro" id="herr-eliminar" title="Eliminar selección" aria-label="Eliminar selección"><i class="bi bi-trash"></i></button>
+            </div>
+
+            <p class="topbar-ayuda" id="ayuda-conectar">Toca dos nodos para conectarlos</p>
 
             <!-- Estado vacío -->
             <div class="mind-map__empty" id="estado-vacio">
@@ -84,42 +108,87 @@
         </div>
     </div>
 
-    <!-- Panel de propiedades del nodo seleccionado -->
+    <!-- Panel de propiedades (columna derecha) -->
+    <button class="panel-movil__toggle" id="panel-movil-toggle" title="Propiedades" aria-label="Abrir propiedades" aria-expanded="false">
+        <i class="bi bi-sliders"></i>
+    </button>
     <div class="panel-propiedades" id="panel-propiedades">
-        <h4>
-            Propiedades del nodo
-        </h4>
+        <header class="panel-propiedades__cabecera">
+            <h4 id="prop-titulo-panel">Propiedades</h4>
+            <button class="panel-propiedades__cerrar" id="prop-cerrar" title="Ocultar panel" aria-label="Ocultar panel">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
 
-        <div>
-            <label>Texto</label>
-            <textarea class="input-dark" id="prop-texto" rows="3"></textarea>
-        </div>
+        <div class="panel-propiedades__cuerpo">
 
-        <div>
-            <label>Color</label>
-            <div id="prop-colores"></div>
-        </div>
-
-        <div class="panel-propiedades__posicion">
-            <div>
-                <label>Pos X</label>
-                <div id="prop-x">0</div>
+            <!-- Estado vacío (sin selección) -->
+            <div class="prop-vacio" id="prop-vacio">
+                <div class="prop-vacio__icono"><i class="bi bi-cursor"></i></div>
+                <p>Selecciona una idea para editar</p>
             </div>
-            <div>
-                <label>Pos Y</label>
-                <div id="prop-y">0</div>
-            </div>
-        </div>
 
-        <button class="btn-primary" id="prop-convertir">
-            <i class="bi bi-check2-square"></i>Convertir en tarea
-        </button>
-        <button class="btn-danger-soft" id="prop-eliminar">
-            <i class="bi bi-trash"></i>Eliminar nodo
-        </button>
-        <button class="btn-secondary" id="prop-eliminar-conexiones">
-            <i class="bi bi-diagram-2"></i>Desconectar
-        </button>
+            <!-- Edición del nodo seleccionado -->
+            <div class="prop-edicion" id="prop-edicion" style="display:none;">
+
+                <!-- Multi-selección -->
+                <div id="panel-multi-info" class="panel-propiedades__multi" style="display:none;">
+                    <div class="panel-propiedades__multi-icono"><i class="bi bi-collection"></i></div>
+                    <p id="prop-multi-texto">2 ideas seleccionadas</p>
+                    <p class="panel-propiedades__ayuda">
+                        Selecciona varias ideas arrastrando sobre el lienzo o con Shift.
+                    </p>
+                </div>
+
+                <div id="panel-campos-individuales">
+
+                    <section class="prop-seccion">
+                        <label class="prop-etiqueta" for="prop-titulo-input">Título del nodo</label>
+                        <input class="input-dark prop-input" id="prop-titulo-input" maxlength="200"
+                               placeholder="Título de la idea">
+                    </section>
+
+                    <section class="prop-seccion">
+                        <label class="prop-etiqueta" for="prop-descripcion-input">Descripción</label>
+                        <textarea class="input-dark prop-texto" id="prop-descripcion-input" rows="3"
+                                  placeholder="Describe la idea..."></textarea>
+                    </section>
+
+                    <section class="prop-seccion">
+                        <span class="prop-etiqueta">Estilo de nodo</span>
+                        <div class="prop-estilos" id="prop-estilos"></div>
+                    </section>
+
+                    <section class="prop-seccion prop-seccion--datos">
+                        <span class="prop-etiqueta">Datos adicionales</span>
+                        <div class="prop-dato">
+                            <span class="prop-dato__clave">Creado</span>
+                            <span class="prop-dato__valor" id="prop-creado">—</span>
+                        </div>
+                        <div class="prop-dato">
+                            <span class="prop-dato__clave">Asignado a</span>
+                            <span class="prop-dato__valor prop-dato__asignado" id="prop-asignado">—</span>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- Acciones -->
+                <footer class="prop-acciones">
+                    <div class="prop-acciones__fila">
+                        <button class="btn-secondary" id="prop-convertir">
+                            <i class="bi bi-check2-square"></i><span>Convertir en tarea</span>
+                        </button>
+                    </div>
+                    <div class="prop-acciones__fila">
+                        <button class="btn-danger-soft" id="prop-eliminar">
+                            <i class="bi bi-trash"></i><span>Eliminar nodo</span>
+                        </button>
+                    </div>
+                </footer>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -132,12 +201,12 @@
     <button class="menu-opcion" data-accion="eliminar"><i class="bi bi-trash"></i> Eliminar idea</button>
 </div>
 
-<!-- Modal: Convertir idea en tarea  -->
+<!-- Modal: Convertir ideas en tareas  -->
 <div class="modal-overlay" id="modal-convertir">
     <div class="glass-card-strong modal-card">
-        <h3 class="modal-titulo">Convertir idea en tarea</h3>
+        <h3 class="modal-titulo" id="convertir-modal-titulo">Convertir idea en tarea</h3>
         <p>
-            El título de la tarea será:
+            Se crearán tareas a partir de:
             <strong id="convertir-titulo-preview">""</strong>
         </p>
 
@@ -184,7 +253,28 @@
     // Barra lateral compartida
     inicializarSidebar();
 
-    const COLORES = ['#00E5FF', '#00C48C', '#F59E0B', '#FF4D4D', '#A78BFA', '#64748B'];
+    const COLORES = [
+        '#00E5FF', '#0099CC', '#38BDF8',
+        '#00C48C', '#22C55E', '#84CC16',
+        '#F59E0B', '#F97316', '#EF4444',
+        '#FF4D4D', '#EC4899', '#F472B6',
+        '#A78BFA', '#8B5CF6', '#6366F1',
+        '#E2E8F0', '#94A3B8', '#64748B'
+    ];
+    const COLOR_TEXTO_DEFECTO = '#E2E8F0';
+    const FORMA_DEFECTO = 'round-rectangle';
+    const FORMAS = [
+        { valor: 'ellipse', icono: 'bi-circle', nombre: 'Elipse' },
+        { valor: 'round-rectangle', icono: 'bi-square', nombre: 'Rectángulo redondeado' },
+        { valor: 'rectangle', icono: 'bi-window', nombre: 'Rectángulo' },
+        { valor: 'triangle', icono: 'bi-caret-up-fill', nombre: 'Triángulo' },
+        { valor: 'diamond', icono: 'bi-diamond', nombre: 'Diamante' },
+        { valor: 'pentagon', icono: 'bi-pentagon', nombre: 'Pentágono' },
+        { valor: 'hexagon', icono: 'bi-hexagon', nombre: 'Hexágono' },
+        { valor: 'star', icono: 'bi-star', nombre: 'Estrella' },
+        { valor: 'vee', icono: 'bi-signpost', nombre: 'En forma de V' },
+        { valor: 'bar', icono: 'bi-dash', nombre: 'Barra' }
+    ];
     const COLORES_ETIQUETA = {
         'Urgente': '#FF4D4D', 'Personal': '#A78BFA', 'Trabajo': '#00E5FF',
         'Estudio': '#F59E0B', 'Hogar': '#00C48C'
@@ -196,7 +286,7 @@
     let nodoSeleccionadoId = null;
     let modoConectar = false;
     let nodoOrigenConexion = null;
-    let nodoParaConvertir = null;
+    let nodosParaConvertir = [];
     let nodoMenuActual = null;
 
     const menuContextual = document.getElementById('menu-contextual');
@@ -223,33 +313,36 @@
         minZoom: 0.2,
         maxZoom: 3,
         wheelSensitivity: 0.22,
-        boxSelectionEnabled: false,
+        boxSelectionEnabled: true,
+        selectionType: 'single',
         autoungrabify: false,
         style: [
             {
                 selector: 'node',
                 style: {
                     'background-color': 'data(color)',
-                    'border-color': '#0D2137',
+                    'border-color': 'data(borde)',
                     'border-width': 2,
                     'label': 'data(label)',
-                    'color': '#E2E8F0',
-                    'font-size': '11px',
-                    'font-weight': 500,
+                    'color': 'data(color_texto)',
+                    'font-size': '13px',
+                    'font-weight': 600,
                     'font-family': 'Plus Jakarta Sans, sans-serif',
                     'text-valign': 'center',
                     'text-halign': 'center',
-                    'text-wrap': 'ellipsis',
-                    'text-max-width': '128px',
+                    'text-wrap': 'wrap',
+                    'text-max-width': '150px',
                     'text-overflow-wrap': 'anywhere',
-                    'shape': 'round-rectangle',
-                    'width': 150,
-                    'height': 50,
-                    'background-opacity': 0.12
+                    'shape': 'data(forma)',
+                    'width': 180,
+                    'height': 82,
+                    'background-opacity': 0.1,
+                    'transition-property': 'border-color, border-width, background-opacity',
+                    'transition-duration': '120ms'
                 }
             },
             {
-                selector: 'node[convertido]',
+                selector: 'node.convertido',
                 style: {
                     'border-style': 'dashed',
                     'background-opacity': 0.07,
@@ -259,10 +352,11 @@
             {
                 selector: 'node:selected',
                 style: {
-                    'border-color': '#ffffff',
+                    'border-color': '#00E5FF',
                     'border-width': 3,
-                    'overlay-color': 'data(color)',
-                    'overlay-opacity': 0.25
+                    'overlay-color': '#00E5FF',
+                    'overlay-opacity': 0.18,
+                    'overlay-padding': 6
                 }
             },
             {
@@ -272,12 +366,11 @@
             {
                 selector: 'edge',
                 style: {
-                    'width': 2.5,
+                    'width': 2,
                     'line-color': COLOR_LINEA,
-                    'target-arrow-color': COLOR_LINEA,
-                    'target-arrow-shape': 'triangle',
-                    'arrow-scale': 1,
-                    'curve-style': 'bezier'
+                    'target-arrow-shape': 'none',
+                    'curve-style': 'bezier',
+                    'line-style': 'dashed'
                 }
             },
             {
@@ -285,7 +378,8 @@
                 style: {
                     'line-color': COLOR_LINEA_SEL,
                     'target-arrow-color': COLOR_LINEA_SEL,
-                    'width': 3.5
+                    'line-style': 'dashed',
+                    'width': 3
                 }
             }
         ]
@@ -296,24 +390,43 @@
     }
 
     // ═══════════ CARGA DESDE LA API ═══════════
+    function datosNodo(n) {
+        const e = estiloData(n.estilo || ESTILO_DEFECTO);
+        return {
+            id: n.id,
+            label: etiquetaNodo(n),
+            color: n.color,
+            borde: e.relleno ? 'rgba(255,255,255,0.08)' : e.color,
+            color_texto: n.color_texto || COLOR_TEXTO_DEFECTO,
+            forma: n.forma || FORMA_DEFECTO,
+            convertido: n.convertido_en_tarea
+        };
+    }
+
+    function etiquetaNodo(nodo) {
+        return nodo.descripcion
+            ? `${nodo.texto}\n${nodo.descripcion}`
+            : nodo.texto;
+    }
+
+    function actualizarEstadoVacio() {
+        document.getElementById('estado-vacio').style.display =
+            nodos.length ? 'none' : 'flex';
+    }
+
     async function cargarMapa() {
         try {
             const respuesta = await api.get('/mapa-mental/');
             nodos = respuesta.data.nodos || [];
             conexiones = respuesta.data.conexiones || [];
-            document.getElementById('estado-vacio').style.display = nodos.length ? 'none' : 'flex';
 
             cy.elements().remove();
             const elementos = [];
 
             nodos.forEach(n => elementos.push({
                 group: 'nodes',
-                data: {
-                    id: n.id,
-                    label: n.texto,
-                    color: n.color,
-                    convertido: n.convertido_en_tarea
-                },
+                data: datosNodo(n),
+                classes: n.convertido_en_tarea ? 'convertido' : '',
                 position: { x: n.posicion_x, y: n.posicion_y }
             }));
 
@@ -323,7 +436,8 @@
             }));
 
             cy.add(elementos);
-            if (nodos.length) cy.fit(undefined, 40);
+            if (nodos.length) cy.fit(undefined, 60);
+            actualizarEstadoVacio();
         } catch (error) {
             console.error('Error al cargar el mapa:', error);
         }
@@ -331,17 +445,24 @@
 
     // ═══════════ INTERACCIÓN CON EL GRAFO ═══════════
 
+    function idsSeleccionados() {
+        return cy.$(':selected').nodes().map(n => n.id());
+    }
+
     // Selección / modo conectar al tocar un nodo
+    // (Shift+clic agrega a la selección y arrastrar sobre el fondo selecciona en bloque,
+    //  gracias a boxSelectionEnabled + selectionType 'single')
     cy.on('tap', 'node', (evt) => {
-        const id = evt.target.id();
-
         if (modoConectar) {
-            manejarClicConexion(id);
-            return;
+            manejarClicConexion(evt.target.id());
         }
+    });
 
-        nodoSeleccionadoId = id;
-        evt.target.select();
+    // El panel de propiedades se refresca con cada cambio de selección
+    cy.on('select unselect', () => {
+        if (modoConectar) return;
+        const seleccionados = idsSeleccionados();
+        nodoSeleccionadoId = seleccionados.length === 1 ? seleccionados[0] : null;
         actualizarPanelPropiedades();
     });
 
@@ -393,27 +514,41 @@
         } catch (error) {
             console.error('Error al guardar posición:', error);
         }
-        if (nodoSeleccionadoId === id) {
-            document.getElementById('prop-x').textContent = Math.round(pos.x);
-            document.getElementById('prop-y').textContent = Math.round(pos.y);
-        }
     });
 
     // ═══════════ MODO CONECTAR NODOS ═══════════
-    document.getElementById('herr-conectar').addEventListener('click', () => {
-        modoConectar = !modoConectar;
+    function activarModoConectar() {
+        modoConectar = true;
         nodoOrigenConexion = null;
         cy.elements().removeClass('nodo-origen');
-        document.getElementById('herr-conectar').classList.toggle('activo', modoConectar);
-        ayudaConectar.style.display = modoConectar ? 'inline-block' : 'none';
-    });
+        document.getElementById('herr-conectar').classList.add('activo');
+        document.getElementById('herr-conectar').setAttribute('aria-pressed', 'true');
+        document.getElementById('herr-seleccion').classList.remove('activo');
+        document.getElementById('herr-seleccion').setAttribute('aria-pressed', 'false');
+        ayudaConectar.style.display = 'inline-block';
+    }
 
-    document.getElementById('herr-seleccion').addEventListener('click', () => {
+    function activarModoSeleccion() {
         modoConectar = false;
         nodoOrigenConexion = null;
         cy.elements().removeClass('nodo-origen');
         document.getElementById('herr-conectar').classList.remove('activo');
+        document.getElementById('herr-conectar').setAttribute('aria-pressed', 'false');
+        document.getElementById('herr-seleccion').classList.add('activo');
+        document.getElementById('herr-seleccion').setAttribute('aria-pressed', 'true');
         ayudaConectar.style.display = 'none';
+    }
+
+    document.getElementById('herr-conectar').addEventListener('click', () => {
+        if (modoConectar) {
+            activarModoSeleccion();
+        } else {
+            activarModoConectar();
+        }
+    });
+
+    document.getElementById('herr-seleccion').addEventListener('click', () => {
+        activarModoSeleccion();
     });
 
     async function manejarClicConexion(id) {
@@ -444,69 +579,82 @@
             });
         } catch (error) {
             console.error('Error al crear conexión:', error);
+            alertar('No se pudo crear la conexión. Inténtalo de nuevo.');
         }
 
         nodoOrigenConexion = null;
-        modoConectar = false;
-        document.getElementById('herr-conectar').classList.remove('activo');
-        ayudaConectar.style.display = 'none';
+        activarModoSeleccion();
     }
 
     // ═══════════ CREAR / ELIMINAR NODOS ═══════════
     async function agregarNodo() {
         try {
+            const limites = cy.extent();
+            const indice = nodos.length;
+            const angulo = indice * Math.PI * (3 - Math.sqrt(5));
+            const radio = Math.sqrt(indice) * 115;
+            const posicion = {
+                x: (limites.x1 + limites.x2) / 2 + Math.cos(angulo) * radio,
+                y: (limites.y1 + limites.y2) / 2 + Math.sin(angulo) * radio
+            };
             const respuesta = await api.post('/mapa-mental/nodos/', {
                 texto: 'Nueva idea',
+                descripcion: '',
+                estilo: ESTILO_DEFECTO,
                 color: '#00E5FF',
-                posicion_x: Math.round(150 + Math.random() * 250),
-                posicion_y: Math.round(150 + Math.random() * 150)
+                color_texto: COLOR_TEXTO_DEFECTO,
+                forma: FORMA_DEFECTO,
+                posicion_x: Math.round(posicion.x),
+                posicion_y: Math.round(posicion.y)
             });
 
             nodos.push(respuesta.data);
             cy.add({
                 group: 'nodes',
-                data: {
-                    id: respuesta.data.id,
-                    label: respuesta.data.texto,
-                    color: respuesta.data.color
-                },
+                data: datosNodo(respuesta.data),
+                classes: respuesta.data.convertido_en_tarea ? 'convertido' : '',
                 position: { x: respuesta.data.posicion_x, y: respuesta.data.posicion_y }
             });
 
             nodoSeleccionadoId = respuesta.data.id;
             cy.getElementById(respuesta.data.id).select();
-            document.getElementById('estado-vacio').style.display = 'none';
             actualizarPanelPropiedades();
+            actualizarEstadoVacio();
+            document.getElementById('panel-propiedades').classList.remove('colapsado');
         } catch (error) {
             console.error('Error al crear nodo:', error);
+            alertar('No se pudo agregar la idea. Inténtalo de nuevo.');
         }
     }
 
-    async function eliminarNodo(id) {
+    async function eliminarNodos(ids) {
+        if (!ids.length) return;
         const confirmado = await confirmar({
-            titulo: 'Eliminar idea',
-            mensaje: '¿Eliminar esta idea y sus conexiones?',
+            titulo: ids.length === 1 ? 'Eliminar idea' : 'Eliminar ideas',
+            mensaje: ids.length === 1
+                ? '¿Eliminar esta idea y sus conexiones?'
+                : `¿Eliminar ${ids.length} ideas y sus conexiones?`,
             confirmarTexto: 'Eliminar',
             cancelarTexto: 'Cancelar',
             peligro: true
         });
         if (!confirmado) return;
-        try {
-            await api.delete(`/mapa-mental/nodos/${id}/`);
-            nodos = nodos.filter(n => n.id !== id);
-            conexiones = conexiones.filter(c =>
-                c.nodo_origen !== id && c.nodo_destino !== id
-            );
-            cy.remove(`#${id}`);
-            if (nodoSeleccionadoId === id) {
-                nodoSeleccionadoId = null;
-                actualizarPanelPropiedades();
+        for (const id of ids) {
+            try {
+                await api.delete(`/mapa-mental/nodos/${id}/`);
+                nodos = nodos.filter(n => n.id !== id);
+                conexiones = conexiones.filter(c =>
+                    c.nodo_origen !== id && c.nodo_destino !== id
+                );
+                cy.remove(`#${id}`);
+            } catch (error) {
+                console.error('Error al eliminar nodo:', error);
             }
-            ocultarMenuContextual();
-            if (!nodos.length) document.getElementById('estado-vacio').style.display = 'flex';
-        } catch (error) {
-            console.error('Error al eliminar nodo:', error);
         }
+        nodoSeleccionadoId = null;
+        actualizarPanelPropiedades();
+        ocultarMenuContextual();
+        actualizarEstadoVacio();
     }
 
     // ═══════════ ELIMINAR SOLO CONEXIONES DEL NODO SELECCIONADO ═══════════
@@ -528,7 +676,8 @@
     document.getElementById('btn-agregar-idea').addEventListener('click', agregarNodo);
     document.getElementById('btn-primera-idea').addEventListener('click', agregarNodo);
     document.getElementById('herr-eliminar').addEventListener('click', () => {
-        if (nodoSeleccionadoId) eliminarNodo(nodoSeleccionadoId);
+        const ids = idsSeleccionados();
+        if (ids.length) eliminarNodos(ids);
     });
 
     // ═══════════ EDICIÓN DE TEXTO ═══════════
@@ -552,8 +701,16 @@
             const nd = nodos.find(n => n.id === id);
             if (nd) Object.assign(nd, datos);
             const el = cy.getElementById(id);
-            if (datos.texto) el.data('label', datos.texto);
+            if (nd && (datos.texto || datos.descripcion !== undefined)) {
+                el.data('label', etiquetaNodo(nd));
+            }
             if (datos.color) el.data('color', datos.color);
+            if (datos.color_texto) el.data('color_texto', datos.color_texto);
+            if (datos.forma) el.style('shape', datos.forma);
+            if (datos.estilo) {
+                const e = estiloData(datos.estilo);
+                el.data('borde', e.relleno ? 'rgba(255,255,255,0.08)' : e.color);
+            }
             actualizarPanelPropiedades();
         } catch (error) {
             console.error('Error al actualizar nodo:', error);
@@ -579,15 +736,21 @@
                 editarTextoNodo(nodoMenuActual);
                 break;
             case 'conectar':
-                modoConectar = true;
+                activarModoConectar();
                 nodoOrigenConexion = nodoMenuActual.id;
-                document.getElementById('herr-conectar').classList.add('activo');
                 cy.getElementById(nodoMenuActual.id).addClass('nodo-origen');
-                ayudaConectar.style.display = 'inline-block';
                 break;
-            case 'convertir':
-                abrirModalConvertir(nodoMenuActual);
+            case 'convertir': {
+                const seleccionados = idsSeleccionados();
+                if (seleccionados.includes(nodoMenuActual.id)) {
+                    abrirModalConvertir(seleccionados);
+                } else {
+                    cy.elements().unselect();
+                    cy.getElementById(nodoMenuActual.id).select();
+                    abrirModalConvertir([nodoMenuActual.id]);
+                }
                 break;
+            }
             case 'color': {
                 const indice = COLORES.indexOf(nodoMenuActual.color);
                 const nuevoColor = COLORES[(indice + 1) % COLORES.length];
@@ -595,65 +758,281 @@
                 break;
             }
             case 'eliminar':
-                eliminarNodo(nodoMenuActual.id);
+                eliminarNodos([nodoMenuActual.id]);
                 break;
         }
     });
 
-    // ═══════════ PANEL DE PROPIEDADES ═══════════
-    function actualizarPanelPropiedades() {
-        const panel = document.getElementById('panel-propiedades');
-        const nodo = nodoData(nodoSeleccionadoId);
+    // ═══════════ ESTILOS DE NODO ═══════════
+    const ESTILOS = [
+        { valor: 'cian', nombre: 'Cian sólido', color: '#00E5FF', relleno: true },
+        { valor: 'cian-borde', nombre: 'Cian con borde', color: '#00E5FF', relleno: false },
+        { valor: 'salmon', nombre: 'Naranja salmón', color: '#F8A488', relleno: true },
+        { valor: 'lila', nombre: 'Azul lila', color: '#A5B4FC', relleno: true }
+    ];
+    const ESTILO_DEFECTO = 'cian';
 
-        if (!nodo) {
-            panel.style.display = 'none';
+    function estiloData(valor) {
+        return ESTILOS.find(e => e.valor === valor) || ESTILOS[0];
+    }
+
+    // ═══════════ TÍTULO EDITABLE DEL MAPA (breadcrumb) ═══════════
+    const crumbProyecto = document.getElementById('crumb-proyecto');
+    const crumbDoc = document.getElementById('crumb-doc');
+    const CLAVE_CRUMBS = 'orbit_mapa_crumbs';
+    const crumbsGuardados = JSON.parse(localStorage.getItem(CLAVE_CRUMBS) || 'null');
+    if (crumbsGuardados) {
+        crumbProyecto.value = crumbsGuardados.proyecto || crumbProyecto.value;
+        crumbDoc.value = crumbsGuardados.doc || crumbDoc.value;
+    }
+    function guardarCrumbs() {
+        crumbProyecto.value = crumbProyecto.value.trim() || 'Proyecto Alpha';
+        crumbDoc.value = crumbDoc.value.trim() || 'Arquitectura Core';
+        localStorage.setItem(CLAVE_CRUMBS, JSON.stringify({
+            proyecto: crumbProyecto.value,
+            doc: crumbDoc.value
+        }));
+    }
+    [crumbProyecto, crumbDoc].forEach(crumb => {
+        crumb.addEventListener('change', guardarCrumbs);
+        crumb.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') crumb.blur();
+        });
+    });
+
+    // ═══════════ SELECTOR DE ZOOM (cápsula) ═══════════
+    const zoomSelector = document.querySelector('.zoom-selector');
+    document.getElementById('zoom-porcentaje').addEventListener('click', (e) => {
+        e.stopPropagation();
+        zoomSelector.classList.toggle('abierto');
+    });
+    document.getElementById('zoom-menu').querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const valor = btn.dataset.zoom;
+            if (valor === 'ajustar') {
+                cy.fit(undefined, 40);
+            } else {
+                const nivel = Math.min(cy.maxZoom(), Math.max(cy.minZoom(), parseFloat(valor)));
+                const caja = document.getElementById('cy-mapa').getBoundingClientRect();
+                cy.zoom({ level: nivel, renderedPosition: { x: caja.width / 2, y: caja.height / 2 } });
+            }
+            zoomSelector.classList.remove('abierto');
+        });
+    });
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.zoom-selector')) zoomSelector.classList.remove('abierto');
+    });
+
+    // ═══════════ HERRAMIENTAS DEL RAIL ═══════════
+    document.getElementById('herr-texto').addEventListener('click', () => {
+        if (!nodoSeleccionadoId) {
+            alertar('Selecciona una idea para editar su texto.');
             return;
         }
+        document.getElementById('panel-propiedades').classList.remove('colapsado');
+        document.getElementById('prop-titulo-input').focus();
+    });
 
-        panel.style.display = 'flex';
-        document.getElementById('prop-texto').value = nodo.texto;
-        document.getElementById('prop-x').textContent = Math.round(nodo.posicion_x);
-        document.getElementById('prop-y').textContent = Math.round(nodo.posicion_y);
+    // Toggle del panel en móvil
+    document.getElementById('panel-movil-toggle').addEventListener('click', () => {
+        const panel = document.getElementById('panel-propiedades');
+        panel.classList.remove('colapsado');
+        document.querySelector('.mapa-mental').classList.remove('propiedades-cerradas');
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            panel.classList.add('abierto');
+        }
+        document.getElementById('panel-movil-toggle').setAttribute('aria-expanded', 'true');
+    });
 
-        const contenedorColores = document.getElementById('prop-colores');
-        contenedorColores.innerHTML = '';
-        COLORES.forEach(color => {
+    // ═══════════ PANEL DE PROPIEDADES ═══════════
+    let estilosRellenos = false;
+    function rellenarEstilos() {
+        if (estilosRellenos) return;
+        estilosRellenos = true;
+        const contenedor = document.getElementById('prop-estilos');
+        ESTILOS.forEach(e => {
             const btn = document.createElement('button');
-            btn.style.cssText = `width: 24px; height: 24px; border-radius: 50%; background: ${color};
-                border: ${nodo.color === color ? '2px solid #E2E8F0' : '2px solid transparent'};
-                cursor: pointer; transition: transform 0.15s;`;
-            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.2)');
-            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
-            btn.addEventListener('click', () => actualizarNodo(nodo.id, { color }));
-            contenedorColores.appendChild(btn);
+            btn.type = 'button';
+            btn.className = 'prop-estilo';
+            btn.dataset.estilo = e.valor;
+            btn.title = e.nombre;
+            if (e.relleno) {
+                btn.style.background = e.color;
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.border = `2px solid ${e.color}`;
+            }
+            btn.addEventListener('click', () => {
+                if (!nodoSeleccionadoId) {
+                    alertar('Selecciona una idea para cambiar su estilo.');
+                    return;
+                }
+                actualizarNodo(nodoSeleccionadoId, {
+                    estilo: e.valor,
+                    color: e.color,
+                    color_texto: e.relleno ? '#0A192F' : '#E2E8F0'
+                });
+            });
+            contenedor.appendChild(btn);
+        });
+    }
+    rellenarEstilos();
+
+    function formatearFecha(iso) {
+        if (!iso) return '—';
+        const f = new Date(iso);
+        if (Number.isNaN(f.getTime())) return '—';
+        const hoy = new Date();
+        const mismoDia = f.toDateString() === hoy.toDateString();
+        const hora = f.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        if (mismoDia) return `Hoy, ${hora}`;
+        return `${f.toLocaleDateString('es', { day: '2-digit', month: 'short' })}, ${hora}`;
+    }
+
+    function actualizarCamposPanel(nodo) {
+        document.getElementById('prop-titulo-input').value = nodo.texto || '';
+        document.getElementById('prop-descripcion-input').value = nodo.descripcion || '';
+        document.getElementById('prop-creado').textContent = formatearFecha(nodo.fecha_creacion);
+
+        const asignado = nodo.asignado ||
+            (usuario ? usuario.nombre_completo : '');
+        document.getElementById('prop-asignado').textContent = asignado || '—';
+
+        document.querySelectorAll('#prop-estilos .prop-estilo').forEach(btn =>
+            btn.classList.toggle('activo', btn.dataset.estilo === (nodo.estilo || ESTILO_DEFECTO)));
+
+        const color = (nodo.color || '#00E5FF').replace('#', '');
+        cy.getElementById(nodo.id).style({
+            'background-color': `#${color}`,
+            'color': nodo.color_texto || COLOR_TEXTO_DEFECTO
         });
     }
 
-    document.getElementById('prop-texto').addEventListener('change', (e) => {
-        if (nodoSeleccionadoId && e.target.value.trim()) {
-            actualizarNodo(nodoSeleccionadoId, { texto: e.target.value.trim() });
+    function actualizarPanelPropiedades() {
+        const panel = document.getElementById('panel-propiedades');
+        const seleccionados = cy.$(':selected').nodes();
+        const tituloPanel = document.getElementById('prop-titulo-panel');
+        const vacio = document.getElementById('prop-vacio');
+        const edicion = document.getElementById('prop-edicion');
+        const multiInfo = document.getElementById('panel-multi-info');
+        const camposIndividuales = document.getElementById('panel-campos-individuales');
+        const btnConvertir = document.getElementById('prop-convertir');
+        const btnEliminar = document.getElementById('prop-eliminar');
+
+        if (!seleccionados.length) {
+            tituloPanel.textContent = 'Propiedades';
+            vacio.style.display = 'flex';
+            edicion.style.display = 'none';
+            nodoSeleccionadoId = null;
+            return;
         }
+
+        tituloPanel.textContent = 'Propiedades';
+        vacio.style.display = 'none';
+        edicion.style.display = 'flex';
+        panel.classList.remove('colapsado');
+        document.querySelector('.mapa-mental').classList.remove('propiedades-cerradas');
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            panel.classList.add('abierto');
+            document.getElementById('panel-movil-toggle').setAttribute('aria-expanded', 'true');
+        }
+
+        if (seleccionados.length > 1) {
+            const pendientes = seleccionados
+                .map(n => nodoData(n.id()))
+                .filter(n => n && !n.convertido_en_tarea).length;
+            multiInfo.style.display = 'flex';
+            camposIndividuales.style.display = 'none';
+            document.getElementById('prop-multi-texto').textContent =
+                `${seleccionados.length} ideas seleccionadas` +
+                (pendientes ? ` · ${pendientes} sin convertir` : '');
+            btnConvertir.innerHTML =
+                `<i class="bi bi-check2-square"></i><span>Convertir ${seleccionados.length} ideas</span>`;
+            btnConvertir.disabled = pendientes === 0;
+            btnEliminar.innerHTML =
+                `<i class="bi bi-trash"></i><span>Eliminar ${seleccionados.length}</span>`;
+            return;
+        }
+
+        const nodo = nodoData(seleccionados[0].id());
+        if (!nodo) {
+            vacio.style.display = 'flex';
+            edicion.style.display = 'none';
+            return;
+        }
+
+        nodoSeleccionadoId = nodo.id;
+        multiInfo.style.display = 'none';
+        camposIndividuales.style.display = 'flex';
+        btnConvertir.disabled = false;
+        btnConvertir.innerHTML = '<i class="bi bi-check2-square"></i><span>Convertir en tarea</span>';
+        btnEliminar.innerHTML = '<i class="bi bi-trash"></i><span>Eliminar nodo</span>';
+
+        actualizarCamposPanel(nodo);
+    }
+
+    document.getElementById('prop-titulo-input').addEventListener('change', (e) => {
+        const valor = e.target.value.trim();
+        if (nodoSeleccionadoId && valor) {
+            actualizarNodo(nodoSeleccionadoId, { texto: valor });
+        }
+    });
+
+    document.getElementById('prop-descripcion-input').addEventListener('change', (e) => {
+        if (nodoSeleccionadoId) {
+            actualizarNodo(nodoSeleccionadoId, { descripcion: e.target.value });
+        }
+    });
+
+    document.getElementById('prop-cerrar').addEventListener('click', () => {
+        const panel = document.getElementById('panel-propiedades');
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            panel.classList.remove('abierto');
+            document.getElementById('panel-movil-toggle').setAttribute('aria-expanded', 'false');
+        } else {
+            panel.classList.add('colapsado');
+            document.querySelector('.mapa-mental').classList.add('propiedades-cerradas');
+        }
+        cy.elements().unselect();
+        nodoSeleccionadoId = null;
+        actualizarPanelPropiedades();
     });
 
     document.getElementById('prop-eliminar').addEventListener('click', () => {
-        if (nodoSeleccionadoId) eliminarNodo(nodoSeleccionadoId);
-    });
-
-    document.getElementById('prop-eliminar-conexiones').addEventListener('click', () => {
-        if (nodoSeleccionadoId) eliminarConexionesDeNodo(nodoSeleccionadoId);
+        const ids = idsSeleccionados();
+        if (ids.length) eliminarNodos(ids);
     });
 
     // ═══════════ CONVERTIR EN TAREA LOS NODOS ═══════════
-    function abrirModalConvertir(nodo) {
-        if (nodo.convertido_en_tarea) {
+    function abrirModalConvertir(ids) {
+        const pendientes = ids
+            .map(id => nodoData(id))
+            .filter(nodo => nodo && !nodo.convertido_en_tarea);
+
+        if (!pendientes.length) {
             alertar({
-                titulo: 'Ya convertida',
-                mensaje: 'Esta idea ya fue convertida en tarea.'
+                titulo: 'Ya convertidas',
+                mensaje: ids.length === 1
+                    ? 'Esta idea ya fue convertida en tarea.'
+                    : 'Las ideas seleccionadas ya fueron convertidas en tareas.'
             });
             return;
         }
-        nodoParaConvertir = nodo;
-        document.getElementById('convertir-titulo-preview').textContent = `"${nodo.texto}"`;
+
+        nodosParaConvertir = pendientes;
+        const tituloModal = document.getElementById('convertir-modal-titulo');
+        const preview = document.getElementById('convertir-titulo-preview');
+
+        if (pendientes.length === 1) {
+            tituloModal.textContent = 'Convertir idea en tarea';
+            preview.textContent = `"${pendientes[0].texto}"`;
+        } else {
+            tituloModal.textContent = 'Convertir ideas en tareas';
+            const nombres = pendientes.slice(0, 3).map(n => `"${n.texto}"`).join(', ');
+            const extra = pendientes.length > 3 ? ` y ${pendientes.length - 3} más` : '';
+            preview.textContent = `${pendientes.length} ideas: ${nombres}${extra}`;
+        }
+
         document.getElementById('convertir-descripcion').value = '';
         document.getElementById('convertir-etiqueta').value = 'Trabajo';
         document.getElementById('convertir-fecha').value = '';
@@ -665,24 +1044,43 @@
     });
 
     document.getElementById('btn-confirmar-convertir').addEventListener('click', async () => {
-        if (!nodoParaConvertir) return;
-
+        if (!nodosParaConvertir.length) return;
         const etiqueta = document.getElementById('convertir-etiqueta').value;
         const descripcion = document.getElementById('convertir-descripcion').value.trim();
         const fecha = document.getElementById('convertir-fecha').value;
+        const ids = nodosParaConvertir.map(n => n.id);
 
         try {
-            await api.post(`/mapa-mental/nodos/${nodoParaConvertir.id}/convertir-tarea/`, {
-                descripcion,
-                etiqueta,
-                color_etiqueta: COLORES_ETIQUETA[etiqueta],
-                fecha_limite: fecha || null
+            let idsConvertidos = [];
+
+            if (ids.length === 1) {
+                await api.post(`/mapa-mental/nodos/${ids[0]}/convertir-tarea/`, {
+                    descripcion,
+                    etiqueta,
+                    color_etiqueta: COLORES_ETIQUETA[etiqueta],
+                    fecha_limite: fecha || null
+                });
+                idsConvertidos = ids;
+            } else {
+                const respuesta = await api.post('/mapa-mental/convertir-tarea/', {
+                    nodos: ids,
+                    descripcion,
+                    etiqueta,
+                    color_etiqueta: COLORES_ETIQUETA[etiqueta],
+                    fecha_limite: fecha || null
+                });
+                idsConvertidos = respuesta.data.nodos_convertidos || [];
+            }
+
+            idsConvertidos.forEach(id => {
+                const nd = nodoData(id);
+                if (nd) nd.convertido_en_tarea = true;
+                cy.getElementById(id).data('convertido', true);
+                cy.getElementById(id).addClass('convertido');
             });
 
             document.getElementById('modal-convertir').style.display = 'none';
-            nodoParaConvertir.convertido_en_tarea = true;
-            cy.getElementById(nodoParaConvertir.id).data('convertido', true);
-            nodoParaConvertir = null;
+            nodosParaConvertir = [];
             actualizarPanelPropiedades();
         } catch (error) {
             console.error('Error al convertir:', error);
@@ -690,8 +1088,8 @@
     });
 
     document.getElementById('prop-convertir').addEventListener('click', () => {
-        const nodo = nodoData(nodoSeleccionadoId);
-        if (nodo) abrirModalConvertir(nodo);
+        const ids = idsSeleccionados();
+        if (ids.length) abrirModalConvertir(ids);
     });
 
     // ═══════════ CONTROLES DE ZOOM ═══════════
@@ -706,14 +1104,9 @@
 
     document.getElementById('zoom-mas').addEventListener('click', () => zoomCentrado(1.15));
     document.getElementById('zoom-menos').addEventListener('click', () => zoomCentrado(1 / 1.15));
-    document.getElementById('zoom-reset').addEventListener('click', () => cy.fit(undefined, 40));
-
     cy.on('zoom', () => {
         document.getElementById('texto-zoom').textContent = `${Math.round(cy.zoom() * 100)}%`;
     });
-
-    // ═══════════ CERRAR SESIÓN ═══════════
-    document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
 
     // Carga inicial
     cargarMapa();

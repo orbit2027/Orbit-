@@ -15,12 +15,38 @@ from .serializador import (
     MapaCompletoSerializador,
     ConvertirNodoSerializador,
     ConvertirNodoRespuestaSerializador,
+    ConvertirSeleccionSerializador,
+    ConvertirSeleccionRespuestaSerializador,
 )
 from apps.tareas.modelo import Tarea
 
 MensajeSerializador = inline_serializer(
     name='MapaMensaje', fields={'mensaje': serializers.CharField()}
 )
+
+
+def _crear_tarea_desde_nodo(nodo, datos):
+    """Crea una tarea Kanban a partir de un nodo (RF-MAP-06)."""
+    tarea = Tarea(
+        titulo=nodo.texto,
+        descripcion=datos.get('descripcion', ''),
+        estado='por_hacer',
+        usuario=nodo.usuario,
+        origen_nodo=str(nodo.id),
+        color_etiqueta=nodo.color
+    )
+    if datos.get('etiqueta'):
+        tarea.etiqueta = datos['etiqueta']
+    if datos.get('color_etiqueta'):
+        tarea.color_etiqueta = datos['color_etiqueta']
+    if datos.get('fecha_limite'):
+        tarea.fecha_limite = datos['fecha_limite']
+    tarea.save()
+
+    nodo.convertido_en_tarea = True
+    nodo.id_tarea_generada = str(tarea.id)
+    nodo.save()
+    return tarea
 
 @extend_schema(
     tags=['Mapa mental'],
@@ -195,32 +221,64 @@ def convertir_nodo_en_tarea(request, nodo_id):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Crear tarea heredando el texto del nodo como título
-    tarea = Tarea(
-        titulo=nodo.texto,
-        descripcion=request.data.get('descripcion', ''),
-        estado='por_hacer',
-        usuario=request.user,
-        origen_nodo=str(nodo.id),
-        color_etiqueta=nodo.color
-    )
-
-    # Campos adicionales opcionales del modal de conversión
-    if request.data.get('etiqueta'):
-        tarea.etiqueta = request.data['etiqueta']
-    if request.data.get('color_etiqueta'):
-        tarea.color_etiqueta = request.data['color_etiqueta']
-    if request.data.get('fecha_limite'):
-        tarea.fecha_limite = request.data['fecha_limite']
-
-    tarea.save()
-
-    # Marcar nodo como convertido
-    nodo.convertido_en_tarea = True
-    nodo.id_tarea_generada = str(tarea.id)
-    nodo.save()
+    tarea = _crear_tarea_desde_nodo(nodo, request.data)
 
     return Response({
         'mensaje': 'Nodo convertido en tarea exitosamente',
         'tarea_id': str(tarea.id)
+    }, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(
+    tags=['Mapa mental'],
+    summary='Convertir nodos seleccionados en tareas',
+    description='RF-MAP-07. Convierte una selección de nodos en tareas del '
+                'tablero Kanban de una sola vez.',
+    request=ConvertirSeleccionSerializador,
+    responses={201: ConvertirSeleccionRespuestaSerializador, 400: None},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def convertir_seleccion_en_tareas(request):
+    """
+    RF-MAP-07: Convierte todas las ideas seleccionadas en tareas.
+    Cada nodo convertido queda marcado; los ya convertidos o ajenos
+    se listan como omitidos sin abortar el lote.
+    """
+    serializador = ConvertirSeleccionSerializador(data=request.data)
+    if not serializador.is_valid():
+        return Response(
+            serializador.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    datos = serializador.validated_data
+    ids_solicitados = datos['nodos']
+
+    nodos = NodoMapa.objects.filter(
+        id__in=ids_solicitados, usuario=request.user
+    )
+    por_id = {str(nodo.id): nodo for nodo in nodos}
+
+    creadas = []
+    omitidas = []
+    nodos_convertidos = []
+    for nodo_id in ids_solicitados:
+        nodo = por_id.get(nodo_id)
+        if not nodo or nodo.convertido_en_tarea:
+            omitidas.append(nodo_id)
+            continue
+        tarea = _crear_tarea_desde_nodo(nodo, datos)
+        creadas.append(str(tarea.id))
+        nodos_convertidos.append(nodo_id)
+
+    if creadas:
+        mensaje = f'{len(creadas)} tarea(s) creada(s) desde el mapa mental'
+    else:
+        mensaje = 'No se crearon tareas: los nodos seleccionados ya fueron convertidos'
+
+    return Response({
+        'mensaje': mensaje,
+        'creadas': creadas,
+        'omitidas': omitidas,
+        'nodos_convertidos': nodos_convertidos,
     }, status=status.HTTP_201_CREATED)

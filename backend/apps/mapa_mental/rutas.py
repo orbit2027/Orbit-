@@ -11,6 +11,8 @@ urlpatterns = [
     path('nodos/<str:nodo_id>/', vistas.detalle_nodo, name='detalle-nodo'),
     path('nodos/<str:nodo_id>/convertir-tarea/',
          vistas.convertir_nodo_en_tarea, name='convertir-nodo-tarea'),
+    path('convertir-tarea/', vistas.convertir_seleccion_en_tareas,
+         name='convertir-seleccion-tareas'),
     path('conexiones/', vistas.crearConexion, name='crear-conexion'),
     path('conexiones/<str:conexion_id>/',
          vistas.eliminarConexion, name='eliminar-conexion'),

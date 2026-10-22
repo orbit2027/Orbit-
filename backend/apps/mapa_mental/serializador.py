@@ -13,9 +13,26 @@ class NodoMapaSerializador(serializers.Serializer):
     """Serializador para operaciones CRUD de nodos del mapa mental."""
 
     texto = serializers.CharField(max_length=200)
+    descripcion = serializers.CharField(
+        required=False, allow_blank=True, default=''
+    )
     color = serializers.CharField(max_length=7, required=False, default='#00E5FF')
+    color_texto = serializers.CharField(max_length=7, required=False, default='#E2E8F0')
+    forma = serializers.ChoiceField(
+        choices=[clave for clave, _ in NodoMapa.FORMAS],
+        required=False,
+        default='ellipse',
+    )
+    estilo = serializers.ChoiceField(
+        choices=[clave for clave, _ in NodoMapa.ESTILOS],
+        required=False,
+        default='cian',
+    )
     posicion_x = serializers.FloatField(required=False, default=0.0)
     posicion_y = serializers.FloatField(required=False, default=0.0)
+    asignado = serializers.CharField(
+        required=False, allow_blank=True, default='', max_length=120
+    )
 
     def validate_texto(self, valor):
         """Valida que el texto no esté vacío."""
@@ -43,9 +60,14 @@ class NodoMapaSerializador(serializers.Serializer):
         return {
             'id': str(instancia.id),
             'texto': instancia.texto,
+            'descripcion': instancia.descripcion or '',
             'color': instancia.color,
+            'color_texto': instancia.color_texto,
+            'forma': instancia.forma,
+            'estilo': instancia.estilo,
             'posicion_x': instancia.posicion_x,
             'posicion_y': instancia.posicion_y,
+            'asignado': instancia.asignado or '',
             'convertido_en_tarea': bool(instancia.convertido_en_tarea),
             'id_tarea_generada': instancia.id_tarea_generada or '',
             'fecha_creacion': (
@@ -114,7 +136,28 @@ class ConvertirNodoSerializador(serializers.Serializer):
     fecha_limite = serializers.DateField(required=False, allow_null=True)
 
 
+class ConvertirSeleccionSerializador(ConvertirNodoSerializador):
+    """Conversión masiva: una lista de nodos a tareas del tablero."""
+    nodos = serializers.ListField(child=serializers.CharField(), allow_empty=False)
+
+    def validate_nodos(self, valor):
+        """Limita el lote para evitar conversiones masivas accidentales."""
+        if len(valor) > 100:
+            raise serializers.ValidationError(
+                "No puedes convertir más de 100 nodos a la vez."
+            )
+        return valor
+
+
 class ConvertirNodoRespuestaSerializador(serializers.Serializer):
     """Resultado de convertir un nodo en tarea."""
     mensaje = serializers.CharField()
     tarea_id = serializers.CharField()
+
+
+class ConvertirSeleccionRespuestaSerializador(serializers.Serializer):
+    """Resultado de la conversión masiva de nodos."""
+    mensaje = serializers.CharField()
+    creadas = serializers.ListField(child=serializers.CharField())
+    omitidas = serializers.ListField(child=serializers.CharField())
+    nodos_convertidos = serializers.ListField(child=serializers.CharField())

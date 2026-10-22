@@ -308,6 +308,12 @@
     filter: brightness(1.06);
 }
 
+.sidebar__control--peligro:hover {
+    color: var(--color-error);
+    border-color: var(--color-error-03);
+    background: var(--color-error-03);
+}
+
 /* ═══════════ TOOLTIP (JS) ═══════════ */
 .sidebar__tooltip {
     position: fixed;

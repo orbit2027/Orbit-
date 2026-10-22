@@ -42,6 +42,7 @@ const GRUPOS = [
         titulo: 'Principal',
         items: [
             { etiqueta: 'Tablero', icono: 'bi-kanban', archivo: 'tablero-kanban.html' },
+            { etiqueta: 'Calendario', icono: 'bi-calendar3-week', archivo: 'calendario.html' },
             { etiqueta: 'Mapa mental', icono: 'bi-diagram-3', archivo: 'mapa-mental.html' },
             { etiqueta: 'Estadísticas', icono: 'bi-bar-chart-line', archivo: 'estadisticas.html' },
             { etiqueta: 'Notificaciones', icono: 'bi-bell', accion: 'notificaciones', badge: 'notif' },
@@ -134,14 +135,11 @@ function render(sidebar) {
             <nav class="sidebar__nav" id="sidebar-nav">${gruposHtml}</nav>
 
             <footer class="sidebar__footer">
+                <button class="sidebar__control sidebar__control--peligro" id="sidebar-logout-footer" data-tooltip="Cerrar sesión">
+                    <i class="bi bi-box-arrow-left"></i>
+                </button>
                 <button class="sidebar__control" id="sidebar-tema" data-tooltip="Modo claro">
                     <i class="bi bi-sun"></i>
-                </button>
-                <button class="sidebar__control" id="sidebar-ajustes" data-tooltip="Perfil">
-                    <i class="bi bi-gear"></i>
-                </button>
-                <button class="sidebar__control sidebar__control--accion" id="sidebar-agregar" data-tooltip="Nueva tarea">
-                    <i class="bi bi-plus-lg"></i>
                 </button>
                 <button class="sidebar__control" id="sidebar-colapsar" data-tooltip="Colapsar">
                     <i class="bi bi-chevron-double-left"></i>
@@ -197,15 +195,8 @@ function enlazar(sidebar) {
         aplicarTema(nuevo);
     });
 
-    document.getElementById('sidebar-ajustes')?.addEventListener('click', () => {
-        window.location.href = resolverRuta('perfil.html');
-    });
-
-    document.getElementById('sidebar-agregar')?.addEventListener('click', () => {
-        const accion = document.getElementById('fab-nueva-tarea')
-            || document.getElementById('btn-nueva-tarea-topbar');
-        if (accion) accion.click();
-        else window.location.href = resolverRuta('tablero-kanban.html');
+    document.getElementById('sidebar-logout-footer')?.addEventListener('click', () => {
+        logout();
     });
 
     const buscador = document.getElementById('sidebar-buscador');

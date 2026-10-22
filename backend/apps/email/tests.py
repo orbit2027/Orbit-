@@ -2,8 +2,12 @@
 import json
 
 from django.core.mail import EmailMultiAlternatives
+from django.core import mail
 from django.test import TestCase, override_settings
 from unittest.mock import patch
+
+from apps.email.correos import correo_bienvenida
+from apps.usuarios.modelo import Usuario
 
 from .backend import EmailBackendAPI
 
@@ -67,3 +71,28 @@ class CorreoApiHttpTest(TestCase):
             EmailBackendAPI._parsear_remitente('a@b.com'),
             (None, 'a@b.com'),
         )
+
+
+class CorreoBienvenidaTest(TestCase):
+
+    @override_settings(
+        EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+        FRONTEND_URL='https://orbit.example',
+    )
+    def test_usa_ruta_de_inicio_de_sesion_y_escapa_datos_html(self):
+        usuario = Usuario(
+            nombre_completo='<script>alert(1)</script>',
+            correo='ana&soporte@orbit.local',
+        )
+
+        correo_bienvenida(usuario)
+
+        self.assertEqual(len(mail.outbox), 1)
+        html = mail.outbox[0].alternatives[0][0]
+        self.assertIn(
+            'https://orbit.example/vistas/iniciar-sesion.html',
+            html,
+        )
+        self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;', html)
+        self.assertIn('ana&amp;soporte@orbit.local', html)
+        self.assertNotIn('<script>', html)

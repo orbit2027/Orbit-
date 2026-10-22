@@ -140,6 +140,16 @@ class EditarPerfilRespuestaSerializador(serializers.Serializer):
     tokens = TokenParSerializador(required=False)
 
 
+class RefrescarJwtSerializador(serializers.Serializer):
+    """Entrada para canjear un refresh token por uno nuevo."""
+    refresh = serializers.CharField()
+
+
 class MensajeRespuestaSerializador(serializers.Serializer):
     """Respuesta genérica con un mensaje."""
     mensaje = serializers.CharField()
+
+
+class RefrescarJwtRespuestaSerializador(serializers.Serializer):
+    """Respuesta al refrescar el par de tokens."""
+    tokens = TokenParSerializador()

@@ -12,6 +12,7 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 from apps.usuarios.modelo import Usuario
 from apps.tareas.modelo import Tarea
 from apps.middlewares.roles import requerir_rol
+from apps.email.correos import correo_bienvenida
 from .serializador import (
     UsuarioAdminSerializador,
     CrearUsuarioAdminSerializador,
@@ -100,6 +101,7 @@ def crear_usuario(request):
     serializador = CrearUsuarioAdminSerializador(data=request.data)
     if serializador.is_valid():
         usuario = serializador.save()
+        correo_bienvenida(usuario)
         return Response(
             UsuarioAdminSerializador(usuario).data,
             status=status.HTTP_201_CREATED

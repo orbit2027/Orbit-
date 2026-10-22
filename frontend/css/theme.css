@@ -180,7 +180,28 @@ body {
     background: #FFFFFF;
     border-left-color: rgba(15, 23, 42, 0.08);
 }
-[data-tema="claro"] .panel-propiedades__posicion > div {
+[data-tema="claro"] .panel-propiedades__cabecera,
+[data-tema="claro"] .panel-propiedades__acciones {
+    background: #FFFFFF;
+}
+[data-tema="claro"] .campo__icono {
+    background: rgba(8, 145, 178, 0.1);
+}
+[data-tema="claro"] .campo__muestra {
+    border-color: rgba(15, 23, 42, 0.15);
+}
+[data-tema="claro"] .picker-flotante {
+    background: #FFFFFF;
+}
+[data-tema="claro"] .zoom-selector__menu {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.12);
+}
+[data-tema="claro"] .topbar-titulo--editable:hover,
+[data-tema="claro"] .topbar-titulo--editable:focus {
+    background: rgba(15, 23, 42, 0.05);
+}
+[data-tema="claro"] .pestana__cabecera:hover {
     background: rgba(15, 23, 42, 0.04);
 }
 

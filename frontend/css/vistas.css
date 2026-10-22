@@ -121,33 +121,52 @@
     margin: 0;
     white-space: nowrap;
 }
-.topbar-zoom {
+/* Zoom flotante del mapa (abajo-derecha del lienzo) */
+.zoom-flotante {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-left: auto;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 14px;
+    background: rgba(13, 33, 55, 0.92);
+    border: 1px solid var(--borde-cian-fuerte);
+    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.5);
+    z-index: 20;
+    backdrop-filter: blur(8px);
 }
-.topbar-zoom #texto-zoom {
+
+.zoom-flotante #texto-zoom {
     font-size: 12px;
+    font-weight: 600;
     color: var(--color-texto);
-    min-width: 40px;
+    min-width: 42px;
     text-align: center;
 }
-.btn-zoom.ancho { width: auto; padding: 0 10px; }
 
-.panel-propiedades__posicion {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.zoom-flotante__boton {
+    height: 32px;
+    min-width: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    color: var(--color-terciario);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
 }
-.panel-propiedades__posicion > div {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--borde-gris);
-    border-radius: 8px;
-    padding: 8px 10px;
+
+.zoom-flotante__boton:hover {
+    background: rgba(0, 229, 255, 0.12);
+    color: var(--color-primario);
 }
-.panel-propiedades__posicion label { font-size: 11px; color: var(--color-terciario); display: block; margin-bottom: 2px; }
-.panel-propiedades__posicion div div { font-size: 13px; font-weight: 600; color: var(--color-texto); }
+
+.zoom-flotante__boton--ancho { padding: 0 8px; }
 
 /* Administración */
 .admin__stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
