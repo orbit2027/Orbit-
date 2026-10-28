@@ -54,7 +54,7 @@ def generar_token():
 def _construir_correo_html(usuario, enlace):
     """HTML responsive con la identidad de Orbit (logo por URL pública)."""
     nombre = usuario.nombre_completo.split(' ')[0]
-    logo_url = f"{settings.FRONTEND_URL.rstrip('/')}/img/orbit-logo.png?v=2"
+    logo_url = f"{settings.FRONTEND_URL.rstrip('/')}/img/logo-email.jpg?v=3"
     return f"""<!DOCTYPE html>
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -73,11 +73,8 @@ def _construir_correo_html(usuario, enlace):
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <img src="{logo_url}" alt="Orbit" width="132" height="88"
-                         style="display:block;width:132px;height:88px;border:0;outline:none;background:#0A192F;">
-                    <span style="display:block;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#E2E8F0;margin-top:6px;">
-                      orbit
-                    </span>
+                    <img src="{logo_url}" alt="Orbit" width="160" height="96"
+                         style="display:block;width:160px;height:96px;border:0;outline:none;border-radius:10px;">
                   </td>
                 </tr>
               </table>

@@ -21,7 +21,7 @@ def _escapar_html(valor):
 def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
     """HTML responsive con la identidad de Orbit."""
     logo_url = _escapar_html(
-        f"{settings.FRONTEND_URL.rstrip('/')}/img/orbit-logo.png?v=2"
+        f"{settings.FRONTEND_URL.rstrip('/')}/img/logo-email.jpg?v=3"
     )
     html_parrafos = ''.join(
         f'''<p style="margin:0 0 14px;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#94A3B8;">{parrafo}</p>'''
@@ -66,11 +66,8 @@ def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <img src="{logo_url}" alt="Orbit" width="132" height="88"
-                         style="display:block;width:132px;height:88px;border:0;outline:none;background:#0A192F;">
-                    <span style="display:block;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#E2E8F0;margin-top:6px;">
-                      orbit
-                    </span>
+                    <img src="{logo_url}" alt="Orbit" width="160" height="96"
+                         style="display:block;width:160px;height:96px;border:0;outline:none;border-radius:10px;">
                   </td>
                 </tr>
               </table>
