@@ -189,6 +189,10 @@ TEMPLATES = [
 
 # Configuración de URLs
 ROOT_URLCONF = 'orbit.urls'
+# Vercel detecta Django por `backend/manage.py` y toma el punto de entrada WSGI
+# de esta variable; sin ella el build falla con "could not resolve the
+# application entrypoint".
+WSGI_APPLICATION = 'orbit.wsgi.application'
 
 # Idioma y zona horaria
 LANGUAGE_CODE = 'es'

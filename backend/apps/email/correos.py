@@ -148,63 +148,100 @@ def correo_bienvenida(usuario):
     enviar_correo(usuario.correo, 'Bienvenido a Orbit', html, texto)
 
 
-def correo_invitacion_proyecto(invitado, propietario, proyecto):
-    """Avisan a un usuario que lo invitaron a un proyecto."""
-    nombre = _escapar_html(_primera_palabra(invitado))
-    enlace = f"{settings.FRONTEND_URL.rstrip('/')}/vistas/proyectos.html"
+ETIQUETAS_PERMISO = {
+    'ver': 'Puede ver',
+    'editar': 'Puede ver y editar',
+    'administrar': 'Puede administrar y compartir',
+}
+
+
+def enlace_invitacion(invitacion):
+    """URL de la página donde se acepta o rechaza una invitación."""
+    base = settings.FRONTEND_URL.rstrip('/')
+    return f"{base}/vistas/invitaciones.html?invitacion={invitacion.token}"
+
+
+def correo_invitacion_compartir(destinatario, propietario, invitacion, titulo):
+    """
+    Invitación para acceder a una tarea o proyecto.
+
+    El acceso no se concede hasta que la persona invitada acepta el enlace.
+    `destinatario` puede ser un correo sin cuenta registrada.
+    """
+    correo = (destinatario or '').strip()
+    nombre_visible = correo.split('@')[0] or 'hola'
+    nombre = _escapar_html(nombre_visible)
+    tipo = 'proyecto' if invitacion.tipo_objeto == 'proyecto' else 'tarea'
+    permiso = ETIQUETAS_PERMISO.get(invitacion.permiso, 'Puede ver')
+    enlace = enlace_invitacion(invitacion)
+    titulo_limpio = _escapar_html(titulo)
+    propietario_limpio = _escapar_html(
+        propietario.nombre_completo or propietario.correo
+    )
+
     html = _plantilla(
-        titulo='Te invitaron a un proyecto',
+        titulo=f'Te invitaron a un {tipo}',
         parrafos=[
             f'Hola <strong style="color:#E2E8F0;">{nombre}</strong>:',
-            f'<strong style="color:#E2E8F0;">'
-            f'{_escapar_html(propietario.nombre_completo)}</strong> '
-            f'te agregó al proyecto <strong style="color:#00E5FF;">'
-            f'“{_escapar_html(proyecto.nombre)}”</strong>.',
+            f'<strong style="color:#E2E8F0;">{propietario_limpio}</strong> '
+            f'quiere compartir contigo el {tipo} '
+            f'<strong style="color:#00E5FF;">“{titulo_limpio}”</strong> '
+            f'en Orbit.',
+            f'<strong style="color:#E2E8F0;">{_escapar_html(permiso)}</strong> '
+            'una vez que aceptes la invitación.',
         ],
-        boton_texto='Ver el proyecto',
+        boton_texto='Aceptar invitación',
         boton_url=enlace,
-        nota='Solo las personas registradas pueden ser invitadas a un proyecto.',
+        nota=(
+            'Ingresa con tu cuenta de Orbit usando este mismo correo: '
+            f'<strong style="color:#E2E8F0;">{_escapar_html(correo)}</strong>. '
+            'Si no esperabas esta invitación, puedes ignorar este correo.'
+        ),
     )
     texto = (
-        f"Hola {nombre}:\n\n"
-        f"{propietario.nombre_completo} te agregó al proyecto "
-        f"“{proyecto.nombre}” de Orbit.\n\n"
-        f"Ver el proyecto: {enlace}\n\n"
+        f"Hola {nombre_visible}:\n\n"
+        f"{propietario.nombre_completo or propietario.correo} quiere compartir "
+        f"contigo el {tipo} “{titulo}” en Orbit.\n\n"
+        f"{permiso} una vez que aceptes la invitación.\n\n"
+        f"Aceptar invitación: {enlace}\n\n"
+        f"Ingresa con tu cuenta de Orbit usando este mismo correo: {correo}.\n\n"
         "— Equipo de Orbit"
     )
     enviar_correo(
-        invitado.correo,
-        f'Te invitaron al proyecto “{proyecto.nombre}” · Orbit',
+        correo,
+        f'Te invitaron al {tipo} “{titulo}” · Orbit',
         html, texto,
     )
 
 
-def correo_asignacion_tarea(invitado, propietario, tarea):
-    """Avisan a un usuario que le asignaron una tarea."""
-    nombre = _escapar_html(_primera_palabra(invitado))
+def correo_invitacion_aceptada(propietario, invitado, tipo_objeto, titulo):
+    """Avisa al dueño que la persona invitada ya aceptó la invitación."""
+    tipo = 'proyecto' if tipo_objeto == 'proyecto' else 'tarea'
+    nombre_invitado = _escapar_html(
+        invitado.nombre_completo or invitado.correo
+    )
     enlace = f"{settings.FRONTEND_URL.rstrip('/')}/vistas/tablero-kanban.html"
     html = _plantilla(
-        titulo='Te asignaron una tarea',
+        titulo='Invitación aceptada',
         parrafos=[
-            f'Hola <strong style="color:#E2E8F0;">{nombre}</strong>:',
-            f'<strong style="color:#E2E8F0;">'
-            f'{_escapar_html(propietario.nombre_completo)}</strong> '
-            f'te asignó la tarea <strong style="color:#00E5FF;">'
-            f'“{_escapar_html(tarea.titulo)}”</strong>.',
-            'Puedes verla y editarla desde tu tablero.',
+            f'Hola <strong style="color:#E2E8F0;">'
+            f'{_escapar_html(_primera_palabra(propietario))}</strong>:',
+            f'<strong style="color:#E2E8F0;">{nombre_invitado}</strong> aceptó '
+            f'tu invitación y ya tiene acceso al {tipo} '
+            f'<strong style="color:#00E5FF;">“{_escapar_html(titulo)}”</strong>.',
         ],
         boton_texto='Abrir mi tablero',
         boton_url=enlace,
     )
     texto = (
-        f"Hola {nombre}:\n\n"
-        f"{propietario.nombre_completo} te asignó la tarea "
-        f"“{tarea.titulo}” de Orbit.\n\n"
+        f"Hola {_primera_palabra(propietario)}:\n\n"
+        f"{invitado.nombre_completo or invitado.correo} aceptó tu invitación "
+        f"y ya tiene acceso al {tipo} “{titulo}”.\n\n"
         f"Abrir el tablero: {enlace}\n\n"
         "— Equipo de Orbit"
     )
     enviar_correo(
-        invitado.correo,
-        f'Nueva tarea asignada: “{tarea.titulo}” · Orbit',
+        propietario.correo,
+        f'{invitado.nombre_completo or invitado.correo} aceptó tu invitación · Orbit',
         html, texto,
     )

@@ -641,6 +641,89 @@
     font-size: 13px;
 }
 
+/* Invitaciones dentro de la campana */
+.notif-seccion-titulo {
+    padding: 10px 12px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-terciario);
+}
+
+.notificacion-item--invitacion { align-items: flex-start; }
+
+.notificacion-item--invitacion:hover { background: var(--color-cian-006); }
+
+.notif-icon--invitacion {
+    background: var(--color-cian-012);
+    color: var(--color-primario);
+}
+
+.notif-fecha {
+    margin-top: 1px;
+    font-size: 10.5px;
+    color: var(--color-terciario);
+    opacity: 0.85;
+}
+
+.notif-acciones {
+    display: flex;
+    gap: 6px;
+    margin-top: 7px;
+}
+
+.notif-btn {
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-family: var(--fuente-principal);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.notif-btn--aceptar {
+    background: var(--color-exito);
+    color: #04241B;
+}
+
+.notif-btn--aceptar:hover { background: #16d6a1; }
+
+.notif-btn--rechazar {
+    background: transparent;
+    border-color: var(--borde-gris);
+    color: var(--color-terciario);
+}
+
+.notif-btn--rechazar:hover {
+    border-color: var(--color-error-03);
+    color: var(--color-error);
+}
+
+.notif-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.panel-notificaciones__enlace {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 4px 6px 6px;
+    padding: 10px;
+    border-top: 1px solid var(--borde-gris);
+    border-radius: 0 0 10px 10px;
+    color: var(--color-primario);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.panel-notificaciones__enlace:hover { background: var(--color-cian-006); }
+
 /* Layout principal con sidebar */
 .layout-principal {
     display: flex;
@@ -1072,50 +1155,193 @@
 
 .btn-share-tarea:hover { color: var(--color-acento, #00E5FF); }
 
-.compartir-card { max-width: 540px; }
+/* ═══════════ COMPARTIR (INVITACIONES) ═══════════ */
+.compartir-card {
+    max-width: 640px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: min(90vh, 780px);
+    overflow: hidden;
+}
+
+.compartir-cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 24px 0;
+}
+
+.compartir-icono {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(167, 139, 250, 0.16));
+    border: 1px solid var(--borde-cian);
+    color: var(--color-primario);
+    font-size: 19px;
+}
+
+.compartir-cabecera__texto {
+    flex: 1;
+    min-width: 0;
+}
+
+.compartir-card .modal-titulo {
+    margin: 1px 0 3px;
+    font-size: 19px;
+}
 
 .compartir-subtitulo {
+    margin: 0;
     color: var(--color-terciario);
     font-size: 13px;
-    margin: -6px 0 18px;
-    word-break: break-word;
+    font-weight: 500;
+    overflow-wrap: anywhere;
 }
 
-.compartir-nuevo {
+.compartir-cerrar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: none;
+    color: var(--color-terciario);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.compartir-cerrar:hover {
+    background: var(--superficie-hover);
+    border-color: var(--borde-sutil);
+    color: var(--color-texto);
+}
+
+.compartir-ayuda {
     display: flex;
-    gap: 8px;
-    margin-bottom: 18px;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 16px 24px 0;
+    padding: 12px 14px;
+    border: 1px solid var(--borde-cian);
+    border-radius: 12px;
+    background: var(--color-cian-006);
 }
 
-.compartir-nuevo input[type="email"] { flex: 1; min-width: 0; }
+.compartir-ayuda > i {
+    color: var(--color-primario);
+    font-size: 16px;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
 
-.compartir-permiso-select { flex-shrink: 0; }
+.compartir-ayuda p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--color-terciario);
+}
+
+.compartir-ayuda strong {
+    color: var(--color-texto);
+    font-weight: 600;
+}
+
+.compartir-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 176px auto;
+    align-items: end;
+    gap: 10px;
+    padding: 16px 24px 18px;
+}
+
+.compartir-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.compartir-campo .etiqueta-form {
+    margin: 0;
+    font-size: 11.5px;
+}
+
+.compartir-campo--correo .input-dark,
+.compartir-permiso-select {
+    height: 40px;
+}
+
+.compartir-permiso-select {
+    width: 100%;
+    font-size: 12.5px;
+}
+
+.compartir-enviar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 18px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.compartir-lista-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 24px;
+    padding: 14px 0 9px;
+    border-top: 1px solid var(--borde-sutil);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.compartir-contador {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--color-terciario);
+    text-align: right;
+}
 
 .compartir-lista {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 280px;
+    max-height: 300px;
     overflow-y: auto;
-    margin-bottom: 20px;
-}
-
-.compartir-vacio {
-    color: var(--color-terciario);
-    font-size: 13px;
-    text-align: center;
-    padding: 14px 0;
     margin: 0;
+    padding: 0 24px 4px;
 }
 
 .compartir-fila {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 10px;
+    border: 1px solid var(--borde-sutil);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--superficie);
+}
+
+.compartir-fila--rechazada { opacity: 0.75; }
+
+.compartir-avatar {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    font-size: 12px;
 }
 
 .compartir-datos {
@@ -1123,53 +1349,197 @@
     min-width: 0;
 }
 
+.compartir-nombre-linea {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
 .compartir-nombre {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--color-texto);
+    overflow-wrap: anywhere;
 }
 
 .compartir-correo {
-    font-size: 12px;
+    margin-top: 2px;
+    font-size: 11.5px;
     color: var(--color-terciario);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.compartir-quitar {
-    width: 30px;
-    height: 30px;
-    display: flex;
+.compartir-estado {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    border-radius: 8px;
-    color: var(--color-terciario);
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s, color 0.2s;
+    gap: 4px;
+    padding: 2px 7px;
+    border: 1px solid transparent;
+    border-radius: var(--radio-pill, 999px);
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.compartir-quitar:hover {
-    background: rgba(248, 113, 113, 0.12);
-    color: #FCA5A5;
+.compartir-estado--pendiente {
+    color: var(--color-advertencia);
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.compartir-estado--aceptada {
+    color: var(--color-exito);
+    background: rgba(0, 196, 140, 0.1);
+    border-color: var(--color-exito-03);
+}
+
+.compartir-estado--rechazada {
+    color: var(--color-error);
+    background: rgba(255, 77, 77, 0.08);
+    border-color: var(--color-error-03);
+}
+
+.compartir-acciones {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.compartir-acciones .compartir-permiso-select {
+    width: 146px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+.compartir-accion {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-terciario);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.compartir-accion:hover {
+    background: var(--superficie-hover);
+    border-color: var(--borde-sutil);
+    color: var(--color-texto);
+}
+
+.compartir-accion--reenviar:hover {
+    color: var(--color-primario);
+    border-color: var(--borde-cian);
+    background: var(--color-cian-008);
+}
+
+.compartir-accion--quitar:hover {
+    color: var(--color-error);
+    border-color: var(--color-error-03);
+    background: rgba(255, 77, 77, 0.08);
+}
+
+.compartir-accion:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.compartir-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin: 0;
+    padding: 26px 16px;
+    text-align: center;
+    color: var(--color-terciario);
+    font-size: 12.5px;
+}
+
+.compartir-vacio i {
+    margin-bottom: 4px;
+    font-size: 24px;
+    opacity: 0.7;
+}
+
+.compartir-vacio p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.compartir-vacio span {
+    font-size: 12px;
+    color: var(--color-terciario);
+}
+
+.compartir-vacio--cargando { padding: 22px 16px; }
+
+.compartir-card .modal-acciones {
+    margin-top: 8px;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--borde-sutil);
+}
+
+[data-tema="claro"] .compartir-fila { background: #FFFFFF; }
+[data-tema="claro"] .compartir-ayuda { background: rgba(8, 145, 178, 0.06); }
+
+@media (max-width: 640px) {
+    .compartir-form {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .compartir-campo--correo,
+    .compartir-enviar {
+        grid-column: 1 / -1;
+    }
+
+    .compartir-enviar { justify-content: center; }
+
+    .compartir-cabecera,
+    .compartir-form,
+    .compartir-lista-cabecera,
+    .compartir-lista,
+    .compartir-card .modal-acciones {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .compartir-ayuda {
+        margin-left: 18px;
+        margin-right: 18px;
+    }
+
+    .compartir-lista-cabecera { margin: 0 18px; }
 }
 
 @media (max-width: 480px) {
-    .compartir-nuevo {
-        flex-direction: column;
+    .compartir-fila {
+        flex-wrap: wrap;
+        align-items: flex-start;
     }
 
-    .compartir-nuevo .btn-primary { width: 100%; }
+    .compartir-acciones {
+        width: 100%;
+        justify-content: flex-end;
+    }
 
-    .compartir-fila { flex-wrap: wrap; }
-
-    .compartir-permiso-select { width: 100%; }
+    .compartir-acciones .compartir-permiso-select {
+        flex: 1;
+        width: auto;
+    }
 }
+
 
 /* ═══════════ TABLA ADMIN ═══════════ */
 .tabla-usuarios {

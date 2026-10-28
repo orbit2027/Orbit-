@@ -707,6 +707,13 @@
         return d.innerHTML;
     }
 
+    // Al aceptar una invitación (campana u otra vista), refrescar los proyectos.
+    document.addEventListener('orbit:invitacion-aceptada', () => {
+        cargarProyectos();
+        cargarActividad();
+        cargarEquipo();
+    });
+
 cargarProyectos();
     inicializarNotificaciones();
 </script>

@@ -136,9 +136,20 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
 
 <script type="module">
-    import { registrar, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
+    import { registrar, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
     import { validarContrasena } from '../js/utilidades.js';
     import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+
+    // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
+    const volver = obtenerDestinoVolver();
+    if (volver) {
+        const enlaceLogin = document.querySelector('.auth__footer .auth__link');
+        if (enlaceLogin) enlaceLogin.href = urlConVolver('iniciar-sesion.html');
+        if (volver.includes('invitaciones.html')) {
+            document.querySelector('.auth__subtitle').textContent =
+                'Crea tu cuenta para aceptar la invitación que recibiste';
+        }
+    }
 
     if (estaAutenticado()) {
         redirigirSegunRol();

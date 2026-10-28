@@ -522,6 +522,12 @@
     // ═══════════ CERRAR SESIÓN ═══════════
     document.getElementById('btn-cerrar-sesion').addEventListener('click', logout);
 
+    // Al aceptar una invitación (campana u otra vista), refrescar el tablero.
+    document.addEventListener('orbit:invitacion-aceptada', () => {
+        cargarTareas();
+        cargarProyectos();
+    });
+
     // Carga inicial
     inicializarNotificaciones();
     cargarTareas();

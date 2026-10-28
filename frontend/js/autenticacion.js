@@ -67,6 +67,27 @@ function resolverRutaVista(nombreArchivo) {
 }
 
 /**
+ * Devuelve el destino al que volver tras iniciar sesión o registrarse.
+ * Solo acepta rutas relativas del mismo origen (evita redirecciones externas).
+ */
+function obtenerDestinoVolver() {
+    const destino = new URLSearchParams(window.location.search).get('volver');
+    if (!destino) return null;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(destino) || destino.startsWith('//')) {
+        return null;
+    }
+    return destino;
+}
+
+/** Añade `?volver=` a un enlace conservando el destino actual. */
+function urlConVolver(ruta) {
+    const destino = obtenerDestinoVolver();
+    if (!destino) return ruta;
+    const separador = ruta.includes('?') ? '&' : '?';
+    return `${ruta}${separador}volver=${encodeURIComponent(destino)}`;
+}
+
+/**
  * Registro de nuevo usuario con auto-login.
  * El backend retorna tokens; se guardan para entrar directo al tablero.
  */
@@ -140,9 +161,17 @@ async function eliminarCuenta(contrasena) {
 }
 
 /**
- * Redirige según el rol: admin → panel admin, usuario → tablero Kanban
+ * Redirige según el rol: admin → panel admin, usuario → tablero Kanban.
+ * Si la URL trae `?volver=...` se respeta ese destino (por ejemplo, una
+ * invitación abierta desde el correo).
  */
 function redirigirSegunRol() {
+    const volver = obtenerDestinoVolver();
+    if (volver) {
+        window.location.href = volver;
+        return;
+    }
+
     const usuario = obtenerUsuario();
     if (!usuario) {
         window.location.href = resolverRutaVista('iniciar-sesion.html');
@@ -166,5 +195,7 @@ export {
     estaAutenticado,
     obtenerToken,
     obtenerUsuario,
-    redirigirSegunRol
+    redirigirSegunRol,
+    obtenerDestinoVolver,
+    urlConVolver
 };

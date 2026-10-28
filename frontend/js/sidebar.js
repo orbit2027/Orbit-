@@ -12,6 +12,7 @@
  */
 import api from './api.js';
 import { obtenerUsuario, logout } from './autenticacion.js';
+import { obtenerInvitacionesPendientes } from './invitaciones.js';
 
 const CLAVE_TEMA = 'orbit_tema';
 const CLAVE_COLAPSADO = 'orbit_sidebar_colapsado';
@@ -46,6 +47,7 @@ const GRUPOS = [
             { etiqueta: 'Mapa mental', icono: 'bi-diagram-3', archivo: 'mapa-mental.html' },
             { etiqueta: 'Estadísticas', icono: 'bi-bar-chart-line', archivo: 'estadisticas.html' },
             { etiqueta: 'Notificaciones', icono: 'bi-bell', accion: 'notificaciones', badge: 'notif' },
+            { etiqueta: 'Invitaciones', icono: 'bi-envelope-paper', archivo: 'invitaciones.html', badge: 'invit' },
         ],
     },
     {
@@ -238,18 +240,27 @@ function aDias(iso) {
 }
 
 async function actualizarBadges(sidebar) {
-    const badge = sidebar.querySelector('[data-badge="notif"]');
-    if (!badge) return;
-    try {
-        const { data } = await api.get('/tareas/');
-        const urgentes = (data || [])
+    const badgeNotif = sidebar.querySelector('[data-badge="notif"]');
+    const badgeInvit = sidebar.querySelector('[data-badge="invit"]');
+
+    const [tareas, invitaciones] = await Promise.allSettled([
+        api.get('/tareas/'),
+        obtenerInvitacionesPendientes()
+    ]);
+
+    if (badgeNotif && tareas.status === 'fulfilled') {
+        const urgentes = (tareas.value.data || [])
             .filter(t => t.estado !== 'completado')
             .map(t => aDias(t.fecha_limite))
             .filter(d => d !== null && d <= 3).length;
-        badge.textContent = urgentes;
-        badge.classList.toggle('visible', urgentes > 0);
-    } catch {
-        // Sin sesión o error de red: el badge permanece oculto.
+        badgeNotif.textContent = urgentes;
+        badgeNotif.classList.toggle('visible', urgentes > 0);
+    }
+
+    if (badgeInvit && invitaciones.status === 'fulfilled') {
+        const total = invitaciones.value.length;
+        badgeInvit.textContent = total;
+        badgeInvit.classList.toggle('visible', total > 0);
     }
 }
 
@@ -353,6 +364,11 @@ function inicializarSidebar() {
     configurarMovil(sidebar);
     actualizarBotonTema();
     actualizarBadges(sidebar);
+
+    // Mantener el contador de invitaciones al día cuando se acepta o rechaza.
+    document.addEventListener('orbit:invitaciones-actualizadas', () => {
+        actualizarBadges(sidebar);
+    });
 }
 
 export { inicializarSidebar, aplicarTema };

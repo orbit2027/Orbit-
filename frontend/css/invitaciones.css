@@ -1,0 +1,410 @@
+/*
+ * invitaciones.css - Página "Invitaciones".
+ * Bandeja de entrada para aceptar o rechazar tareas y proyectos compartidos.
+ */
+
+.invitaciones {
+    max-width: 880px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Encabezado ───────────────────────────────────────────── */
+.invitaciones__intro {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px 28px;
+    border: 1px solid var(--borde-cian);
+    border-radius: var(--radio-tarjeta-lg, 20px);
+    background:
+        radial-gradient(120% 160% at 100% 0%, rgba(167, 139, 250, 0.14), transparent 55%),
+        linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 229, 255, 0.02));
+    position: relative;
+    overflow: hidden;
+}
+
+.invitaciones__intro::after {
+    content: '';
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    right: -70px;
+    bottom: -120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.16), transparent 70%);
+    pointer-events: none;
+}
+
+.invitaciones__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-primario);
+}
+
+.invitaciones__eyebrow i { font-size: 14px; }
+
+.invitaciones__titulo {
+    margin: 10px 0 6px;
+    font-size: 25px;
+    font-weight: 700;
+    color: var(--color-texto);
+    letter-spacing: -0.01em;
+}
+
+.invitaciones__subtitulo {
+    margin: 0;
+    max-width: 52ch;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--color-terciario);
+}
+
+.invitaciones__contador {
+    flex-shrink: 0;
+    align-self: center;
+    padding: 6px 13px;
+    border-radius: var(--radio-pill, 999px);
+    border: 1px solid var(--borde-cian-fuerte);
+    background: var(--color-cian-008);
+    color: var(--color-primario);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ── Avisos ───────────────────────────────────────────────── */
+.invitaciones__aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--borde-sutil);
+    background: var(--superficie);
+    color: var(--color-texto);
+}
+
+.invitaciones__aviso[hidden] { display: none; }
+
+.invitaciones__aviso > i {
+    font-size: 20px;
+    line-height: 1;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.invitaciones__aviso strong {
+    display: block;
+    font-size: 13.5px;
+    margin-bottom: 3px;
+}
+
+.invitaciones__aviso p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--color-terciario);
+}
+
+.invitaciones__aviso--exito {
+    border-color: var(--color-exito-03);
+    background: rgba(0, 196, 140, 0.07);
+}
+.invitaciones__aviso--exito > i { color: var(--color-exito); }
+
+.invitaciones__aviso--info {
+    border-color: var(--borde-cian);
+    background: var(--color-cian-006);
+}
+.invitaciones__aviso--info > i { color: var(--color-primario); }
+
+.invitaciones__aviso--error {
+    border-color: var(--color-error-03);
+    background: rgba(255, 77, 77, 0.06);
+}
+.invitaciones__aviso--error > i { color: var(--color-error); }
+
+.invitaciones__aviso-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    color: var(--color-primario);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.invitaciones__aviso-enlace:hover { text-decoration: underline; }
+
+/* ── Lista de tarjetas ────────────────────────────────────── */
+.invitaciones__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.invitaciones__card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border: 1px solid var(--borde-sutil);
+    border-radius: 16px;
+    background: var(--superficie);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.invitaciones__card:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-cian-025);
+    box-shadow: var(--sombra-panel);
+}
+
+.invitaciones__card--destacada {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px var(--color-cian-012), var(--sombra-panel);
+}
+
+.invitaciones__icono {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 20px;
+}
+
+.invitaciones__icono--tarea {
+    background: var(--color-cian-012);
+    color: var(--color-primario);
+}
+
+.invitaciones__icono--proyecto {
+    background: rgba(167, 139, 250, 0.15);
+    color: var(--color-morado);
+}
+
+.invitaciones__cuerpo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.invitaciones__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.invitaciones__tipo {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-terciario);
+}
+
+.invitaciones__fecha {
+    font-size: 11px;
+    color: var(--color-terciario);
+    opacity: 0.85;
+}
+
+.invitaciones__fecha::before {
+    content: '·';
+    margin-right: 8px;
+}
+
+.invitaciones__titulo-card {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+    color: var(--color-texto);
+    overflow-wrap: anywhere;
+}
+
+.invitaciones__de {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--color-terciario);
+}
+
+.invitaciones__avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+}
+
+.invitaciones__permiso {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    padding: 3px 9px;
+    border-radius: var(--radio-pill, 999px);
+    border: 1px solid var(--borde-cian);
+    background: var(--color-cian-008);
+    color: var(--color-primario);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.invitaciones__acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 132px;
+}
+
+.invitaciones__btn-aceptar,
+.invitaciones__btn-rechazar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+.invitaciones__btn-rechazar:hover {
+    border-color: var(--color-error-03);
+    color: var(--color-error);
+}
+
+/* ── Estados vacíos / carga ───────────────────────────────── */
+.invitaciones__vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 24px;
+    border: 1px dashed var(--borde-sutil);
+    border-radius: 18px;
+    background: var(--superficie);
+    text-align: center;
+}
+
+.invitaciones__vacio-icono {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 4px;
+    border-radius: 50%;
+    border: 1px solid var(--borde-cian);
+    background: var(--color-cian-008);
+    color: var(--color-primario);
+    font-size: 26px;
+}
+
+.invitaciones__vacio h3 {
+    margin: 0;
+    font-size: 17px;
+    color: var(--color-texto);
+}
+
+.invitaciones__vacio p {
+    margin: 0 0 14px;
+    max-width: 46ch;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--color-terciario);
+}
+
+.invitaciones__vacio .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.invitaciones__vacio--error .invitaciones__vacio-icono {
+    border-color: var(--color-error-03);
+    background: rgba(255, 77, 77, 0.08);
+    color: var(--color-error);
+}
+
+.invitaciones__cargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 48px 0;
+    color: var(--color-terciario);
+    font-size: 14px;
+}
+
+/* ── Tema claro ───────────────────────────────────────────── */
+[data-tema="claro"] .invitaciones__intro {
+    background:
+        radial-gradient(120% 160% at 100% 0%, rgba(167, 139, 250, 0.12), transparent 55%),
+        linear-gradient(135deg, rgba(8, 145, 178, 0.08), rgba(8, 145, 178, 0.02));
+}
+
+[data-tema="claro"] .invitaciones__card,
+[data-tema="claro"] .invitaciones__vacio {
+    background: #FFFFFF;
+    border-color: rgba(15, 23, 42, 0.09);
+}
+
+[data-tema="claro"] .invitaciones__card:hover {
+    border-color: rgba(8, 145, 178, 0.35);
+}
+
+[data-tema="claro"] .invitaciones__card--destacada {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12), var(--sombra-panel);
+}
+
+[data-tema="claro"] .invitaciones__icono--proyecto {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7C3AED;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 720px) {
+    .invitaciones__intro {
+        flex-direction: column;
+        padding: 22px;
+    }
+
+    .invitaciones__contador { align-self: flex-start; }
+
+    .invitaciones__card {
+        flex-wrap: wrap;
+        padding: 16px;
+    }
+
+    .invitaciones__cuerpo { min-width: calc(100% - 62px); }
+
+    .invitaciones__acciones {
+        width: 100%;
+        flex-direction: row;
+        min-width: 0;
+    }
+
+    .invitaciones__acciones .btn-primary,
+    .invitaciones__acciones .btn-secondary { flex: 1; }
+}
+
+@media (max-width: 480px) {
+    .invitaciones__titulo { font-size: 21px; }
+    .invitaciones__subtitulo { font-size: 13px; }
+    .invitaciones__icono { width: 40px; height: 40px; font-size: 18px; }
+}

@@ -34,14 +34,12 @@
     <!-- ═══════════ ZONA DEL MAPA ═══════════ -->
     <div class="zona-contenido">
 
-        <!-- Topbar: breadcrumb | zoom | acciones -->
+        <!-- Topbar: título del mapa | zoom | acciones -->
         <header class="topbar">
-            <nav class="topbar-crumbs">
-                <input class="topbar-crumb topbar-crumb--editable" id="crumb-proyecto"
-                       value="Proyecto Alpha" aria-label="Proyecto" spellcheck="false" maxlength="40">
-                <i class="bi bi-chevron-right topbar-crumbs__sep"></i>
+            <nav class="topbar-crumbs" aria-label="Mapa mental">
+                <span class="topbar-mapa-icono" aria-hidden="true"><i class="bi bi-diagram-3"></i></span>
                 <input class="topbar-crumb topbar-crumb--actual topbar-crumb--editable" id="crumb-doc"
-                       value="Arquitectura Core" aria-label="Documento" spellcheck="false" maxlength="40">
+                       value="Mapa mental" aria-label="Nombre del mapa" spellcheck="false" maxlength="40">
             </nav>
 
             <div class="topbar-zoom">
@@ -81,6 +79,22 @@
         <div class="mind-map__canvas" id="lienzo-mapa">
             <div id="cy-mapa"></div>
 
+            <!-- Aviso de conexión con el servidor -->
+            <div class="mapa-aviso" id="aviso-mapa" role="alert" hidden>
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                <div class="mapa-aviso__texto">
+                    <strong id="aviso-mapa-titulo">No se pudo cargar el mapa</strong>
+                    <span id="aviso-mapa-detalle"></span>
+                </div>
+                <button type="button" class="mapa-aviso__accion" id="aviso-mapa-reintentar">
+                    Reintentar
+                </button>
+                <button type="button" class="mapa-aviso__cerrar" id="aviso-mapa-cerrar"
+                        title="Ocultar aviso" aria-label="Ocultar aviso">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
             <!-- Barra lateral flotante -->
             <div class="mapa-rail" id="mapa-rail">
                 <button class="mapa-rail__boton activo" id="herr-seleccion" title="Selección" aria-label="Seleccionar ideas" aria-pressed="true"><i class="bi bi-cursor"></i></button>
@@ -114,7 +128,13 @@
     </button>
     <div class="panel-propiedades" id="panel-propiedades">
         <header class="panel-propiedades__cabecera">
-            <h4 id="prop-titulo-panel">Propiedades</h4>
+            <div class="panel-propiedades__titulo">
+                <span class="panel-propiedades__icono" aria-hidden="true"><i class="bi bi-sliders2"></i></span>
+                <div class="panel-propiedades__titulo-texto">
+                    <h4 id="prop-titulo-panel">Propiedades</h4>
+                    <span class="panel-propiedades__subtitulo" id="prop-subtitulo">Sin selección</span>
+                </div>
+            </div>
             <button class="panel-propiedades__cerrar" id="prop-cerrar" title="Ocultar panel" aria-label="Ocultar panel">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -136,31 +156,52 @@
                     <div class="panel-propiedades__multi-icono"><i class="bi bi-collection"></i></div>
                     <p id="prop-multi-texto">2 ideas seleccionadas</p>
                     <p class="panel-propiedades__ayuda">
-                        Selecciona varias ideas arrastrando sobre el lienzo o con Shift.
+                        Selecciona varias ideas con Shift + clic o con Shift + arrastrar un recuadro.
                     </p>
                 </div>
 
                 <div id="panel-campos-individuales">
 
                     <section class="prop-seccion">
-                        <label class="prop-etiqueta" for="prop-titulo-input">Título del nodo</label>
+                        <label class="prop-etiqueta" for="prop-titulo-input">
+                            <i class="bi bi-type"></i> Título del nodo
+                        </label>
                         <input class="input-dark prop-input" id="prop-titulo-input" maxlength="200"
                                placeholder="Título de la idea">
                     </section>
 
                     <section class="prop-seccion">
-                        <label class="prop-etiqueta" for="prop-descripcion-input">Descripción</label>
+                        <label class="prop-etiqueta" for="prop-descripcion-input">
+                            <i class="bi bi-text-paragraph"></i> Descripción
+                        </label>
                         <textarea class="input-dark prop-texto" id="prop-descripcion-input" rows="3"
                                   placeholder="Describe la idea..."></textarea>
                     </section>
 
                     <section class="prop-seccion">
-                        <span class="prop-etiqueta">Estilo de nodo</span>
+                        <span class="prop-etiqueta"><i class="bi bi-palette"></i> Estilo de nodo</span>
                         <div class="prop-estilos" id="prop-estilos"></div>
                     </section>
 
+                    <section class="prop-seccion prop-seccion--conexiones" id="prop-conexiones" style="display:none;">
+                        <span class="prop-etiqueta"><i class="bi bi-share"></i> Ideas conectadas</span>
+                        <div class="prop-conexiones">
+                            <p class="prop-conexiones__texto" id="prop-conexiones-texto">—</p>
+                            <button type="button" class="prop-conexiones__btn" id="prop-seleccionar-conectadas">
+                                <i class="bi bi-check2-square"></i> Seleccionar
+                            </button>
+                        </div>
+                        <p class="prop-conexiones__ayuda">
+                            Al convertir esta idea podrás incluir también las ideas de su grupo.
+                        </p>
+                    </section>
+
                     <section class="prop-seccion prop-seccion--datos">
-                        <span class="prop-etiqueta">Datos adicionales</span>
+                        <span class="prop-etiqueta"><i class="bi bi-info-circle"></i> Datos adicionales</span>
+                        <div class="prop-dato">
+                            <span class="prop-dato__clave">Estado</span>
+                            <span class="prop-dato__valor prop-dato__estado" id="prop-estado">Idea</span>
+                        </div>
                         <div class="prop-dato">
                             <span class="prop-dato__clave">Creado</span>
                             <span class="prop-dato__valor" id="prop-creado">—</span>
@@ -180,6 +221,9 @@
                             <i class="bi bi-check2-square"></i><span>Convertir en tarea</span>
                         </button>
                     </div>
+                    <p class="prop-acciones__ayuda" id="prop-convertir-ayuda">
+                        Las ideas conectadas se incluyen automáticamente y puedes elegir cuáles convertir.
+                    </p>
                     <div class="prop-acciones__fila">
                         <button class="btn-danger-soft" id="prop-eliminar">
                             <i class="bi bi-trash"></i><span>Eliminar nodo</span>
@@ -201,40 +245,68 @@
     <button class="menu-opcion" data-accion="eliminar"><i class="bi bi-trash"></i> Eliminar idea</button>
 </div>
 
-<!-- Modal: Convertir ideas en tareas  -->
-<div class="modal-overlay" id="modal-convertir">
-    <div class="glass-card-strong modal-card">
-        <h3 class="modal-titulo" id="convertir-modal-titulo">Convertir idea en tarea</h3>
-        <p>
-            Se crearán tareas a partir de:
-            <strong id="convertir-titulo-preview">""</strong>
+<!-- Modal: Convertir ideas en tareas -->
+<div class="modal-overlay modal-convertir" id="modal-convertir">
+    <div class="glass-card-strong modal-card modal-convertir__card" role="dialog" aria-modal="true"
+         aria-labelledby="convertir-modal-titulo">
+        <header class="modal-convertir__cabecera">
+            <span class="modal-convertir__icono" aria-hidden="true"><i class="bi bi-check2-square"></i></span>
+            <div class="modal-convertir__cabecera-texto">
+                <h3 class="modal-titulo" id="convertir-modal-titulo">Convertir idea en tarea</h3>
+                <p class="modal-convertir__subtitulo" id="convertir-modal-subtitulo">
+                    Elige las ideas que quieres convertir.
+                </p>
+            </div>
+            <button type="button" class="modal-convertir__cerrar" id="btn-cerrar-convertir"
+                    title="Cerrar" aria-label="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        <p class="modal-convertir__intro">
+            Se crearán tareas en el tablero Kanban a partir de las ideas marcadas.
+            Las ideas conectadas vienen seleccionadas por defecto.
         </p>
 
-        <div>
+        <section class="convertir-seleccion" aria-label="Ideas a convertir">
+            <div class="convertir-seleccion__cabecera">
+                <span class="convertir-seleccion__contador" id="convertir-contador">0 ideas seleccionadas</span>
+                <button type="button" class="convertir-seleccion__toggle" id="convertir-toggle-todas">
+                    Quitar selección
+                </button>
+            </div>
+            <ul class="convertir-seleccion__lista" id="convertir-lista"></ul>
+        </section>
+
+        <div class="modal-convertir__campos">
+            <div class="modal-convertir__campo">
+                <label class="etiqueta-form" for="convertir-etiqueta">Etiqueta</label>
+                <select class="input-dark" id="convertir-etiqueta">
+                    <option value="Urgente">Urgente</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Trabajo" selected>Trabajo</option>
+                    <option value="Estudio">Estudio</option>
+                    <option value="Hogar">Hogar</option>
+                </select>
+            </div>
+
+            <div class="modal-convertir__campo">
+                <label class="etiqueta-form" for="convertir-fecha">Fecha límite</label>
+                <input class="input-dark" type="date" id="convertir-fecha">
+            </div>
+        </div>
+
+        <div class="modal-convertir__campo modal-convertir__campo--ancho">
             <label class="etiqueta-form" for="convertir-descripcion">Descripción (opcional)</label>
             <textarea class="input-dark" id="convertir-descripcion" rows="3"
-                      placeholder="Añade detalles..."></textarea>
+                      placeholder="Añade detalles para las tareas..."></textarea>
         </div>
 
-        <div>
-            <label class="etiqueta-form" for="convertir-etiqueta">Etiqueta</label>
-            <select class="input-dark" id="convertir-etiqueta">
-                <option value="Urgente">Urgente</option>
-                <option value="Personal">Personal</option>
-                <option value="Trabajo" selected>Trabajo</option>
-                <option value="Estudio">Estudio</option>
-                <option value="Hogar">Hogar</option>
-            </select>
-        </div>
-
-        <div>
-            <label class="etiqueta-form" for="convertir-fecha">Fecha límite</label>
-            <input class="input-dark" type="date" id="convertir-fecha">
-        </div>
-
-        <div class="modal-acciones">
+        <div class="modal-acciones modal-convertir__acciones">
             <button class="btn-secondary" id="btn-cancelar-convertir">Cancelar</button>
-            <button class="btn-primary" id="btn-confirmar-convertir">Crear tarea</button>
+            <button class="btn-primary" id="btn-confirmar-convertir">
+                <i class="bi bi-check2-square"></i> Crear tarea
+            </button>
         </div>
     </div>
 </div>
@@ -244,7 +316,7 @@
 <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
 
 <script type="module">
-    import api from '../js/api.js';
+    import api, { API_BASE_URL } from '../js/api.js';
     import { obtenerUsuario, logout } from '../js/autenticacion.js';
     import { inicializarNotificaciones } from '../js/notificaciones.js';
     import { confirmar, alertar, preguntarTexto } from '../js/dialogos.js';
@@ -286,7 +358,7 @@
     let nodoSeleccionadoId = null;
     let modoConectar = false;
     let nodoOrigenConexion = null;
-    let nodosParaConvertir = [];
+    let nodosEnModal = [];
     let nodoMenuActual = null;
 
     const menuContextual = document.getElementById('menu-contextual');
@@ -414,6 +486,53 @@
             nodos.length ? 'none' : 'flex';
     }
 
+    // ═══════════ DIAGNÓSTICO DE ERRORES DE API ═══════════
+    /** Convierte un error de Axios en un mensaje claro para el usuario. */
+    function detalleErrorApi(error) {
+        if (!error) return 'Ocurrió un error inesperado.';
+        if (!error.response) {
+            if (error.code === 'ECONNABORTED') {
+                return 'La solicitud tardó demasiado. El servidor no respondió a tiempo.';
+            }
+            const destino = error.config?.baseURL || API_BASE_URL || 'la API';
+            return `No se pudo conectar con el servidor (${destino}). `
+                + 'Revisa que el backend esté encendido y que la dirección sea correcta.';
+        }
+        const estado = error.response.status;
+        const datos = error.response.data;
+        let detalle = '';
+        if (typeof datos === 'string') {
+            detalle = datos.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
+        } else if (datos && typeof datos === 'object') {
+            detalle = Object.entries(datos).map(([campo, valor]) => {
+                const texto = Array.isArray(valor) ? valor.join(' ') : String(valor);
+                return (campo === 'detail' || campo === 'mensaje' || campo === 'error')
+                    ? texto
+                    : `${campo}: ${texto}`;
+            }).join(' · ').slice(0, 220);
+        }
+        const pistas = {
+            400: 'Los datos enviados no son válidos.',
+            401: 'Tu sesión expiró. Vuelve a iniciar sesión.',
+            403: 'No tienes permiso para realizar esta acción.',
+            404: 'La dirección de la API no existe. Revisa que el frontend y el backend estén en el mismo servidor o en los puertos correctos.',
+            500: 'El servidor tuvo un error interno.'
+        };
+        const base = pistas[estado] || `El servidor respondió con un error ${estado}.`;
+        return detalle ? `${base} (HTTP ${estado}) · ${detalle}` : `${base} (HTTP ${estado})`;
+    }
+
+    function mostrarAvisoMapa(titulo, detalle) {
+        const aviso = document.getElementById('aviso-mapa');
+        document.getElementById('aviso-mapa-titulo').textContent = titulo;
+        document.getElementById('aviso-mapa-detalle').textContent = detalle;
+        aviso.hidden = false;
+    }
+
+    function ocultarAvisoMapa() {
+        document.getElementById('aviso-mapa').hidden = true;
+    }
+
     async function cargarMapa() {
         try {
             const respuesta = await api.get('/mapa-mental/');
@@ -438,8 +557,13 @@
             cy.add(elementos);
             if (nodos.length) cy.fit(undefined, 60);
             actualizarEstadoVacio();
+            ocultarAvisoMapa();
         } catch (error) {
             console.error('Error al cargar el mapa:', error);
+            mostrarAvisoMapa(
+                'No se pudo cargar tu mapa',
+                detalleErrorApi(error)
+            );
         }
     }
 
@@ -449,12 +573,32 @@
         return cy.$(':selected').nodes().map(n => n.id());
     }
 
-    // Selección / modo conectar al tocar un nodo
-    // (Shift+clic agrega a la selección y arrastrar sobre el fondo selecciona en bloque,
-    //  gracias a boxSelectionEnabled + selectionType 'single')
+    /** Devuelve el grupo completo de ideas unidas por conexiones (incluye las dadas). */
+    function ideasConectadas(ids) {
+        const incluidos = new Set(ids);
+        const cola = [...ids];
+        while (cola.length) {
+            const actual = cola.shift();
+            conexiones.forEach(c => {
+                const otro = c.nodo_origen === actual
+                    ? c.nodo_destino
+                    : (c.nodo_destino === actual ? c.nodo_origen : null);
+                if (otro && !incluidos.has(otro)) {
+                    incluidos.add(otro);
+                    cola.push(otro);
+                }
+            });
+        }
+        return [...incluidos];
+    }
+
+    // Selección / modo conectar al tocar un nodo.
+    // Cytoscape ya permite sumar o quitar nodos con Shift/Ctrl/Cmd + clic
+    // (y arrastrar sobre el fondo selecciona en bloque) sin configuración extra.
     cy.on('tap', 'node', (evt) => {
         if (modoConectar) {
             manejarClicConexion(evt.target.id());
+            return;
         }
     });
 
@@ -579,7 +723,10 @@
             });
         } catch (error) {
             console.error('Error al crear conexión:', error);
-            alertar('No se pudo crear la conexión. Inténtalo de nuevo.');
+            alertar({
+                titulo: 'No se pudo conectar',
+                mensaje: detalleErrorApi(error)
+            });
         }
 
         nodoOrigenConexion = null;
@@ -623,7 +770,10 @@
             document.getElementById('panel-propiedades').classList.remove('colapsado');
         } catch (error) {
             console.error('Error al crear nodo:', error);
-            alertar('No se pudo agregar la idea. Inténtalo de nuevo.');
+            alertar({
+                titulo: 'No se pudo agregar la idea',
+                mensaje: detalleErrorApi(error)
+            });
         }
     }
 
@@ -675,6 +825,11 @@
     document.getElementById('herr-agregar').addEventListener('click', agregarNodo);
     document.getElementById('btn-agregar-idea').addEventListener('click', agregarNodo);
     document.getElementById('btn-primera-idea').addEventListener('click', agregarNodo);
+    document.getElementById('aviso-mapa-cerrar').addEventListener('click', ocultarAvisoMapa);
+    document.getElementById('aviso-mapa-reintentar').addEventListener('click', () => {
+        ocultarAvisoMapa();
+        cargarMapa();
+    });
     document.getElementById('herr-eliminar').addEventListener('click', () => {
         const ids = idsSeleccionados();
         if (ids.length) eliminarNodos(ids);
@@ -776,28 +931,20 @@
         return ESTILOS.find(e => e.valor === valor) || ESTILOS[0];
     }
 
-    // ═══════════ TÍTULO EDITABLE DEL MAPA (breadcrumb) ═══════════
-    const crumbProyecto = document.getElementById('crumb-proyecto');
+    // ═══════════ TÍTULO EDITABLE DEL MAPA ═══════════
     const crumbDoc = document.getElementById('crumb-doc');
-    const CLAVE_CRUMBS = 'orbit_mapa_crumbs';
-    const crumbsGuardados = JSON.parse(localStorage.getItem(CLAVE_CRUMBS) || 'null');
-    if (crumbsGuardados) {
-        crumbProyecto.value = crumbsGuardados.proyecto || crumbProyecto.value;
-        crumbDoc.value = crumbsGuardados.doc || crumbDoc.value;
+    const CLAVE_TITULO_MAPA = 'orbit_mapa_titulo';
+    const tituloGuardado = localStorage.getItem(CLAVE_TITULO_MAPA);
+    if (tituloGuardado) crumbDoc.value = tituloGuardado;
+
+    function guardarTituloMapa() {
+        crumbDoc.value = crumbDoc.value.trim() || 'Mapa mental';
+        localStorage.setItem(CLAVE_TITULO_MAPA, crumbDoc.value);
     }
-    function guardarCrumbs() {
-        crumbProyecto.value = crumbProyecto.value.trim() || 'Proyecto Alpha';
-        crumbDoc.value = crumbDoc.value.trim() || 'Arquitectura Core';
-        localStorage.setItem(CLAVE_CRUMBS, JSON.stringify({
-            proyecto: crumbProyecto.value,
-            doc: crumbDoc.value
-        }));
-    }
-    [crumbProyecto, crumbDoc].forEach(crumb => {
-        crumb.addEventListener('change', guardarCrumbs);
-        crumb.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') crumb.blur();
-        });
+
+    crumbDoc.addEventListener('change', guardarTituloMapa);
+    crumbDoc.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') crumbDoc.blur();
     });
 
     // ═══════════ SELECTOR DE ZOOM (cápsula) ═══════════
@@ -826,7 +973,10 @@
     // ═══════════ HERRAMIENTAS DEL RAIL ═══════════
     document.getElementById('herr-texto').addEventListener('click', () => {
         if (!nodoSeleccionadoId) {
-            alertar('Selecciona una idea para editar su texto.');
+            alertar({
+                titulo: 'Selecciona una idea',
+                mensaje: 'Selecciona una idea para editar su texto.'
+            });
             return;
         }
         document.getElementById('panel-propiedades').classList.remove('colapsado');
@@ -864,7 +1014,10 @@
             }
             btn.addEventListener('click', () => {
                 if (!nodoSeleccionadoId) {
-                    alertar('Selecciona una idea para cambiar su estilo.');
+                    alertar({
+                        titulo: 'Selecciona una idea',
+                        mensaje: 'Selecciona una idea para cambiar su estilo.'
+                    });
                     return;
                 }
                 actualizarNodo(nodoSeleccionadoId, {
@@ -898,6 +1051,10 @@
             (usuario ? usuario.nombre_completo : '');
         document.getElementById('prop-asignado').textContent = asignado || '—';
 
+        const estado = document.getElementById('prop-estado');
+        estado.textContent = nodo.convertido_en_tarea ? 'En tarea' : 'Idea';
+        estado.classList.toggle('convertida', !!nodo.convertido_en_tarea);
+
         document.querySelectorAll('#prop-estilos .prop-estilo').forEach(btn =>
             btn.classList.toggle('activo', btn.dataset.estilo === (nodo.estilo || ESTILO_DEFECTO)));
 
@@ -912,18 +1069,28 @@
         const panel = document.getElementById('panel-propiedades');
         const seleccionados = cy.$(':selected').nodes();
         const tituloPanel = document.getElementById('prop-titulo-panel');
+        const subtitulo = document.getElementById('prop-subtitulo');
         const vacio = document.getElementById('prop-vacio');
         const edicion = document.getElementById('prop-edicion');
         const multiInfo = document.getElementById('panel-multi-info');
         const camposIndividuales = document.getElementById('panel-campos-individuales');
         const btnConvertir = document.getElementById('prop-convertir');
         const btnEliminar = document.getElementById('prop-eliminar');
+        const conexionesBox = document.getElementById('prop-conexiones');
+        const conexionesTexto = document.getElementById('prop-conexiones-texto');
+        const ayudaConvertir = document.getElementById('prop-convertir-ayuda');
 
         if (!seleccionados.length) {
             tituloPanel.textContent = 'Propiedades';
+            subtitulo.textContent = 'Sin selección';
             vacio.style.display = 'flex';
             edicion.style.display = 'none';
+            conexionesBox.style.display = 'none';
             nodoSeleccionadoId = null;
+            btnConvertir.disabled = false;
+            btnConvertir.innerHTML = '<i class="bi bi-check2-square"></i><span>Convertir en tarea</span>';
+            ayudaConvertir.textContent =
+                'Las ideas conectadas se incluyen automáticamente y puedes elegir cuáles convertir.';
             return;
         }
 
@@ -938,11 +1105,16 @@
         }
 
         if (seleccionados.length > 1) {
-            const pendientes = seleccionados
-                .map(n => nodoData(n.id()))
+            const ids = seleccionados.map(n => n.id());
+            const pendientes = ids
+                .map(nodoData)
                 .filter(n => n && !n.convertido_en_tarea).length;
+            const extra = ideasConectadas(ids).length - ids.length;
+
+            subtitulo.textContent = `${seleccionados.length} ideas seleccionadas`;
             multiInfo.style.display = 'flex';
             camposIndividuales.style.display = 'none';
+            conexionesBox.style.display = 'none';
             document.getElementById('prop-multi-texto').textContent =
                 `${seleccionados.length} ideas seleccionadas` +
                 (pendientes ? ` · ${pendientes} sin convertir` : '');
@@ -951,6 +1123,9 @@
             btnConvertir.disabled = pendientes === 0;
             btnEliminar.innerHTML =
                 `<i class="bi bi-trash"></i><span>Eliminar ${seleccionados.length}</span>`;
+            ayudaConvertir.textContent = extra > 0
+                ? `También se incluirán ${extra} idea(s) conectada(s); podrás elegir cuáles.`
+                : 'Podrás elegir qué ideas convertir en el siguiente paso.';
             return;
         }
 
@@ -962,14 +1137,57 @@
         }
 
         nodoSeleccionadoId = nodo.id;
+        subtitulo.textContent = nodo.convertido_en_tarea ? 'Idea convertida en tarea' : 'Idea seleccionada';
         multiInfo.style.display = 'none';
         camposIndividuales.style.display = 'flex';
-        btnConvertir.disabled = false;
-        btnConvertir.innerHTML = '<i class="bi bi-check2-square"></i><span>Convertir en tarea</span>';
         btnEliminar.innerHTML = '<i class="bi bi-trash"></i><span>Eliminar nodo</span>';
+
+        const grupo = ideasConectadas([nodo.id]).filter(id => id !== nodo.id);
+        const grupoPendiente = grupo
+            .map(nodoData)
+            .filter(n => n && !n.convertido_en_tarea);
+
+        if (grupo.length) {
+            conexionesBox.style.display = 'flex';
+            conexionesTexto.textContent = grupo.length === 1
+                ? '1 idea conectada en su grupo'
+                : `${grupo.length} ideas conectadas en su grupo`;
+        } else {
+            conexionesBox.style.display = 'none';
+        }
+
+        btnConvertir.disabled = !!nodo.convertido_en_tarea;
+
+        if (nodo.convertido_en_tarea) {
+            btnConvertir.innerHTML =
+                '<i class="bi bi-check2-circle"></i><span>Ya convertida en tarea</span>';
+        } else if (grupoPendiente.length) {
+            btnConvertir.innerHTML =
+                `<i class="bi bi-check2-square"></i><span>Convertir idea + ${grupoPendiente.length} conectada(s)</span>`;
+        } else {
+            btnConvertir.innerHTML =
+                '<i class="bi bi-check2-square"></i><span>Convertir en tarea</span>';
+        }
+
+        ayudaConvertir.textContent = nodo.convertido_en_tarea
+            ? 'Esta idea ya generó una tarea en el tablero Kanban.'
+            : (grupoPendiente.length
+                ? 'Las ideas conectadas se incluyen y puedes desmarcarlas.'
+                : 'La idea se enviará al tablero Kanban.');
 
         actualizarCamposPanel(nodo);
     }
+
+    document.getElementById('prop-seleccionar-conectadas').addEventListener('click', () => {
+        if (!nodoSeleccionadoId) return;
+        const grupo = ideasConectadas([nodoSeleccionadoId]);
+        cy.batch(() => {
+            grupo.forEach(id => {
+                const elemento = cy.getElementById(id);
+                if (elemento.nonempty()) elemento.select();
+            });
+        });
+    });
 
     document.getElementById('prop-titulo-input').addEventListener('change', (e) => {
         const valor = e.target.value.trim();
@@ -1004,12 +1222,104 @@
     });
 
     // ═══════════ CONVERTIR EN TAREA LOS NODOS ═══════════
-    function abrirModalConvertir(ids) {
-        const pendientes = ids
-            .map(id => nodoData(id))
-            .filter(nodo => nodo && !nodo.convertido_en_tarea);
+    // Regla del producto: al convertir una idea se propone también todo su grupo
+    // de ideas conectadas (marcadas por defecto) y el usuario decide cuáles convertir.
 
-        if (!pendientes.length) {
+    function estadoModalConvertir() {
+        const seleccionables = nodosEnModal.filter(item => !item.nodo.convertido_en_tarea);
+        const marcadas = seleccionables.filter(item => item.seleccionada);
+        return { seleccionables, marcadas };
+    }
+
+    function actualizarResumenConvertir() {
+        const { seleccionables, marcadas } = estadoModalConvertir();
+        const contador = document.getElementById('convertir-contador');
+        contador.textContent = marcadas.length === 1
+            ? '1 idea seleccionada'
+            : `${marcadas.length} de ${seleccionables.length} ideas seleccionadas`;
+
+        const confirmar = document.getElementById('btn-confirmar-convertir');
+        confirmar.disabled = marcadas.length === 0;
+        confirmar.innerHTML = marcadas.length === 1
+            ? '<i class="bi bi-check2-square"></i> Crear tarea'
+            : `<i class="bi bi-check2-square"></i> Crear ${marcadas.length} tareas`;
+
+        const toggle = document.getElementById('convertir-toggle-todas');
+        const todas = seleccionables.length > 0 && marcadas.length === seleccionables.length;
+        toggle.textContent = todas ? 'Quitar selección' : 'Seleccionar todo';
+        toggle.disabled = seleccionables.length === 0;
+    }
+
+    function renderListaConvertir() {
+        const lista = document.getElementById('convertir-lista');
+        lista.innerHTML = '';
+
+        nodosEnModal.forEach(item => {
+            const nodo = item.nodo;
+            const fila = document.createElement('li');
+            fila.className = 'convertir-item' +
+                (nodo.convertido_en_tarea ? ' convertir-item--hecha' : '');
+
+            const etiqueta = document.createElement('label');
+            etiqueta.className = 'convertir-item__label';
+
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.className = 'convertir-item__check';
+            check.checked = item.seleccionada && !nodo.convertido_en_tarea;
+            check.disabled = !!nodo.convertido_en_tarea;
+            check.addEventListener('change', () => {
+                item.seleccionada = check.checked;
+                actualizarResumenConvertir();
+            });
+
+            const marca = document.createElement('span');
+            marca.className = 'convertir-item__marca';
+            marca.innerHTML = '<i class="bi bi-check-lg"></i>';
+
+            const texto = document.createElement('span');
+            texto.className = 'convertir-item__texto';
+
+            const titulo = document.createElement('span');
+            titulo.className = 'convertir-item__titulo';
+            titulo.textContent = nodo.texto;
+
+            const meta = document.createElement('span');
+            meta.className = 'convertir-item__meta';
+            if (nodo.convertido_en_tarea) meta.textContent = 'Ya convertida en tarea';
+            else if (item.origen === 'conectada') meta.textContent = 'Idea conectada';
+            else meta.textContent = 'Seleccionada';
+
+            texto.append(titulo, meta);
+            etiqueta.append(check, marca, texto);
+            fila.append(etiqueta);
+            lista.append(fila);
+        });
+
+        actualizarResumenConvertir();
+    }
+
+    function abrirModalConvertir(ids) {
+        if (!ids.length) return;
+
+        const base = new Set(ids);
+        const grupo = ideasConectadas(ids)
+            .map(id => nodoData(id))
+            .filter(Boolean)
+            .map(nodo => ({
+                nodo,
+                origen: base.has(nodo.id) ? 'seleccion' : 'conectada',
+                seleccionada: !nodo.convertido_en_tarea
+            }))
+            .sort((a, b) => {
+                const peso = item => item.nodo.convertido_en_tarea
+                    ? 2
+                    : (item.origen === 'conectada' ? 1 : 0);
+                return peso(a) - peso(b);
+            });
+
+        const convertibles = grupo.filter(item => !item.nodo.convertido_en_tarea);
+        if (!convertibles.length) {
             alertar({
                 titulo: 'Ya convertidas',
                 mensaje: ids.length === 1
@@ -1019,36 +1329,76 @@
             return;
         }
 
-        nodosParaConvertir = pendientes;
-        const tituloModal = document.getElementById('convertir-modal-titulo');
-        const preview = document.getElementById('convertir-titulo-preview');
+        nodosEnModal = grupo;
 
-        if (pendientes.length === 1) {
-            tituloModal.textContent = 'Convertir idea en tarea';
-            preview.textContent = `"${pendientes[0].texto}"`;
+        const titulo = document.getElementById('convertir-modal-titulo');
+        const subtitulo = document.getElementById('convertir-modal-subtitulo');
+        const conectadas = grupo.filter(item => item.origen === 'conectada').length;
+
+        if (ids.length === 1) {
+            titulo.textContent = 'Convertir idea en tarea';
+            subtitulo.textContent = conectadas
+                ? `Incluye ${conectadas} idea(s) conectada(s): elige cuáles convertir.`
+                : 'Elige qué ideas quieres convertir.';
         } else {
-            tituloModal.textContent = 'Convertir ideas en tareas';
-            const nombres = pendientes.slice(0, 3).map(n => `"${n.texto}"`).join(', ');
-            const extra = pendientes.length > 3 ? ` y ${pendientes.length - 3} más` : '';
-            preview.textContent = `${pendientes.length} ideas: ${nombres}${extra}`;
+            titulo.textContent = 'Convertir ideas en tareas';
+            subtitulo.textContent = conectadas
+                ? `${ids.length} ideas seleccionadas + ${conectadas} conectada(s) disponible(s).`
+                : `${ids.length} ideas seleccionadas. Elige cuáles convertir.`;
         }
 
         document.getElementById('convertir-descripcion').value = '';
         document.getElementById('convertir-etiqueta').value = 'Trabajo';
         document.getElementById('convertir-fecha').value = '';
         document.getElementById('modal-convertir').style.display = 'flex';
+
+        renderListaConvertir();
     }
 
-    document.getElementById('btn-cancelar-convertir').addEventListener('click', () => {
+    function cerrarModalConvertir() {
         document.getElementById('modal-convertir').style.display = 'none';
+        nodosEnModal = [];
+    }
+
+    document.getElementById('convertir-toggle-todas').addEventListener('click', () => {
+        const { seleccionables, marcadas } = estadoModalConvertir();
+        if (!seleccionables.length) return;
+        const todas = marcadas.length === seleccionables.length;
+        seleccionables.forEach(item => { item.seleccionada = !todas; });
+        renderListaConvertir();
+    });
+
+    document.getElementById('btn-cerrar-convertir').addEventListener('click', cerrarModalConvertir);
+    document.getElementById('btn-cancelar-convertir').addEventListener('click', cerrarModalConvertir);
+    document.getElementById('modal-convertir').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-convertir') cerrarModalConvertir();
+    });
+    document.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('modal-convertir');
+        if (e.key === 'Escape' && modal.style.display === 'flex') cerrarModalConvertir();
     });
 
     document.getElementById('btn-confirmar-convertir').addEventListener('click', async () => {
-        if (!nodosParaConvertir.length) return;
+        const { marcadas } = estadoModalConvertir();
+        if (!marcadas.length) return;
+
+        if (marcadas.length > 100) {
+            alertar({
+                titulo: 'Demasiadas ideas',
+                mensaje: 'No puedes convertir más de 100 ideas a la vez.'
+            });
+            return;
+        }
+
         const etiqueta = document.getElementById('convertir-etiqueta').value;
         const descripcion = document.getElementById('convertir-descripcion').value.trim();
         const fecha = document.getElementById('convertir-fecha').value;
-        const ids = nodosParaConvertir.map(n => n.id);
+        const ids = marcadas.map(item => item.nodo.id);
+        const boton = document.getElementById('btn-confirmar-convertir');
+        const textoBoton = boton.innerHTML;
+
+        boton.disabled = true;
+        boton.innerHTML = '<i class="bi bi-hourglass-split"></i> Creando...';
 
         try {
             let idsConvertidos = [];
@@ -1079,11 +1429,23 @@
                 cy.getElementById(id).addClass('convertido');
             });
 
-            document.getElementById('modal-convertir').style.display = 'none';
-            nodosParaConvertir = [];
+            cerrarModalConvertir();
             actualizarPanelPropiedades();
+
+            alertar({
+                titulo: idsConvertidos.length === 1 ? 'Tarea creada' : 'Tareas creadas',
+                mensaje: idsConvertidos.length === 1
+                    ? 'La idea ya aparece en tu tablero Kanban.'
+                    : `${idsConvertidos.length} ideas ya aparecen en tu tablero Kanban.`
+            });
         } catch (error) {
             console.error('Error al convertir:', error);
+            boton.disabled = false;
+            boton.innerHTML = textoBoton;
+            alertar({
+                titulo: 'No se pudo convertir',
+                mensaje: 'No se pudieron crear las tareas. Inténtalo de nuevo.'
+            });
         }
     });
 

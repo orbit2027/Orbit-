@@ -15,6 +15,10 @@ env/
 *.sqlite3
 *.log
 
+# Vercel
+.vercel/
+backend/static/
+
 # IDE and OS
 .vscode/
 .idea/

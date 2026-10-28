@@ -104,8 +104,19 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
 
 <script type="module">
-    import { iniciarSesion, estaAutenticado, redirigirSegunRol } from '../js/autenticacion.js';
+    import { iniciarSesion, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
     import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+
+    // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
+    const volver = obtenerDestinoVolver();
+    if (volver) {
+        const enlaceRegistro = document.querySelector('.auth__footer .auth__link');
+        if (enlaceRegistro) enlaceRegistro.href = urlConVolver('registrarse.html');
+        if (volver.includes('invitaciones.html')) {
+            document.querySelector('.auth__subtitle').textContent =
+                'Inicia sesión para responder la invitación que recibiste';
+        }
+    }
 
     // Si ya hay sesión activa, redirigir según rol
     if (estaAutenticado()) {

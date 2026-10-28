@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitaciones — Orbit</title>
+    <link rel="icon" type="image/svg+xml" href="../img/orbit-favicon.svg?v=2">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <script>
+        (function () {
+            document.documentElement.dataset.tema = localStorage.getItem('orbit_tema') || 'oscuro';
+        })();
+    </script>
+
+    <link rel="stylesheet" href="../css/orbit.css">
+    <link rel="stylesheet" href="../css/componentes.css">
+    <link rel="stylesheet" href="../css/vistas.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/invitaciones.css">
+</head>
+
+<body>
+<div class="layout-principal">
+
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="zona-contenido">
+
+        <header class="topbar">
+            <h1 class="topbar-titulo">Invitaciones</h1>
+            <button class="campana-notificacion" id="campana-notificaciones" aria-label="Notificaciones">
+                <i class="bi bi-bell"></i>
+            </button>
+            <div class="avatar" id="avatar-topbar">U</div>
+        </header>
+
+        <div class="contenido-scroll">
+            <section class="invitaciones">
+
+                <div class="invitaciones__intro">
+                    <div>
+                        <span class="invitaciones__eyebrow">
+                            <i class="bi bi-envelope-paper"></i> Bandeja de entrada
+                        </span>
+                        <h2 class="invitaciones__titulo">Comparte y colabora</h2>
+                        <p class="invitaciones__subtitulo">
+                            Acepta una invitación para acceder a la tarea o proyecto
+                            que otra persona compartió contigo.
+                        </p>
+                    </div>
+                    <span class="invitaciones__contador" id="invitaciones-contador" hidden></span>
+                </div>
+
+                <div class="invitaciones__aviso" id="invitaciones-aviso" hidden></div>
+
+                <div class="invitaciones__lista" id="lista-invitaciones" aria-live="polite"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+
+<script type="module">
+    import { obtenerUsuario, estaAutenticado } from '../js/autenticacion.js';
+    import { inicializarSidebar } from '../js/sidebar.js';
+    import { inicializarNotificaciones } from '../js/notificaciones.js';
+    import { confirmar } from '../js/dialogos.js';
+    import { mostrarExito, mostrarError } from '../js/utilidades.js';
+    import {
+        ETIQUETAS_PERMISO,
+        obtenerInvitacionesPendientes,
+        responderInvitacion,
+        extraerError,
+        tiempoRelativo
+    } from '../js/invitaciones.js';
+
+    // Sin sesión: volver aquí mismo después de iniciar sesión o registrarse.
+    if (!estaAutenticado()) {
+        const destino = window.location.pathname + window.location.search;
+        window.location.replace(`iniciar-sesion.html?volver=${encodeURIComponent(destino)}`);
+    } else {
+        iniciarPagina();
+    }
+
+    function iniciarPagina() {
+        inicializarSidebar();
+        inicializarNotificaciones();
+
+        const usuario = obtenerUsuario();
+        if (usuario?.nombre_completo) {
+            const iniciales = usuario.nombre_completo
+                .split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+            document.getElementById('avatar-topbar').textContent = iniciales;
+        }
+
+        const lista = document.getElementById('lista-invitaciones');
+        const avisoBox = document.getElementById('invitaciones-aviso');
+        const contador = document.getElementById('invitaciones-contador');
+        const token = new URLSearchParams(window.location.search).get('invitacion');
+
+        let invitaciones = [];
+
+        function ocultarAviso() {
+            avisoBox.hidden = true;
+            avisoBox.innerHTML = '';
+        }
+
+        function mostrarAviso({ tipo, icono, titulo, texto, accion }) {
+            avisoBox.hidden = false;
+            avisoBox.className = `invitaciones__aviso invitaciones__aviso--${tipo}`;
+            avisoBox.innerHTML = '';
+
+            const iconoEl = document.createElement('i');
+            iconoEl.className = `bi ${icono}`;
+
+            const contenido = document.createElement('div');
+            const tituloEl = document.createElement('strong');
+            tituloEl.textContent = titulo;
+            const textoEl = document.createElement('p');
+            textoEl.textContent = texto;
+            contenido.append(tituloEl, textoEl);
+
+            if (accion) {
+                const enlace = document.createElement('a');
+                enlace.className = 'invitaciones__aviso-enlace';
+                enlace.href = accion.href;
+                enlace.innerHTML = `${accion.texto} <i class="bi bi-arrow-right"></i>`;
+                contenido.appendChild(enlace);
+            }
+
+            avisoBox.append(iconoEl, contenido);
+        }
+
+        function limpiarTokenDeUrl() {
+            const url = new URL(window.location.href);
+            if (!url.searchParams.has('invitacion')) return;
+            url.searchParams.delete('invitacion');
+            window.history.replaceState({}, '', url);
+        }
+
+        function crearAvatar(nombre, clase = '') {
+            const avatar = document.createElement('span');
+            avatar.className = `avatar avatar-solido ${clase}`.trim();
+            avatar.textContent = (nombre || '?').trim().charAt(0).toUpperCase();
+            return avatar;
+        }
+
+        function crearTarjeta(invitacion) {
+            const esProyecto = invitacion.tipo_objeto === 'proyecto';
+            const tarjeta = document.createElement('article');
+            tarjeta.className = 'invitaciones__card';
+            if (token && invitacion.token === token) {
+                tarjeta.classList.add('invitaciones__card--destacada');
+            }
+
+            const icono = document.createElement('div');
+            icono.className = `invitaciones__icono invitaciones__icono--${esProyecto ? 'proyecto' : 'tarea'}`;
+            icono.innerHTML = `<i class="bi ${esProyecto ? 'bi-folder2-open' : 'bi-check2-square'}"></i>`;
+
+            const cuerpo = document.createElement('div');
+            cuerpo.className = 'invitaciones__cuerpo';
+
+            const meta = document.createElement('div');
+            meta.className = 'invitaciones__meta';
+            const tipo = document.createElement('span');
+            tipo.className = 'invitaciones__tipo';
+            tipo.textContent = esProyecto ? 'Proyecto' : 'Tarea';
+            const fecha = document.createElement('span');
+            fecha.className = 'invitaciones__fecha';
+            fecha.textContent = tiempoRelativo(invitacion.fecha_compartida);
+            meta.append(tipo, fecha);
+
+            const titulo = document.createElement('h3');
+            titulo.className = 'invitaciones__titulo-card';
+            titulo.textContent = invitacion.titulo;
+
+            const de = document.createElement('div');
+            de.className = 'invitaciones__de';
+            de.append(
+                crearAvatar(invitacion.propietario, 'invitaciones__avatar'),
+                document.createTextNode(` ${invitacion.propietario} te invitó`)
+            );
+
+            const permiso = document.createElement('span');
+            permiso.className = 'invitaciones__permiso';
+            const iconoPermiso = invitacion.permiso === 'administrar'
+                ? 'bi-shield-check'
+                : invitacion.permiso === 'editar' ? 'bi-pencil-square' : 'bi-eye';
+            permiso.innerHTML = `<i class="bi ${iconoPermiso}"></i>`;
+            permiso.appendChild(document.createTextNode(
+                ` ${ETIQUETAS_PERMISO[invitacion.permiso] || 'Puede ver'}`
+            ));
+
+            cuerpo.append(meta, titulo, de, permiso);
+
+            const acciones = document.createElement('div');
+            acciones.className = 'invitaciones__acciones';
+
+            const aceptar = document.createElement('button');
+            aceptar.type = 'button';
+            aceptar.className = 'btn-primary invitaciones__btn-aceptar';
+            aceptar.innerHTML = '<i class="bi bi-check2"></i> Aceptar';
+
+            const rechazar = document.createElement('button');
+            rechazar.type = 'button';
+            rechazar.className = 'btn-secondary invitaciones__btn-rechazar';
+            rechazar.innerHTML = '<i class="bi bi-x-lg"></i> Rechazar';
+
+            aceptar.addEventListener('click', async () => {
+                const botones = [aceptar, rechazar];
+                botones.forEach(b => { b.disabled = true; });
+                aceptar.innerHTML = '<span class="loader-mini"></span> Aceptando…';
+                try {
+                    await responderInvitacion(invitacion.token || invitacion.id, true);
+                    invitaciones = invitaciones.filter(i => i.id !== invitacion.id);
+                    limpiarTokenDeUrl();
+                    render();
+                    mostrarExito('Invitación aceptada.');
+                    mostrarAviso({
+                        tipo: 'exito',
+                        icono: 'bi-check2-circle',
+                        titulo: '¡Invitación aceptada!',
+                        texto: `Ya tienes acceso a “${invitacion.titulo}”.`,
+                        accion: {
+                            href: esProyecto ? 'proyectos.html' : 'tablero-kanban.html',
+                            texto: esProyecto ? 'Ver mis proyectos' : 'Abrir mi tablero'
+                        }
+                    });
+                } catch (error) {
+                    mostrarError(extraerError(error, 'No se pudo aceptar la invitación.'));
+                    botones.forEach(b => { b.disabled = false; });
+                    aceptar.innerHTML = '<i class="bi bi-check2"></i> Aceptar';
+                }
+            });
+
+            rechazar.addEventListener('click', async () => {
+                const confirmado = await confirmar({
+                    titulo: 'Rechazar invitación',
+                    mensaje: `¿Rechazar la invitación a “${invitacion.titulo}”?`,
+                    confirmarTexto: 'Rechazar',
+                    cancelarTexto: 'Volver',
+                    peligro: true
+                });
+                if (!confirmado) return;
+
+                const botones = [aceptar, rechazar];
+                botones.forEach(b => { b.disabled = true; });
+                rechazar.innerHTML = '<span class="loader-mini"></span> Rechazando…';
+                try {
+                    await responderInvitacion(invitacion.token || invitacion.id, false);
+                    invitaciones = invitaciones.filter(i => i.id !== invitacion.id);
+                    limpiarTokenDeUrl();
+                    render();
+                    mostrarExito('Invitación rechazada.');
+                } catch (error) {
+                    mostrarError(extraerError(error, 'No se pudo rechazar la invitación.'));
+                    botones.forEach(b => { b.disabled = false; });
+                    rechazar.innerHTML = '<i class="bi bi-x-lg"></i> Rechazar';
+                }
+            });
+
+            acciones.append(aceptar, rechazar);
+            tarjeta.append(icono, cuerpo, acciones);
+            return tarjeta;
+        }
+
+        function crearVacio() {
+            const vacio = document.createElement('div');
+            vacio.className = 'invitaciones__vacio';
+            vacio.innerHTML = `
+                <div class="invitaciones__vacio-icono"><i class="bi bi-envelope-open"></i></div>
+                <h3>No tienes invitaciones pendientes</h3>
+                <p>Cuando alguien comparta contigo una tarea o proyecto, aparecerá aquí y en la campana.</p>
+                <a class="btn-primary" href="tablero-kanban.html">Ir al tablero</a>`;
+            return vacio;
+        }
+
+        function render() {
+            lista.innerHTML = '';
+            contador.hidden = invitaciones.length === 0;
+            contador.textContent = `${invitaciones.length} pendiente${invitaciones.length === 1 ? '' : 's'}`;
+
+            if (!invitaciones.length) {
+                lista.appendChild(crearVacio());
+                return;
+            }
+
+            invitaciones.forEach(invitacion => {
+                lista.appendChild(crearTarjeta(invitacion));
+            });
+        }
+
+        async function cargar() {
+            lista.innerHTML = '<div class="invitaciones__cargando"><span class="loader-mini"></span> Cargando invitaciones…</div>';
+            try {
+                invitaciones = await obtenerInvitacionesPendientes();
+                render();
+
+                if (token) {
+                    const encontrada = invitaciones.some(i => i.token === token);
+                    if (encontrada) {
+                        setTimeout(() => {
+                            document.querySelector('.invitaciones__card--destacada')
+                                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 120);
+                    } else {
+                        mostrarAviso({
+                            tipo: 'info',
+                            icono: 'bi-info-circle',
+                            titulo: 'Esta invitación ya no está pendiente',
+                            texto: 'Puede que ya la hayas respondido, que haya sido cancelada o que esté dirigida a otro correo. Verifica que iniciaste sesión con la cuenta invitada.',
+                            accion: { href: 'tablero-kanban.html', texto: 'Ir a mi tablero' }
+                        });
+                    }
+                }
+            } catch (error) {
+                lista.innerHTML = '';
+                const errorBox = document.createElement('div');
+                errorBox.className = 'invitaciones__vacio invitaciones__vacio--error';
+                errorBox.innerHTML = `
+                    <div class="invitaciones__vacio-icono"><i class="bi bi-exclamation-triangle"></i></div>
+                    <h3>No pudimos cargar tus invitaciones</h3>
+                    <p></p>`;
+                errorBox.querySelector('p').textContent = extraerError(
+                    error,
+                    'Revisa tu conexión e intenta de nuevo.'
+                );
+                const reintentar = document.createElement('button');
+                reintentar.type = 'button';
+                reintentar.className = 'btn-primary';
+                reintentar.textContent = 'Reintentar';
+                reintentar.addEventListener('click', cargar);
+                errorBox.appendChild(reintentar);
+                lista.appendChild(errorBox);
+            }
+        }
+
+        cargar();
+    }
+</script>
+</body>
+</html>
