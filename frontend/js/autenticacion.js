@@ -121,10 +121,13 @@ async function iniciarSesion(correo, contrasena, captchaToken) {
 /**
  * Cierre de sesión.
  * Limpia localStorage y redirige al login.
+ * `opciones.cuentaInhabilitada` añade el aviso de cuenta inhabilitada.
  */
-function logout() {
+function logout(opciones = {}) {
     cerrarSesion();
-    window.location.href = resolverRutaVista('iniciar-sesion.html');
+    const aviso = opciones.cuentaInhabilitada ? '?cuenta=inhabilitada' : '';
+    window.location.href =
+        `${resolverRutaVista('iniciar-sesion.html')}${aviso}`;
 }
 
 /**
@@ -161,6 +164,18 @@ async function eliminarCuenta(contrasena) {
 }
 
 /**
+ * Inhabilitar la cuenta propia (sin borrar datos) con confirmación de
+ * contraseña. Al quedar inactiva, la sesión se cierra y se avisa en el login.
+ */
+async function inhabilitarCuenta(contrasena) {
+    const respuesta = await api.post('/usuarios/inhabilitar/', {
+        contrasena: contrasena
+    });
+    logout({ cuentaInhabilitada: true });
+    return respuesta.data;
+}
+
+/**
  * Redirige según el rol: admin → panel admin, usuario → tablero Kanban.
  * Si la URL trae `?volver=...` se respeta ese destino (por ejemplo, una
  * invitación abierta desde el correo).
@@ -192,6 +207,7 @@ export {
     obtenerPerfil,
     editarPerfil,
     eliminarCuenta,
+    inhabilitarCuenta,
     estaAutenticado,
     obtenerToken,
     obtenerUsuario,

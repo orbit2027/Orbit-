@@ -40,6 +40,7 @@ def api_root(request, format=None):
             'perfil': r('perfil', request=request, format=format),
             'editar': r('editar-perfil', request=request, format=format),
             'eliminar_cuenta': r('eliminar-cuenta', request=request, format=format),
+            'inhabilitar_cuenta': r('inhabilitar-cuenta', request=request, format=format),
         },
         'tareas': {
             'lista_tareas': r('lista-tareas', request=request, format=format),

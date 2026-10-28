@@ -19,13 +19,18 @@ from apps.email.correos import (
     correo_inicio_sesion,
 )
 
-from .modelo import Usuario
+from .modelo import (
+    MENSAJE_ULTIMO_ADMIN,
+    Usuario,
+    es_ultimo_administrador,
+)
 from .serializador import (
     RegistroUsuarioSerializador,
     LoginUsuarioSerializador,
     PerfilUsuarioSerializador,
     EditarUsuarioSerializador,
     EliminarCuentaSerializador,
+    InhabilitarCuentaSerializador,
     RefrescarJwtSerializador,
     RegistroRespuestaSerializador,
     AutenticacionRespuestaSerializador,
@@ -91,13 +96,22 @@ def iniciar_sesion(request):
     correo = serializador.validated_data['correo'].lower().strip()
     contrasena = serializador.validated_data['contrasena']
 
-    usuario = Usuario.objects.filter(correo=correo, activo=True).first()
+    usuario = Usuario.objects.filter(correo=correo).first()
 
     # Error genérico para no revelar si el correo existe
     if not usuario or not usuario.verificar_contrasena(contrasena):
         return Response(
             {'error': 'Credenciales inválidas'},
             status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # La contraseña es correcta: aquí sí conviene explicar el bloqueo para que
+    # la persona no crea que se equivocó al escribir sus datos.
+    if not usuario.activo:
+        return Response(
+            {'error': 'Tu cuenta está inhabilitada. Contacta a un '
+                      'administrador para reactivarla.'},
+            status=status.HTTP_403_FORBIDDEN
         )
 
     tokens = crear_tokens_para(usuario)
@@ -257,6 +271,13 @@ def eliminar_cuenta(request):
 
     usuario = request.user
 
+    # Eliminar al último administrador dejaría la app sin administración.
+    if es_ultimo_administrador(usuario):
+        return Response(
+            {'error': MENSAJE_ULTIMO_ADMIN},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     # Borrado explícito en orden de dependencias: evita fallos de integridad
     # del FastDelete de Django con foreign keys "INITIALLY DEFERRED" de SQLite.
     Comparticion.objects.filter(
@@ -270,6 +291,46 @@ def eliminar_cuenta(request):
 
     return Response(
         {'mensaje': 'Cuenta eliminada permanentemente'},
+        status=status.HTTP_200_OK
+    )
+
+
+@extend_schema(
+    tags=['Usuarios'],
+    summary='Inhabilitar cuenta propia',
+    description='RF-USU-05. Desactiva la cuenta sin borrar sus datos. '
+                'La cuenta solo puede reactivarla un administrador.',
+    request=InhabilitarCuentaSerializador,
+    responses={200: MensajeRespuestaSerializador, 400: None},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def inhabilitar_cuenta(request):
+    """Desactiva la cuenta del usuario autenticado (sin borrar datos)."""
+    serializador = InhabilitarCuentaSerializador(
+        data=request.data,
+        context={'usuario_actual': request.user}
+    )
+    if not serializador.is_valid():
+        return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    usuario = request.user
+
+    if es_ultimo_administrador(usuario):
+        return Response(
+            {'error': MENSAJE_ULTIMO_ADMIN},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    usuario.activo = False
+    # Invalida los JWT vigentes: al reactivarse la cuenta, las sesiones
+    # anteriores ya no sirven.
+    usuario.session_version += 1
+    usuario.save()
+
+    return Response(
+        {'mensaje': 'Tu cuenta quedó inhabilitada. Un administrador puede '
+                    'reactivarla cuando lo necesites.'},
         status=status.HTTP_200_OK
     )
 

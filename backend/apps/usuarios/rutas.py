@@ -12,5 +12,6 @@ urlpatterns = [
     path('perfil/', vistas.ver_perfil, name='perfil'),
     path('editar/', vistas.editar_perfil, name='editar-perfil'),
     path('eliminar/', vistas.eliminar_cuenta, name='eliminar-cuenta'),
+    path('inhabilitar/', vistas.inhabilitar_cuenta, name='inhabilitar-cuenta'),
     path('logout/', vistas.cerrar_sesion, name='logout'),
 ]

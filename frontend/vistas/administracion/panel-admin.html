@@ -205,7 +205,7 @@ import api from '../../js/api.js';
     import { obtenerUsuario, logout } from '../../js/autenticacion.js';
     import { formatearFecha } from '../../js/utilidades.js';
     import { inicializarNotificaciones } from '../../js/notificaciones.js';
-    import { confirmar } from '../../js/dialogos.js';
+    import { confirmar, alertar } from '../../js/dialogos.js';
     import { inicializarSidebar } from '../../js/sidebar.js';
 
     // Protección de ruta: solo administradores
@@ -479,9 +479,18 @@ import api from '../../js/api.js';
 
         try {
             await api.patch(`/administracion/usuarios/${usuario.id}/toggle/`);
+            // Si el admin se inhabilitó a sí mismo, su sesión ya no sirve:
+            // se cierra de forma ordenada en vez de quedar con la lista rota.
+            if (String(usuario.id) === String(admin.id) && usuario.activo) {
+                logout({ cuentaInhabilitada: true });
+                return;
+            }
             cargarTodo();
         } catch (error) {
-            console.error('Error al cambiar estado:', error);
+            const mensaje = error.response?.data?.error
+                || 'No se pudo cambiar el estado del usuario.';
+            await alertar({ titulo: 'No se pudo actualizar', mensaje });
+            cargarTodo();
         }
     }
 

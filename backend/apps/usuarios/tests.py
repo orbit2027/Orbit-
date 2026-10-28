@@ -110,3 +110,124 @@ class RefrescarJwtTest(BaseRefrescoTest):
         # El claim sv se conserva en la cadena de refrescos
         claim_sv = RefreshToken(segunda.json()['tokens']['refresh']).get('sv')
         self.assertEqual(claim_sv, self.usuario.session_version)
+
+
+class InhabilitarCuentaTest(TestCase):
+    """Inhabilitar la cuenta propia (sin borrar datos)."""
+
+    URL = '/api/v1/usuarios/inhabilitar/'
+    LOGIN = '/api/v1/usuarios/login/'
+    PERFIL = '/api/v1/usuarios/perfil/'
+    ELIMINAR = '/api/v1/usuarios/eliminar/'
+
+    def setUp(self):
+        self.api = APIClient()
+        self.usuario = self.crear('ana@orbit.local')
+
+    def crear(self, correo, rol='usuario'):
+        usuario = Usuario(nombre_completo='Ana Perez', correo=correo, rol=rol)
+        usuario.set_contrasena('Prueba#123')
+        usuario.save()
+        return usuario
+
+    def autenticar(self, usuario):
+        tokens = crear_tokens_para(usuario)
+        self.api.credentials(HTTP_AUTHORIZATION=f"Bearer {tokens['access']}")
+
+    def test_inhabilita_la_cuenta_con_la_contrasena_correcta(self):
+        self.autenticar(self.usuario)
+
+        respuesta = self.api.post(
+            self.URL, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.usuario.refresh_from_db()
+        self.assertFalse(self.usuario.activo)
+        # La cuenta no se borra: los datos siguen ahí
+        self.assertTrue(Usuario.objects.filter(id=self.usuario.id).exists())
+        # Y las sesiones anteriores quedan revocadas
+        self.assertEqual(self.api.get(self.PERFIL).status_code, 403)
+
+    def test_rechaza_la_contrasena_incorrecta(self):
+        self.autenticar(self.usuario)
+
+        respuesta = self.api.post(
+            self.URL, {'contrasena': 'OtraClave#99'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.activo)
+
+    def test_exige_autenticacion(self):
+        respuesta = self.api.post(
+            self.URL, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 403)
+
+    def test_no_permite_inhabilitar_al_unico_administrador(self):
+        admin = self.crear('admin@orbit.local', rol='administrador')
+        self.autenticar(admin)
+
+        respuesta = self.api.post(
+            self.URL, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertIn('único administrador', respuesta.json()['error'])
+        admin.refresh_from_db()
+        self.assertTrue(admin.activo)
+
+    def test_el_admin_puede_inhabilitarse_si_hay_otro_admin(self):
+        admin = self.crear('admin@orbit.local', rol='administrador')
+        self.crear('admin2@orbit.local', rol='administrador')
+        self.autenticar(admin)
+
+        respuesta = self.api.post(
+            self.URL, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 200)
+        admin.refresh_from_db()
+        self.assertFalse(admin.activo)
+
+    def test_el_login_avisa_que_la_cuenta_esta_inhabilitada(self):
+        self.usuario.activo = False
+        self.usuario.save()
+
+        respuesta = self.api.post(self.LOGIN, {
+            'correo': 'ana@orbit.local', 'contrasena': 'Prueba#123',
+        }, format='json')
+
+        self.assertEqual(respuesta.status_code, 403)
+        self.assertIn('inhabilitada', respuesta.json()['error'])
+
+    def test_el_login_no_revela_la_contrasena_incorrecta(self):
+        self.usuario.activo = False
+        self.usuario.save()
+
+        respuesta = self.api.post(self.LOGIN, {
+            'correo': 'ana@orbit.local', 'contrasena': 'OtraClave#99',
+        }, format='json')
+
+        self.assertEqual(respuesta.status_code, 401)
+        self.assertEqual(respuesta.json()['error'], 'Credenciales inválidas')
+
+    def test_no_permite_eliminar_al_unico_administrador(self):
+        admin = self.crear('admin@orbit.local', rol='administrador')
+        self.autenticar(admin)
+
+        respuesta = self.api.delete(
+            self.ELIMINAR, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 400)
+        self.assertIn('único administrador', respuesta.json()['error'])
+        self.assertTrue(Usuario.objects.filter(id=admin.id).exists())
+
+    def test_permite_eliminar_la_cuenta_si_hay_otro_admin(self):
+        admin = self.crear('admin@orbit.local', rol='administrador')
+        self.crear('admin2@orbit.local', rol='administrador')
+        self.autenticar(admin)
+
+        respuesta = self.api.delete(
+            self.ELIMINAR, {'contrasena': 'Prueba#123'}, format='json')
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(id=admin.id).exists())

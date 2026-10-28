@@ -112,6 +112,21 @@ class EliminarCuentaSerializador(serializers.Serializer):
         return valor
 
 
+class InhabilitarCuentaSerializador(serializers.Serializer):
+    """
+    Serializador para inhabilitar la cuenta propia.
+    Pide la contraseña actual, igual que la eliminación.
+    """
+    contrasena = serializers.CharField()
+
+    def validate_contrasena(self, valor):
+        """Verifica que la contraseña proporcionada sea correcta."""
+        usuario = self.context.get('usuario_actual')
+        if not usuario.verificar_contrasena(valor):
+            raise serializers.ValidationError("Contraseña incorrecta.")
+        return valor
+
+
 # ── Serializadores de salida (documentación OpenAPI) ──────────────────────
 
 class TokenParSerializador(serializers.Serializer):

@@ -9,7 +9,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, inline_serializer
 
-from apps.usuarios.modelo import Usuario
+from apps.usuarios.modelo import (
+    MENSAJE_ULTIMO_ADMIN,
+    Usuario,
+    es_ultimo_administrador,
+)
 from apps.tareas.modelo import Tarea
 from apps.middlewares.roles import requerir_rol
 from apps.email.correos import correo_bienvenida
@@ -161,8 +165,10 @@ def detalle_usuario(request, usuario_id):
 @extend_schema(
     tags=['Administración'],
     summary='Activar o desactivar usuario (admin)',
+    description='No permite desactivar al último administrador activo: dejaría '
+                'la aplicación sin administración.',
     request=None,
-    responses={200: ToggleUsuarioRespuestaSerializador, 403: None, 404: None},
+    responses={200: ToggleUsuarioRespuestaSerializador, 400: None, 403: None, 404: None},
 )
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -176,7 +182,19 @@ def toggle_usuario(request, usuario_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
+    # Desactivar al último administrador dejaría la app sin acceso a la
+    # administración: nadie podría volver a activarlo (el login exige activo).
+    if usuario.activo and es_ultimo_administrador(usuario):
+        return Response(
+            {'error': MENSAJE_ULTIMO_ADMIN},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     usuario.activo = not usuario.activo
+    if not usuario.activo:
+        # Invalida los JWT emitidos: si la cuenta se reactiva, las sesiones
+        # viejas no vuelven a servir.
+        usuario.session_version += 1
     usuario.save()
 
     return Response({

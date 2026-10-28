@@ -129,6 +129,13 @@
     const errorBox = document.getElementById('error-login');
     const btnLogin = document.getElementById('btn-login');
 
+    // Aviso cuando la sesión se cierra por inhabilitar la propia cuenta.
+    if (new URLSearchParams(window.location.search).get('cuenta') === 'inhabilitada') {
+        errorBox.querySelector('span').textContent =
+            'Tu cuenta quedó inhabilitada. Un administrador puede reactivarla.';
+        errorBox.style.display = 'flex';
+    }
+
     // Mostrar/ocultar contraseña
     document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
         const input = document.getElementById('contrasena');
@@ -166,8 +173,15 @@
             redirigirSegunRol();
 
         } catch (error) {
-            // Error genérico: no se revela si el correo existe o la contraseña es incorrecta
-            errorBox.querySelector('span').textContent = 'Las credenciales ingresadas no son correctas.';
+            // Error genérico: no se revela si el correo existe o la contraseña es incorrecta.
+            // La única excepción es la cuenta inhabilitada: ahí la contraseña ya
+            // era correcta y conviene explicar por qué no puede entrar.
+            const mensaje = error.response?.data?.error;
+            const inhabilitada = error.response?.status === 403 &&
+                /inhabilitada/i.test(String(mensaje));
+            errorBox.querySelector('span').textContent = inhabilitada
+                ? mensaje
+                : 'Las credenciales ingresadas no son correctas.';
             errorBox.style.display = 'flex';
             refrescarCaptcha();
         } finally {

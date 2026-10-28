@@ -38,3 +38,22 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f"{self.nombre_completo} ({self.correo})"
+
+
+def es_ultimo_administrador(usuario):
+    """Indica si `usuario` es el único administrador activo del sistema.
+
+    Se usa para impedir que la aplicación se quede sin administración: nadie
+    puede inhabilitar ni eliminar a la última cuenta con rol administrador.
+    """
+    if usuario.rol != 'administrador' or not usuario.activo:
+        return False
+    return not Usuario.objects.filter(
+        rol='administrador', activo=True
+    ).exclude(id=usuario.id).exists()
+
+
+MENSAJE_ULTIMO_ADMIN = (
+    'Eres el único administrador activo. Asigna el rol de administrador a '
+    'otra cuenta antes de inhabilitar o eliminar la tuya.'
+)
