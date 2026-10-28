@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python scripts/preparar_frontend_vercel.py",
+  "buildCommand": "python manage.py collectstatic --noinput && python scripts/preparar_frontend_vercel.py",
   "functions": {
     "backend/orbit/wsgi.py": {
       "maxDuration": 60
