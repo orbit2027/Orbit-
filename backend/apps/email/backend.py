@@ -89,8 +89,6 @@ class EmailBackendAPI(BaseEmailBackend):
             adjuntos = self._adjuntos(mensaje, 'name')
             if adjuntos:
                 payload['attachment'] = adjuntos
-                # Permite incrustar imágenes por CID (p. ej. el logo).
-                payload['inlineImageAttachment'] = True
             if html:
                 payload['htmlContent'] = html
 

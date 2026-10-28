@@ -1,7 +1,8 @@
 """
 Correos transaccionales de Orbit.
-Plantilla HTML con la identidad de la marca (logo por CID) y los envíos
-de bienvenida, invitación a proyecto y asignación de tarea.
+Plantilla HTML con la identidad de la marca (logo por URL pública) y los envíos
+de bienvenida, inicio de sesión, cambio de contraseña, invitación a tarea o
+proyecto y aviso de invitación aceptada.
 """
 from html import escape
 import logging
@@ -19,6 +20,9 @@ def _escapar_html(valor):
 
 def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
     """HTML responsive con la identidad de Orbit."""
+    logo_url = _escapar_html(
+        f"{settings.FRONTEND_URL.rstrip('/')}/img/orbit-logo.png?v=2"
+    )
     html_parrafos = ''.join(
         f'''<p style="margin:0 0 14px;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#94A3B8;">{parrafo}</p>'''
         for parrafo in parrafos
@@ -62,8 +66,8 @@ def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <img src="cid:orbit-logo" alt="Orbit" width="132" height="88"
-                         style="display:block;border:0;outline:none;">
+                    <img src="{logo_url}" alt="Orbit" width="132" height="88"
+                         style="display:block;width:132px;height:88px;border:0;outline:none;background:#0A192F;">
                     <span style="display:block;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#E2E8F0;margin-top:6px;">
                       orbit
                     </span>
@@ -102,7 +106,12 @@ def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
 
 
 def enviar_correo(destinatario, asunto, html, texto_plano):
-    """Envía un correo HTML con el logo incrustado por CID."""
+    """Envía un correo HTML.
+
+    El logo va como imagen remota (URL pública de la app), no adjunta: los
+    adjuntos CID no se renderizan al enviar por API y Gmail los muestra como
+    un accesorio gigante al final del correo.
+    """
     correo = EmailMultiAlternatives(
         subject=asunto,
         body=texto_plano,
@@ -110,9 +119,6 @@ def enviar_correo(destinatario, asunto, html, texto_plano):
         to=[destinatario],
     )
     correo.attach_alternative(html, 'text/html')
-    ruta_logo = settings.FRONTEND_DIR / 'img' / 'orbit-logo.png'
-    if ruta_logo.exists():
-        correo.attach_file(str(ruta_logo), mimetype='image/png')
     correo.send(fail_silently=True)
 
 
