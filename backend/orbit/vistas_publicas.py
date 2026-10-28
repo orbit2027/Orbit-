@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 
 def health_check(request):
-    """Endpoint simple para las comprobaciones de disponibilidad de Render."""
+    """Endpoint simple para las comprobaciones de disponibilidad."""
     return HttpResponse('ok')
 
 

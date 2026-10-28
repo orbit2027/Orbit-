@@ -18,8 +18,8 @@ detener ambos servidores.
 
 ## Despliegue en Vercel + Supabase
 
-El despliegue usa **un solo proyecto de Vercel** con raíz en la raíz del
-repositorio. Django atiende la API (`/api/v1/`), el admin y `/health/`, y además
+El despliegue usa **un solo proyecto de Vercel** con **Root Directory =
+`backend`**. Django atiende la API (`/api/v1/`), el admin y `/health/`, y además
 sirve el frontend estático (`/`, `/vistas/`, `/css/`, `/js/`, `/img/`) cuando
 `DEBUG=False`. Al compartir dominio no hay CORS ni que configurar la URL de la
 API en el frontend.
@@ -84,24 +84,32 @@ git commit -m "Preparar despliegue en Vercel y Supabase"
 git push
 
 npx vercel login
-npx vercel link          # crea el proyecto; Root Directory = .
+npx vercel link --project orbit   # crea/enlaza el proyecto
 npx vercel --prod
 ```
 
-O desde el panel de Vercel: **Add New → Project**, importa el repositorio y deja
-**Root Directory** en `.` (no en `backend`).
+O desde el panel de Vercel: **Add New → Project**, importa el repositorio y pon
+**Root Directory** en `backend`.
 
 Ajustes que **no** debes sobrescribir:
 
-- **Install Command** y **Build Command**: vacíos. Las dependencias se instalan
-  desde `requirements.txt` (raíz) y el build ejecuta
-  `python backend/manage.py migrate --noinput`, declarado en `pyproject.toml`.
+- **Install Command**: se detecta solo (`pip install -r requirements.txt`).
+- **Build Command**: lo define `vercel.json` (no lo pongas en el panel).
 - **Output Directory**: vacío.
-- Framework Preset: Vercel detecta Django por `backend/manage.py` y resuelve el
-  punto de entrada desde `WSGI_APPLICATION` en `settings.py`.
+- Framework Preset: Vercel detecta Django por `manage.py` y resuelve el punto de
+  entrada desde `WSGI_APPLICATION` en `settings.py`.
 
-`vercel.json` amplía el tiempo máximo de la función y empaqueta `frontend/**`
-junto al código para que Django pueda servirlo.
+`vercel.json` define el build y amplía el tiempo máximo de la función:
+
+```json
+"buildCommand": "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python scripts/preparar_frontend_vercel.py"
+```
+
+Los comandos se ejecutan dentro de `backend/`. El último copia `frontend/` a
+`backend/frontend/` porque Vercel empaqueta la función tomando como raíz
+`backend/`; sin esa copia Django responde `404` en `/` y en las vistas. El archivo
+`.vercelignore` evita subir `.venv/`, la app de Flutter, `db.sqlite3`, registros y
+`.env`.
 
 ### 4. Primer despliegue y migraciones
 

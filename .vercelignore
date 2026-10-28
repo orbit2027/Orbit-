@@ -1,0 +1,34 @@
+# Archivos que no deben subirse al build de Vercel
+
+# Entornos virtuales y cachés de Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secretos y configuración local
+backend/.env
+.env
+*.env.local
+.env.local
+.env.production.local
+!.env.example
+
+# Base de datos y registros locales
+backend/db.sqlite3
+*.sqlite3
+*.log
+
+# App móvil (no forma parte del despliegue web)
+mobile-flutter/
+
+# Repositorio y metadatos
+.git/
+.vercel/
+.vscode/
+.idea/

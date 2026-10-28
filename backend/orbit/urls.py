@@ -53,4 +53,7 @@ if not settings.DEBUG:
                 {'document_root': str(settings.FRONTEND_DIR)}, name='servir-estaticos-frontend'),
         re_path(r'^$', serve, {'document_root': str(settings.FRONTEND_DIR),
                                'path': 'index.html'}, name='servir-index'),
+        # Algunas vistas enlazan a "../index.html"; se sirve igual que "/".
+        re_path(r'^index\.html$', serve, {'document_root': str(settings.FRONTEND_DIR),
+                                          'path': 'index.html'}, name='servir-index-html'),
     ]

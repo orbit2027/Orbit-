@@ -256,8 +256,18 @@ RESTABLECIMIENTO_REINTENTO_SEGUNDOS = config(
     'RESTABLECIMIENTO_REINTENTO_SEGUNDOS', default=120, cast=int
 )
 
-# Directorio raíz del frontend (se sirve por Django cuando DEBUG=False)
-FRONTEND_DIR = BASE_DIR.parent / "frontend"
+# Directorio raíz del frontend (se sirve por Django cuando DEBUG=False).
+# En Vercel el paquete de la función tiene como raíz la carpeta que contiene
+# `manage.py` (`backend/`), así que el frontend llega como `backend/frontend`.
+# En local se sirve desde la raíz del repositorio.
+_CANDIDATOS_FRONTEND = (
+    BASE_DIR.parent / "frontend",
+    BASE_DIR / "frontend",
+)
+FRONTEND_DIR = next(
+    (ruta for ruta in _CANDIDATOS_FRONTEND if ruta.is_dir()),
+    _CANDIDATOS_FRONTEND[-1],
+)
 
 # Tipo de campo predeterminado para modelos primarios
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -18,9 +18,13 @@ env/
 # Vercel
 .vercel/
 backend/static/
+# Copia del frontend generada durante el build de Vercel
+backend/frontend/
 
 # IDE and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+.vercel
+.env*
