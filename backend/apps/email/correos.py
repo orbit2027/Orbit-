@@ -21,7 +21,7 @@ def _escapar_html(valor):
 def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
     """HTML responsive con la identidad de Orbit."""
     logo_url = _escapar_html(
-        f"{settings.FRONTEND_URL.rstrip('/')}/img/logo-email.png?v=1"
+        f"{settings.FRONTEND_URL.rstrip('/')}/img/logo-email.png?v=2"
     )
     html_parrafos = ''.join(
         f'''<p style="margin:0 0 14px;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#94A3B8;">{parrafo}</p>'''
@@ -66,9 +66,9 @@ def _plantilla(titulo, parrafos, boton_texto=None, boton_url=None, nota=None):
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <img src="{logo_url}" alt="Orbit" width="160" height="96"
-                         style="display:block;width:160px;height:96px;border:0;outline:none;background:#0A192F;">
-                    <span style="display:block;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.5px;color:#E2E8F0;margin-top:4px;">
+                    <img src="{logo_url}" alt="Orbit" width="140" height="140"
+                         style="display:block;width:140px;height:140px;border:0;outline:none;background:#0A192F;">
+                    <span style="display:block;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.5px;color:#E2E8F0;margin-top:2px;">
                       orbit
                     </span>
                   </td>
