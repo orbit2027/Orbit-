@@ -24,6 +24,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 from apps.usuarios.modelo import Usuario
+from apps.email.correos import correo_cambio_contrasena
 
 from .modelo import RestablecimientoContrasena
 from .serializador import (
@@ -267,6 +268,8 @@ def confirmar_restablecimiento(request):
 
     # El token es de un solo uso; además limpiar enlaces del usuario.
     RestablecimientoContrasena.objects.filter(usuario=usuario).delete()
+
+    correo_cambio_contrasena(usuario, 'restablecimiento')
 
     return Response(
         {'mensaje': 'Tu contraseña fue actualizada. Ya puedes iniciar sesión.'},

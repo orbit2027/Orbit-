@@ -60,7 +60,8 @@ repite en *Preview* si quieres previsualizaciones funcionales) define:
 | `EMAIL_BACKEND` | `apps.email.backend.EmailBackendAPI` |
 | `EMAIL_API_PROVIDER` | `brevo` |
 | `EMAIL_API_KEY` | Tu clave de Brevo. |
-| `DEFAULT_FROM_EMAIL` | `Orbit <no-responder@tudominio.com>` |
+| `DEFAULT_FROM_EMAIL` | `Orbit <orbit.2027pfh@gmail.com>` (remitente verificado en Brevo). |
+| `AVISO_INICIO_SESION` | Opcional. `False` desactiva el aviso por correo en cada inicio de sesión. |
 | `ALLOWED_HOSTS` | Opcional: solo si usas dominio propio, p. ej. `orbit.com,www.orbit.com`. |
 | `CSRF_TRUSTED_ORIGINS` | Opcional con dominio propio, p. ej. `https://orbit.com,https://www.orbit.com`. |
 
@@ -144,6 +145,13 @@ python backend/manage.py migrate
 - **La base se pausa**: en el plan gratuito Supabase pausa proyectos inactivos;
   entra al panel para reactivarlo o usa un plan de pago.
 - **Correos no llegan**: revisa `EMAIL_API_KEY` y que `DEFAULT_FROM_EMAIL`
-  coincida con el remitente validado en Brevo.
+  coincida **exactamente** con un remitente verificado en Brevo
+  (*Senders & IPs → Senders*). El remitente de Orbit es
+  `orbit.2027pfh@gmail.com`. Si Brevo no lo tiene validado, la API responde
+  `201` igualmente y el envío falla después: compruébalo en
+  *Transactional → Logs*, donde aparece el evento `error` con el motivo
+  `the sender you used ... is not valid`.
+- **El CAPTCHA no se exige**: con `DEBUG=False` se activa solo. Si agregaste
+  `CAPTCHA_HABILITADO=False` en Vercel, bórrala o ponla en `True`.
 
 No uses `python run_dev.py` como comando de build o de inicio en Vercel.

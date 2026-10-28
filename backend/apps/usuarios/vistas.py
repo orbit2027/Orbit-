@@ -6,13 +6,18 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.conf import settings
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.usuarios.tokens import crear_tokens_para
-from apps.email.correos import correo_bienvenida
+from apps.email.correos import (
+    correo_bienvenida,
+    correo_cambio_contrasena,
+    correo_inicio_sesion,
+)
 
 from .modelo import Usuario
 from .serializador import (
@@ -96,6 +101,10 @@ def iniciar_sesion(request):
         )
 
     tokens = crear_tokens_para(usuario)
+    # Aviso de seguridad (no bloquea el login si el correo falla)
+    if getattr(settings, 'AVISO_INICIO_SESION', True):
+        correo_inicio_sesion(
+            usuario, request.META.get('HTTP_USER_AGENT', ''))
     return Response({
         'usuario': PerfilUsuarioSerializador(usuario).data,
         'tokens': tokens
@@ -220,6 +229,7 @@ def editar_perfil(request):
     }
     if contrasena_cambiada:
         respuesta['tokens'] = crear_tokens_para(usuario)
+        correo_cambio_contrasena(usuario, 'perfil')
 
     return Response(respuesta, status=status.HTTP_200_OK)
 

@@ -225,7 +225,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
-    default='Orbit <no-responder@orbit.local>',
+    default='Orbit <orbit.2027pfh@gmail.com>',
 )
 
 # Envío por API HTTP (gratuito, sin SMTP): útil en hosts que bloquean el puerto
@@ -233,6 +233,10 @@ DEFAULT_FROM_EMAIL = config(
 # EMAIL_BACKEND=apps.email.backend.EmailBackendAPI
 EMAIL_API_PROVIDER = config('EMAIL_API_PROVIDER', default='brevo')
 EMAIL_API_KEY = config('EMAIL_API_KEY', default='')
+
+# Aviso por correo en cada inicio de sesión (se puede desactivar con
+# AVISO_INICIO_SESION=False).
+AVISO_INICIO_SESION = config('AVISO_INICIO_SESION', default=True, cast=bool)
 
 # URL base del frontend para construir el enlace de restablecimiento.
 VERCEL_PUBLIC_HOSTNAME = (

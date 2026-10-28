@@ -8,6 +8,7 @@ import logging
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -243,5 +244,87 @@ def correo_invitacion_aceptada(propietario, invitado, tipo_objeto, titulo):
     enviar_correo(
         propietario.correo,
         f'{invitado.nombre_completo or invitado.correo} aceptó tu invitación · Orbit',
+        html, texto,
+    )
+
+
+def _fecha_legible(momento=None):
+    """Fecha y hora local en formato español (dd/mm/aaaa a las hh:mm)."""
+    momento = momento or timezone.localtime()
+    return momento.strftime('%d/%m/%Y a las %H:%M')
+
+
+def correo_inicio_sesion(usuario, navegador='', momento=None):
+    """Aviso de seguridad: se inició sesión en la cuenta."""
+    nombre = _escapar_html(_primera_palabra(usuario))
+    cuando = _escapar_html(_fecha_legible(momento))
+    detalle = _escapar_html(navegador) if navegador else 'un dispositivo no identificado'
+    enlace = f"{settings.FRONTEND_URL.rstrip('/')}/vistas/restablecer-contrasena.html"
+    html = _plantilla(
+        titulo='Inicio de sesión en Orbit',
+        parrafos=[
+            f'Hola <strong style="color:#E2E8F0;">{nombre}</strong>:',
+            f'Iniciaste sesión en tu cuenta el <strong style="color:#E2E8F0;">'
+            f'{cuando}</strong> desde {detalle}.',
+            'Si fuiste tú, no tienes que hacer nada: tu cuenta sigue segura.',
+        ],
+        boton_texto='Cambiar mi contraseña',
+        boton_url=enlace,
+        nota=(
+            'Si no reconoces este acceso, cambia tu contraseña de inmediato '
+            'desde el botón y revisa los movimientos de tu cuenta.'
+        ),
+    )
+    texto = (
+        f"Hola {_primera_palabra(usuario)}:\n\n"
+        f"Iniciaste sesión en tu cuenta de Orbit el {_fecha_legible(momento)} "
+        f"desde {navegador or 'un dispositivo no identificado'}.\n\n"
+        "Si fuiste tú, no tienes que hacer nada.\n\n"
+        f"Si no reconoces este acceso, cambia tu contraseña: {enlace}\n\n"
+        "— Equipo de Orbit"
+    )
+    enviar_correo(
+        usuario.correo,
+        'Inicio de sesión en tu cuenta · Orbit',
+        html, texto,
+    )
+
+
+def correo_cambio_contrasena(usuario, motivo='perfil', momento=None):
+    """Aviso de que la contraseña cambió (perfil o restablecimiento)."""
+    nombre = _escapar_html(_primera_palabra(usuario))
+    cuando = _escapar_html(_fecha_legible(momento))
+    if motivo == 'restablecimiento':
+        contexto = 'restableciste tu contraseña con el enlace que enviamos por correo'
+    else:
+        contexto = 'cambiaste tu contraseña desde tu perfil de Orbit'
+    enlace = f"{settings.FRONTEND_URL.rstrip('/')}/vistas/restablecer-contrasena.html"
+    html = _plantilla(
+        titulo='Tu contraseña cambió',
+        parrafos=[
+            f'Hola <strong style="color:#E2E8F0;">{nombre}</strong>:',
+            f'El <strong style="color:#E2E8F0;">{cuando}</strong> '
+            f'{_escapar_html(contexto)}.',
+            'Por seguridad cerramos todas las sesiones anteriores: vuelve a '
+            'iniciar sesión con tu contraseña nueva.',
+        ],
+        boton_texto='Iniciar sesión',
+        boton_url=f"{settings.FRONTEND_URL.rstrip('/')}/vistas/iniciar-sesion.html",
+        nota=(
+            'Si no hiciste este cambio, restablece tu contraseña ahora: '
+            f'<a href="{_escapar_html(enlace)}" style="color:#00E5FF;">'
+            'recuperar mi cuenta</a>.'
+        ),
+    )
+    texto = (
+        f"Hola {_primera_palabra(usuario)}:\n\n"
+        f"El {_fecha_legible(momento)} {contexto}.\n\n"
+        "Por seguridad cerramos todas las sesiones anteriores.\n\n"
+        f"Si no hiciste este cambio, restablece tu contraseña: {enlace}\n\n"
+        "— Equipo de Orbit"
+    )
+    enviar_correo(
+        usuario.correo,
+        'Tu contraseña cambió · Orbit',
         html, texto,
     )

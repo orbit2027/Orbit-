@@ -6,7 +6,11 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from unittest.mock import patch
 
-from apps.email.correos import correo_bienvenida
+from apps.email.correos import (
+    correo_bienvenida,
+    correo_cambio_contrasena,
+    correo_inicio_sesion,
+)
 from apps.usuarios.modelo import Usuario
 
 from .backend import EmailBackendAPI
@@ -96,3 +100,42 @@ class CorreoBienvenidaTest(TestCase):
         self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;', html)
         self.assertIn('ana&amp;soporte@orbit.local', html)
         self.assertNotIn('<script>', html)
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    FRONTEND_URL='https://orbit.example',
+)
+class CorreosDeSeguridadTest(TestCase):
+    """Avisos de inicio de sesión y de cambio de contraseña."""
+
+    def setUp(self):
+        self.usuario = Usuario(
+            nombre_completo='Paula Paulina',
+            correo='paula@orbit.local',
+        )
+
+    def test_aviso_de_inicio_de_sesion(self):
+        correo_inicio_sesion(self.usuario, 'Mozilla/5.0 (Windows NT 10.0)')
+
+        self.assertEqual(len(mail.outbox), 1)
+        mensaje = mail.outbox[0]
+        self.assertEqual(mensaje.to, ['paula@orbit.local'])
+        self.assertIn('Inicio de sesión', mensaje.subject)
+        self.assertIn('Mozilla/5.0', mensaje.alternatives[0][0])
+        self.assertIn(
+            'https://orbit.example/vistas/restablecer-contrasena.html',
+            mensaje.alternatives[0][0],
+        )
+
+    def test_aviso_de_cambio_desde_el_perfil(self):
+        correo_cambio_contrasena(self.usuario, 'perfil')
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('contraseña cambió', mail.outbox[0].subject)
+        self.assertIn('perfil', mail.outbox[0].body)
+
+    def test_aviso_de_cambio_por_restablecimiento(self):
+        correo_cambio_contrasena(self.usuario, 'restablecimiento')
+
+        self.assertIn('restableciste', mail.outbox[0].body)
