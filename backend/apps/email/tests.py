@@ -101,7 +101,7 @@ class CorreoBienvenidaTest(TestCase):
         self.assertIn('ana&amp;soporte@orbit.local', html)
         self.assertNotIn('<script>', html)
         # El logo va como imagen remota: sin CID y sin adjuntos.
-        self.assertIn('https://orbit.example/img/logo-email.jpg', html)
+        self.assertIn('https://orbit.example/img/logo-email.png', html)
         self.assertNotIn('cid:', html)
         self.assertEqual(mail.outbox[0].attachments, [])
 

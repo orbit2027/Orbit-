@@ -144,7 +144,7 @@ class SolicitudSeguraTest(BaseRestablecimientoTest):
         ]
         self.assertTrue(html)
         html = html[0]
-        self.assertIn('/img/logo-email.jpg', html)
+        self.assertIn('/img/logo-email.png', html)
         self.assertNotIn('cid:orbit-logo', html)
         self.assertEqual(mensaje.attachments, [])
         self.assertIn('Restablece tu contraseña', html)
