@@ -153,17 +153,6 @@ async function editarPerfil(datos) {
 }
 
 /**
- * Eliminar cuenta con confirmación de contraseña
- */
-async function eliminarCuenta(contrasena) {
-    const respuesta = await api.delete('/usuarios/eliminar/', {
-        data: { contrasena: contrasena }
-    });
-    cerrarSesion();
-    return respuesta.data;
-}
-
-/**
  * Inhabilitar la cuenta propia (sin borrar datos) con confirmación de
  * contraseña. Al quedar inactiva, la sesión se cierra y se avisa en el login.
  */
@@ -206,7 +195,6 @@ export {
     logout,
     obtenerPerfil,
     editarPerfil,
-    eliminarCuenta,
     inhabilitarCuenta,
     estaAutenticado,
     obtenerToken,

@@ -352,6 +352,20 @@
     color: var(--color-primario);
     flex-shrink: 0;
 }
+.avatar--boton {
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.avatar--boton:hover {
+    background: rgba(0, 229, 255, 0.25);
+    border-color: var(--color-primario);
+}
+.avatar--boton:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 3px;
+}
 .avatar-solido {
     background: var(--color-primario);
     color: var(--color-secundario);

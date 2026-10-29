@@ -110,7 +110,7 @@ export function alertar({ titulo = 'Aviso', mensaje = '', aceptarTexto = 'Entend
 /**
  * Pide un texto (reemplaza prompt). Resuelve string o null si se cancela.
  */
-export function preguntarTexto({ titulo = 'Ingresa un valor', mensaje = '', valorInicial = '', placeholder = '', confirmarTexto = 'Aceptar', cancelarTexto = 'Cancelar' } = {}) {
+export function preguntarTexto({ titulo = 'Ingresa un valor', mensaje = '', valorInicial = '', placeholder = '', tipo = 'text', confirmarTexto = 'Aceptar', cancelarTexto = 'Cancelar' } = {}) {
     return new Promise((resolve) => {
         const overlay = crearOverlay();
         overlay.innerHTML = `
@@ -118,7 +118,7 @@ export function preguntarTexto({ titulo = 'Ingresa un valor', mensaje = '', valo
                 <h3 class="modal-titulo">${escapar(titulo)}</h3>
                 ${mensaje ? `<p class="dialogo-mensaje">${escapar(mensaje)}</p>` : ''}
                 <div class="dialogo-campo">
-                    <input class="input-dark" data-dialogo-input value="${escapar(valorInicial)}" placeholder="${escapar(placeholder)}">
+                    <input class="input-dark" data-dialogo-input type="${tipo === 'password' ? 'password' : 'text'}" value="${escapar(valorInicial)}" placeholder="${escapar(placeholder)}">
                 </div>
                 <div class="modal-acciones dialogo-acciones">
                     <button type="button" class="btn-secondary" data-dialogo="cancelar">${escapar(cancelarTexto)}</button>

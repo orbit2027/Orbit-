@@ -81,27 +81,6 @@
     text-overflow: ellipsis;
 }
 
-.sidebar__toggle {
-    width: 30px;
-    height: 30px;
-    flex-shrink: 0;
-    border-radius: 9px;
-    border: 1px solid var(--borde-sutil);
-    background: transparent;
-    color: var(--color-terciario);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.sidebar__toggle:hover {
-    color: var(--color-primario);
-    border-color: var(--borde-cian-fuerte);
-    background: var(--superficie-hover);
-}
-
 /* ═══════════ BÚSQUEDA ═══════════ */
 .sidebar__buscar {
     position: relative;
@@ -268,7 +247,7 @@
 /* ═══════════ PIE DE CONTROLES ═══════════ */
 .sidebar__footer {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     padding: 12px 14px 16px;
     border-top: 1px solid var(--borde-sutil);
@@ -368,10 +347,6 @@
         margin: 0;
     }
 
-    .sidebar--colapsado .sidebar__toggle {
-        display: none;
-    }
-
     .sidebar--colapsado .sidebar__perfil {
         justify-content: center;
         padding: 18px 8px 14px;
@@ -435,10 +410,6 @@
     .layout-principal > .sidebar.abierto {
         transform: translateX(0);
         box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
-    }
-
-    .sidebar__toggle {
-        display: none;
     }
 
     .sidebar__hamburguesa {

@@ -6,11 +6,9 @@
  * - Tema claro / oscuro (lo aplica en <html data-tema>).
  * - Búsqueda interna de secciones (con atajo Ctrl/Cmd+K).
  * - Estado activo según la URL actual.
- * - Badge de notificaciones urgentes.
  * - Tooltips en modo colapsado.
  * - Comportamiento móvil (panel deslizable con hamburguesa y fondo).
  */
-import api from './api.js';
 import { obtenerUsuario, logout } from './autenticacion.js';
 import { obtenerInvitacionesPendientes } from './invitaciones.js';
 
@@ -46,7 +44,6 @@ const GRUPOS = [
             { etiqueta: 'Calendario', icono: 'bi-calendar3-week', archivo: 'calendario.html' },
             { etiqueta: 'Mapa mental', icono: 'bi-diagram-3', archivo: 'mapa-mental.html' },
             { etiqueta: 'Estadísticas', icono: 'bi-bar-chart-line', archivo: 'estadisticas.html' },
-            { etiqueta: 'Notificaciones', icono: 'bi-bell', accion: 'notificaciones', badge: 'notif' },
             { etiqueta: 'Invitaciones', icono: 'bi-envelope-paper', archivo: 'invitaciones.html', badge: 'invit' },
         ],
     },
@@ -122,9 +119,6 @@ function render(sidebar) {
                     <div class="sidebar__nombre" id="nombre-usuario">${nombre}</div>
                     <div class="sidebar__rol" id="sidebar-rol">${rol}</div>
                 </div>
-                <button class="sidebar__toggle" id="sidebar-toggle" aria-label="Colapsar menú">
-                    <i class="bi bi-chevron-double-left"></i>
-                </button>
             </header>
 
             <div class="sidebar__buscar">
@@ -143,7 +137,7 @@ function render(sidebar) {
                 <button class="sidebar__control" id="sidebar-tema" data-tooltip="Modo claro">
                     <i class="bi bi-sun"></i>
                 </button>
-                <button class="sidebar__control" id="sidebar-colapsar" data-tooltip="Colapsar">
+                <button class="sidebar__control" id="sidebar-colapsar">
                     <i class="bi bi-chevron-double-left"></i>
                 </button>
             </footer>
@@ -171,26 +165,25 @@ function enlazar(sidebar) {
                 logout();
                 return;
             }
-            if (accion === 'notificaciones') {
-                const campana = document.getElementById('campana-notificaciones');
-                if (campana) campana.click();
-                else window.location.href = resolverRuta('tablero-kanban.html');
-                return;
-            }
             if (item.dataset.archivo) {
                 window.location.href = resolverRuta(item.dataset.archivo);
             }
         });
     });
 
+    document.getElementById('avatar-topbar')?.addEventListener('click', () => {
+        window.location.href = resolverRuta('perfil.html');
+    });
+
     const alternarColapso = () => {
         sidebar.classList.toggle('sidebar--colapsado');
         const colapsado = sidebar.classList.contains('sidebar--colapsado');
         localStorage.setItem(CLAVE_COLAPSADO, colapsado ? '1' : '0');
+        actualizarControlColapso(sidebar);
         document.querySelectorAll('.sidebar__tooltip').forEach(t => t.remove());
     };
-    document.getElementById('sidebar-toggle')?.addEventListener('click', alternarColapso);
     document.getElementById('sidebar-colapsar')?.addEventListener('click', alternarColapso);
+    actualizarControlColapso(sidebar);
 
     document.getElementById('sidebar-tema')?.addEventListener('click', () => {
         const nuevo = document.documentElement.dataset.tema === 'claro' ? 'oscuro' : 'claro';
@@ -213,6 +206,17 @@ function enlazar(sidebar) {
     }
 }
 
+function actualizarControlColapso(sidebar) {
+    const boton = sidebar.querySelector('#sidebar-colapsar');
+    if (!boton) return;
+
+    const colapsado = sidebar.classList.contains('sidebar--colapsado');
+    const etiqueta = colapsado ? 'Expandir menú' : 'Colapsar menú';
+    boton.setAttribute('aria-label', etiqueta);
+    boton.dataset.tooltip = etiqueta;
+    boton.innerHTML = `<i class="bi ${colapsado ? 'bi-chevron-double-right' : 'bi-chevron-double-left'}"></i>`;
+}
+
 function aplicarTema(tema) {
     document.documentElement.dataset.tema = tema;
     localStorage.setItem(CLAVE_TEMA, tema);
@@ -229,33 +233,11 @@ function actualizarBotonTema() {
     boton.dataset.tooltip = claro ? 'Modo oscuro' : 'Modo claro';
 }
 
-function aDias(iso) {
-    if (!iso) return null;
-    const fecha = new Date(iso);
-    if (isNaN(fecha.getTime())) return null;
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    fecha.setHours(0, 0, 0, 0);
-    return Math.round((fecha - hoy) / 86400000);
-}
-
 async function actualizarBadges(sidebar) {
-    const badgeNotif = sidebar.querySelector('[data-badge="notif"]');
     const badgeInvit = sidebar.querySelector('[data-badge="invit"]');
-
-    const [tareas, invitaciones] = await Promise.allSettled([
-        api.get('/tareas/'),
+    const [invitaciones] = await Promise.allSettled([
         obtenerInvitacionesPendientes()
     ]);
-
-    if (badgeNotif && tareas.status === 'fulfilled') {
-        const urgentes = (tareas.value.data || [])
-            .filter(t => t.estado !== 'completado')
-            .map(t => aDias(t.fecha_limite))
-            .filter(d => d !== null && d <= 3).length;
-        badgeNotif.textContent = urgentes;
-        badgeNotif.classList.toggle('visible', urgentes > 0);
-    }
 
     if (badgeInvit && invitaciones.status === 'fulfilled') {
         const total = invitaciones.value.length;
