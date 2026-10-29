@@ -46,10 +46,10 @@ export function refrescarCaptcha() {
     cargarImagen();
 }
 
-/** Devuelve el código escrito respetando mayúsculas y minúsculas. */
+/** Devuelve el código escrito sin espacios; la validación no distingue mayúsculas. */
 export function obtenerCodigoCaptcha() {
     const input = document.getElementById(ID_INPUT);
-    return input ? input.value.trim() : '';
+    return input ? input.value.trim().toUpperCase() : '';
 }
 
 /** Limpia el input y pide un código nuevo. */

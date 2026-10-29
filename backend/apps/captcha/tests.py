@@ -45,7 +45,7 @@ class CaptchaLocalTest(TestCase):
         self.assertEqual(respuesta.status_code, 403)
         self.assertTrue(self.api.session.get(CLAVE_CODIGO))
 
-    def test_rechaza_el_codigo_si_no_respeta_mayusculas(self):
+    def test_acepta_el_codigo_sin_distinguir_mayusculas(self):
         codigo = ''
         for _ in range(10):
             codigo = self.cargar_captcha()
@@ -55,10 +55,10 @@ class CaptchaLocalTest(TestCase):
 
         respuesta = self._login(codigo.swapcase())
 
-        self.assertEqual(respuesta.status_code, 403)
-        self.assertEqual(self.api.session.get(CLAVE_CODIGO), codigo)
+        self.assertEqual(respuesta.status_code, 401)
+        self.assertFalse(self.api.session.get(CLAVE_CODIGO))
 
-    def test_acepta_el_codigo_respetando_mayusculas(self):
+    def test_acepta_el_codigo_correcto(self):
         codigo = self.cargar_captcha()
 
         respuesta = self._login(codigo)

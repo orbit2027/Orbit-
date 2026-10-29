@@ -108,7 +108,8 @@ def verificar_token(request, token_captcha):
     if not codigo or _esta_expirado(request):
         return False
 
-    enviado = str(token_captcha or '').strip()
+    enviado = str(token_captcha or '').strip().upper()
+    codigo = codigo.upper()
     if codigo != enviado:
         return False
 
