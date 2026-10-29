@@ -169,12 +169,37 @@
 .zoom-flotante__boton--ancho { padding: 0 8px; }
 
 /* Administración */
-.admin__stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.admin__stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .admin__table-card { padding: 24px; margin-bottom: 24px; }
 .admin__chart-card { padding: 24px; }
 .admin__search { position: relative; }
 .admin__search i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-terciario); font-size: 14px; }
 .admin__search input { padding-left: 32px; width: 220px; }
+.admin__section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.admin__section-heading h3 { margin: 0 0 6px; color: var(--color-texto); font-size: 18px; }
+.admin__section-heading p { margin: 0; color: var(--color-terciario); font-size: 13px; }
+.admin__section-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin__content-search { max-width: 420px; margin-bottom: 20px; }
+.admin__content-search input { width: 100%; }
+.admin__subheading { margin: 22px 0 8px; color: var(--color-texto); }
+.admin__content-table-wrap { overflow-x: auto; }
+.admin__settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.admin__setting { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.admin__setting--full { grid-column: 1 / -1; }
+.admin__setting textarea { width: 100%; resize: vertical; }
+.admin__setting--check { flex-direction: row; align-items: center; color: var(--color-texto); font-size: 13px; }
+.admin__setting--check input { accent-color: var(--color-primario); }
+.admin__settings-footer { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-top: 20px; }
+.admin__edit-field { margin-bottom: 14px; }
+.admin__edit-field .input-dark { width: 100%; }
+
+@media (max-width: 640px) {
+    .admin__section-heading { flex-direction: column; }
+    .admin__settings-grid { grid-template-columns: 1fr; }
+    .admin__setting--full { grid-column: auto; }
+    .admin__settings-footer { align-items: stretch; flex-direction: column; }
+    .admin__settings-footer .btn-primary { width: 100%; }
+}
 
 @media (max-width: 900px) {
     .landing__title { font-size: 38px; }

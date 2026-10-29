@@ -95,6 +95,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.captcha.middleware.VerificarCaptchaMiddleware',
+    'apps.administracion.middleware.MantenimientoMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

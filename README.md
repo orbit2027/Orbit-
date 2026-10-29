@@ -16,6 +16,13 @@ Abre `http://localhost:5500` para usar la aplicación. La API queda disponible
 en `http://localhost:8000/api/v1/`. Presiona `Ctrl+C` en la terminal para
 detener ambos servidores.
 
+Al incorporar cambios con nuevas migraciones, aplícalas desde `backend` antes
+de iniciar el servidor:
+
+```powershell
+python manage.py migrate
+```
+
 ## Despliegue en Vercel + Supabase
 
 El despliegue usa **un solo proyecto de Vercel** con **Root Directory =
@@ -126,6 +133,22 @@ Si prefieres migrar a mano desde tu equipo:
 $env:DATABASE_URL = "postgresql://...:6543/postgres?sslmode=require"
 python backend/manage.py migrate
 ```
+
+### Crear una cuenta administradora
+
+Después de migrar la base de datos, ejecuta desde la raíz:
+
+```powershell
+python backend/scripts/create_app_admin.py
+```
+
+El script solicita el correo, nombre y contraseña; la contraseña se captura
+sin mostrarla en pantalla y se valida con la política vigente de la aplicación.
+No guarda credenciales predeterminadas en el código. Para crear una cuenta en
+producción, configura `DATABASE_URL` con la conexión de Supabase antes de
+ejecutarlo. Si ya existe el correo, el script no cambia ni revela su contraseña.
+Para recuperar el acceso a una cuenta existente, usa el flujo de recuperación
+por correo de la aplicación.
 
 ### 5. Comprobar el despliegue
 

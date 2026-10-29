@@ -1,6 +1,6 @@
-import re
 from rest_framework import serializers
 from apps.usuarios.modelo import Usuario
+from .politica_contrasena import validar_contrasena
 
 
 class UsuarioAdminSerializador(serializers.Serializer):
@@ -26,7 +26,7 @@ class UsuarioAdminSerializador(serializers.Serializer):
 class CrearUsuarioAdminSerializador(serializers.Serializer):
     nombre_completo = serializers.CharField(max_length=150)
     correo = serializers.EmailField(max_length=254)
-    contrasena = serializers.CharField(min_length=8)
+    contrasena = serializers.CharField()
     rol = serializers.ChoiceField(choices=['usuario', 'administrador'], default='usuario')
 
     def validate_correo(self, valor):
@@ -35,10 +35,9 @@ class CrearUsuarioAdminSerializador(serializers.Serializer):
         return valor.lower().strip()
 
     def validate_contrasena(self, valor):
-        if not re.search(r'[A-Z]', valor):
-            raise serializers.ValidationError("La contrasena debe tener al menos una mayuscula.")
-        if not re.search(r'\d', valor):
-            raise serializers.ValidationError("La contrasena debe tener al menos un numero.")
+        errores = validar_contrasena(valor)
+        if errores:
+            raise serializers.ValidationError(errores)
         return valor
 
     def create(self, validated_data):
@@ -75,9 +74,13 @@ class CrecimientoMensualSerializador(serializers.Serializer):
 class EstadisticasGlobalesSerializador(serializers.Serializer):
     """Métricas globales del sistema."""
     total_usuarios = serializers.IntegerField()
+    usuarios_activos = serializers.IntegerField()
     tareas_activas = serializers.IntegerField()
     completadas_hoy = serializers.IntegerField()
     activos_hoy = serializers.IntegerField()
+    proyectos_totales = serializers.IntegerField()
+    proyectos_activos = serializers.IntegerField()
+    proyectos_archivados = serializers.IntegerField()
     crecimiento_mensual = CrecimientoMensualSerializador(many=True)
 
 
@@ -85,3 +88,69 @@ class ToggleUsuarioRespuestaSerializador(serializers.Serializer):
     """Resultado de activar/desactivar un usuario."""
     mensaje = serializers.CharField()
     activo = serializers.BooleanField()
+
+
+class ConfiguracionAdminSerializador(serializers.Serializer):
+    aviso_global = serializers.CharField(max_length=500, allow_blank=True, required=False)
+    mantenimiento_activo = serializers.BooleanField(required=False)
+    mensaje_mantenimiento = serializers.CharField(max_length=500, required=False)
+    longitud_minima_contrasena = serializers.IntegerField(
+        min_value=8, max_value=128, required=False
+    )
+    exigir_mayuscula = serializers.BooleanField(required=False)
+    exigir_numero = serializers.BooleanField(required=False)
+
+    def validate(self, datos):
+        mantenimiento_activo = datos.get(
+            'mantenimiento_activo',
+            getattr(self.instance, 'mantenimiento_activo', False),
+        )
+        mensaje = datos.get(
+            'mensaje_mantenimiento',
+            getattr(self.instance, 'mensaje_mantenimiento', ''),
+        )
+        if mantenimiento_activo and not mensaje.strip():
+            raise serializers.ValidationError({
+                'mensaje_mantenimiento': (
+                    'Escribe el aviso que se mostrará durante el mantenimiento.'
+                )
+            })
+        return datos
+
+
+class PoliticaContrasenaSerializador(serializers.Serializer):
+    longitud_minima = serializers.IntegerField()
+    mayuscula_requerida = serializers.BooleanField()
+    numero_requerido = serializers.BooleanField()
+
+
+class ConfiguracionPublicaSerializador(serializers.Serializer):
+    aviso_global = serializers.CharField()
+    mantenimiento_activo = serializers.BooleanField()
+    mensaje_mantenimiento = serializers.CharField()
+    politica_contrasena = PoliticaContrasenaSerializador()
+
+
+class TareaModeracionAdminSerializador(serializers.Serializer):
+    """Tarea disponible para moderación global, con datos de su propietario."""
+    id = serializers.CharField()
+    titulo = serializers.CharField()
+    descripcion = serializers.CharField()
+    estado = serializers.CharField()
+    etiqueta = serializers.CharField()
+    fecha_limite = serializers.DateField(allow_null=True)
+    propietario = serializers.CharField()
+    correo_propietario = serializers.EmailField()
+
+
+class ProyectoModeracionAdminSerializador(serializers.Serializer):
+    """Proyecto disponible para moderación global, con sus métricas."""
+    id = serializers.CharField()
+    nombre = serializers.CharField()
+    descripcion = serializers.CharField()
+    estado = serializers.CharField()
+    fecha_limite = serializers.DateField(allow_null=True)
+    propietario = serializers.CharField()
+    correo_propietario = serializers.EmailField()
+    tareas_totales = serializers.IntegerField()
+    tareas_completadas = serializers.IntegerField()

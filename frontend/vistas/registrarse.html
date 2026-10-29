@@ -83,9 +83,7 @@
                     </div>
                     <div class="auth__strength-labels">
                         <span id="texto-fortaleza" class="auth__strength-text"></span>
-                        <span class="auth__strength-help">
-                            Debe incluir al menos una mayúscula y un número
-                        </span>
+                        <span class="auth__strength-help" id="ayuda-fortaleza"></span>
                     </div>
                 </div>
             </div>
@@ -116,7 +114,7 @@
                     <i class="bi bi-shield-check"></i>
                     <input class="input-dark" id="captcha-input" type="text"
                            autocomplete="off" placeholder="Escribe el código de la imagen"
-                           maxlength="5" style="text-transform: uppercase;">
+                           maxlength="5" autocapitalize="off" spellcheck="false">
                 </div>
             </div>
 
@@ -139,6 +137,7 @@
     import { registrar, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
     import { validarContrasena } from '../js/utilidades.js';
     import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { obtenerConfiguracionPublica, inicializarAvisoGlobal } from '../js/configuracion.js';
 
     // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
     const volver = obtenerDestinoVolver();
@@ -156,6 +155,21 @@
     }
 
     inicializarCaptcha();
+    inicializarAvisoGlobal();
+
+    let politicaContrasena = {
+        longitud_minima: 8,
+        mayuscula_requerida: true,
+        numero_requerido: true
+    };
+    try {
+        const configuracion = await obtenerConfiguracionPublica();
+        politicaContrasena = configuracion.politica_contrasena;
+        document.getElementById('contrasena').placeholder =
+            `Mínimo ${politicaContrasena.longitud_minima} caracteres`;
+    } catch (error) {
+        console.error('No se pudo cargar la política de contraseñas:', error);
+    }
 
     const formulario = document.getElementById('formulario-registro');
     const errorBox = document.getElementById('error-registro');
@@ -165,7 +179,15 @@
     const inputConfirmar = document.getElementById('confirmar');
     const zonaFortaleza = document.getElementById('zona-fortaleza');
     const textoFortaleza = document.getElementById('texto-fortaleza');
+    const ayudaFortaleza = document.getElementById('ayuda-fortaleza');
     const iconoCoincidencia = document.getElementById('icono-coincidencia');
+    const requisitosActivos = [];
+    if (politicaContrasena.mayuscula_requerida) requisitosActivos.push('una mayúscula');
+    if (politicaContrasena.numero_requerido) requisitosActivos.push('un número');
+    ayudaFortaleza.textContent = [
+        `Mínimo ${politicaContrasena.longitud_minima} caracteres`,
+        ...requisitosActivos
+    ].join(' y ');
 
     function mostrarError(mensaje) {
         errorTexto.textContent = mensaje;
@@ -189,16 +211,16 @@
         }
         zonaFortaleza.style.display = 'block';
 
-        const tieneMayuscula = /[A-Z]/.test(valor);
-        const tieneNumero = /\d/.test(valor);
+        const criterios = validarContrasena(valor, politicaContrasena);
 
         let nivel = 0;
         let etiqueta = '';
         let color = '';
 
-        if (valor.length >= 8 && tieneMayuscula && tieneNumero) {
+        if (criterios.longitud && criterios.mayuscula && criterios.numero) {
             nivel = 3; etiqueta = 'Fuerte'; color = 'var(--color-exito)';
-        } else if (valor.length >= 6 && (tieneMayuscula || tieneNumero)) {
+        } else if (valor.length >= Math.max(6, politicaContrasena.longitud_minima - 2) &&
+            (criterios.mayuscula || criterios.numero)) {
             nivel = 2; etiqueta = 'Regular'; color = 'var(--color-advertencia)';
         } else {
             nivel = 1; etiqueta = 'Débil'; color = 'var(--color-error)';
@@ -247,7 +269,7 @@
             mostrarError('Las contraseñas no coinciden.');
             return;
         }
-        const fortaleza = validarContrasena(contrasena);
+        const fortaleza = validarContrasena(contrasena, politicaContrasena);
         if (!fortaleza.longitud || !fortaleza.mayuscula || !fortaleza.numero) {
             mostrarError('La contraseña no cumple los requisitos de seguridad.');
             return;

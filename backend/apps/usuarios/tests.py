@@ -25,6 +25,32 @@ class BaseRefrescoTest(TestCase):
         return usuario
 
 
+class ContrasenaHashTest(TestCase):
+
+    def test_hash_y_verificacion_aceptan_contrasenas_largas(self):
+        usuario = Usuario(
+            nombre_completo='Usuario Prueba',
+            correo='ana@orbit.local',
+        )
+        contrasena = 'Orbit#123' + 'x' * 80
+        usuario.set_contrasena(contrasena)
+
+        self.assertTrue(usuario.contrasena.startswith('sha256$'))
+        self.assertTrue(usuario.verificar_contrasena(contrasena))
+        self.assertFalse(usuario.verificar_contrasena(contrasena[:-1] + 'y'))
+
+    def test_los_hashes_bcrypt_existentes_siguen_validandose(self):
+        usuario = Usuario(
+            nombre_completo='Usuario Prueba',
+            correo='ana@orbit.local',
+        )
+        usuario.set_contrasena('Prueba#123')
+
+        self.assertTrue(usuario.contrasena.startswith('$2'))
+        self.assertTrue(usuario.verificar_contrasena('Prueba#123'))
+        self.assertFalse(usuario.verificar_contrasena('OtraClave#99'))
+
+
 class RefrescarJwtTest(BaseRefrescoTest):
 
     def test_refresca_con_refresh_valido(self):

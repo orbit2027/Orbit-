@@ -1,6 +1,12 @@
+import hashlib
+
 from django.db import models
 from django.utils import timezone
 import bcrypt
+
+PREFIJO_CONTRASENA_SHA256 = 'sha256$'
+LIMITE_BCRYPT_BYTES = 72
+
 
 class Usuario(models.Model):
 
@@ -17,16 +23,39 @@ class Usuario(models.Model):
     session_version = models.PositiveIntegerField(default=0)
 
     def set_contrasena(self, contrasena_plana):
+        contrasena_bytes = contrasena_plana.encode('utf-8')
         salt = bcrypt.gensalt(rounds=10)
-        self.contrasena = bcrypt.hashpw(
-            contrasena_plana.encode('utf-8'), salt
-        ).decode('utf-8')
+        if len(contrasena_bytes) > LIMITE_BCRYPT_BYTES:
+            digest = hashlib.sha256(contrasena_bytes).hexdigest().encode('ascii')
+            self.contrasena = PREFIJO_CONTRASENA_SHA256 + bcrypt.hashpw(
+                digest, salt
+            ).decode('utf-8')
+            return
+
+        self.contrasena = bcrypt.hashpw(contrasena_bytes, salt).decode('utf-8')
 
     def verificar_contrasena(self, contrasena_plana):
-        return bcrypt.checkpw(
-            contrasena_plana.encode('utf-8'),
-            self.contrasena.encode('utf-8')
-        )
+        contrasena_bytes = contrasena_plana.encode('utf-8')
+        hash_guardado = self.contrasena
+        if hash_guardado.startswith(PREFIJO_CONTRASENA_SHA256):
+            contrasena_bytes = hashlib.sha256(
+                contrasena_bytes
+            ).hexdigest().encode('ascii')
+            hash_guardado = hash_guardado[len(PREFIJO_CONTRASENA_SHA256):]
+
+        hash_bytes = hash_guardado.encode('utf-8')
+        try:
+            return bcrypt.checkpw(contrasena_bytes, hash_bytes)
+        except ValueError:
+            if len(contrasena_bytes) > LIMITE_BCRYPT_BYTES:
+                try:
+                    return bcrypt.checkpw(
+                        contrasena_bytes[:LIMITE_BCRYPT_BYTES],
+                        hash_bytes,
+                    )
+                except ValueError:
+                    return False
+            return False
 
     @property
     def is_authenticated(self):

@@ -99,11 +99,14 @@ function validarCorreo(correo) {
 /**
  * Valida que una contraseña cumpla requisitos mínimos
  */
-function validarContrasena(contrasena) {
+function validarContrasena(contrasena, politica = {}) {
+    const longitudMinima = politica.longitud_minima ?? 8;
+    const requiereMayuscula = politica.mayuscula_requerida ?? true;
+    const requiereNumero = politica.numero_requerido ?? true;
     return {
-        longitud: contrasena.length >= 8,
-        mayuscula: /[A-Z]/.test(contrasena),
-        numero: /\d/.test(contrasena)
+        longitud: contrasena.length >= longitudMinima,
+        mayuscula: !requiereMayuscula || /[A-Z]/.test(contrasena),
+        numero: !requiereNumero || /\d/.test(contrasena)
     };
 }
 

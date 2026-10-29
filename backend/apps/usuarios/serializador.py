@@ -2,15 +2,15 @@
 Serializadores DRF para el módulo de usuarios.
 Validan y transforman datos de entrada/salida de la API.
 """
-import re
 from rest_framework import serializers
 from .modelo import Usuario
+from apps.administracion.politica_contrasena import validar_contrasena
 
 class RegistroUsuarioSerializador(serializers.Serializer):
  
     nombre_completo = serializers.CharField(max_length=150)
     correo = serializers.EmailField(max_length=254)
-    contrasena = serializers.CharField(min_length=8, write_only=True)
+    contrasena = serializers.CharField(write_only=True)
 
     def validate_correo(self, valor):
         if Usuario.objects.filter(correo=valor).first():
@@ -18,15 +18,9 @@ class RegistroUsuarioSerializador(serializers.Serializer):
         return valor.lower().strip()
 
     def validate_contrasena(self, valor):
-       
-        if not re.search(r'[A-Z]', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos una mayúscula."
-            )
-        if not re.search(r'\d', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos un número."
-            )
+        errores = validar_contrasena(valor)
+        if errores:
+            raise serializers.ValidationError(errores)
         return valor
 
     def create(self, validated_data):
@@ -75,7 +69,7 @@ class EditarUsuarioSerializador(serializers.Serializer):
     nombre_completo = serializers.CharField(max_length=150, required=False)
     correo = serializers.EmailField(max_length=254, required=False)
     contrasena_actual = serializers.CharField(required=False)
-    contrasena_nueva = serializers.CharField(min_length=8, required=False)
+    contrasena_nueva = serializers.CharField(required=False)
 
     def validate_correo(self, valor):
         """Verifica que el nuevo correo no esté en uso por otro usuario."""
@@ -86,14 +80,9 @@ class EditarUsuarioSerializador(serializers.Serializer):
 
     def validate_contrasena_nueva(self, valor):
         """Valida fortaleza de la nueva contraseña si se proporciona."""
-        if not re.search(r'[A-Z]', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos una mayúscula."
-            )
-        if not re.search(r'\d', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos un número."
-            )
+        errores = validar_contrasena(valor)
+        if errores:
+            raise serializers.ValidationError(errores)
         return valor
 
 

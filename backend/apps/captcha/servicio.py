@@ -104,11 +104,11 @@ def verificar_token(request, token_captcha):
     if settings.DEBUG or not settings.CAPTCHA_HABILITADO:
         return True
 
-    codigo = str(request.session.get(CLAVE_CODIGO, '') or '').upper()
+    codigo = str(request.session.get(CLAVE_CODIGO, '') or '')
     if not codigo or _esta_expirado(request):
         return False
 
-    enviado = str(token_captcha or '').upper().strip()
+    enviado = str(token_captcha or '').strip()
     if codigo != enviado:
         return False
 

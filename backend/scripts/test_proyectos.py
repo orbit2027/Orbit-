@@ -80,23 +80,32 @@ def main():
     verificar("Restaurar proyecto", r.status_code == 200 and
               r.json().get('estado') == 'activo')
 
-    # RF-PRO-06: admin ve todos
-    admin = requests.post(f"{BASE}/api/v1/usuarios/login/", json={
-        'correo': 'admin@orbit.local', 'contrasena': 'Admin1234',
-        'captcha_token': CAPTCHA,
-    }, timeout=10)
-    if admin.status_code == 200:
-        ah = {'Authorization': f"Bearer {admin.json()['tokens']['access']}"}
-        r = requests.get(f"{BASE}/api/v1/proyectos/admin/todos/", headers=ah, timeout=10)
-        verificar("Admin ve todos los proyectos",
-                  r.status_code == 200 and any(p.get('id') == pid for p in r.json()),
-                  str(r.status_code))
-        if r.status_code == 200:
-            encontrado = next((p for p in r.json() if p.get('id') == pid), None)
-            verificar("Proyecto incluye propietario",
-                      encontrado and 'propietario' in encontrado)
+    # RF-PRO-06: admin ve todos (opcional, requiere una credencial local).
+    contrasena_admin = os.environ.get('ORBIT_TEST_ADMIN_PASSWORD')
+    if not contrasena_admin:
+        print("[OMITIDO] Define ORBIT_TEST_ADMIN_PASSWORD para validar el acceso admin.")
     else:
-        verificar("Login admin", False, str(admin.status_code))
+        admin = requests.post(
+            f"{BASE}/api/v1/usuarios/login/",
+            json={
+                'correo': 'admin@orbit.local',
+                'contrasena': contrasena_admin,
+                'captcha_token': CAPTCHA,
+            },
+            timeout=10,
+        )
+        if admin.status_code == 200:
+            ah = {'Authorization': f"Bearer {admin.json()['tokens']['access']}"}
+            r = requests.get(f"{BASE}/api/v1/proyectos/admin/todos/", headers=ah, timeout=10)
+            verificar("Admin ve todos los proyectos",
+                      r.status_code == 200 and any(p.get('id') == pid for p in r.json()),
+                      str(r.status_code))
+            if r.status_code == 200:
+                encontrado = next((p for p in r.json() if p.get('id') == pid), None)
+                verificar("Proyecto incluye propietario",
+                          encontrado and 'propietario' in encontrado)
+        else:
+            verificar("Login admin", False, str(admin.status_code))
 
     # RF-PRO-06 bloqueado para usuario normal
     r = requests.get(f"{BASE}/api/v1/proyectos/admin/todos/", headers=h, timeout=10)

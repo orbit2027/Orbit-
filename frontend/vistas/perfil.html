@@ -88,22 +88,39 @@
                 <!-- Cambiar contraseña -->
                 <section class="seccion-perfil">
                     <h3 class="seccion-perfil-titulo">Cambiar contraseña</h3>
-                    <p class="seccion-perfil-desc">Debe tener al menos 8 caracteres, una mayúscula y un número.</p>
+                    <p class="seccion-perfil-desc" id="descripcion-politica-contrasena">
+                        Debe tener al menos 8 caracteres, una mayúscula y un número.
+                    </p>
 
                     <div class="campo-perfil">
                         <label class="etiqueta-form" for="perfil-contrasena-actual">Contraseña actual</label>
-                        <input class="input-dark" id="perfil-contrasena-actual" type="password" autocomplete="current-password">
+                        <div class="perfil__password-wrap">
+                            <input class="input-dark" id="perfil-contrasena-actual" type="password" autocomplete="current-password">
+                            <button class="perfil__password-toggle" type="button" data-password-toggle="perfil-contrasena-actual" data-password-label="contraseña actual" aria-label="Mostrar contraseña actual">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="campo-perfil">
                         <label class="etiqueta-form" for="perfil-contrasena-nueva">Nueva contraseña</label>
-                        <input class="input-dark" id="perfil-contrasena-nueva" type="password" autocomplete="new-password"
-                               placeholder="Mín. 8 caracteres">
+                        <div class="perfil__password-wrap">
+                            <input class="input-dark" id="perfil-contrasena-nueva" type="password" autocomplete="new-password"
+                                   placeholder="Mín. 8 caracteres">
+                            <button class="perfil__password-toggle" type="button" data-password-toggle="perfil-contrasena-nueva" data-password-label="contraseña nueva" aria-label="Mostrar contraseña nueva">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="campo-perfil">
                         <label class="etiqueta-form" for="perfil-contrasena-confirmar">Confirmar nueva contraseña</label>
-                        <input class="input-dark" id="perfil-contrasena-confirmar" type="password" autocomplete="new-password">
+                        <div class="perfil__password-wrap">
+                            <input class="input-dark" id="perfil-contrasena-confirmar" type="password" autocomplete="new-password">
+                            <button class="perfil__password-toggle" type="button" data-password-toggle="perfil-contrasena-confirmar" data-password-label="confirmación de contraseña" aria-label="Mostrar confirmación de contraseña">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="modal-acciones">
@@ -140,11 +157,27 @@
     import { inicializarNotificaciones } from '../js/notificaciones.js';
     import { confirmar, alertar, preguntarTexto } from '../js/dialogos.js';
     import { inicializarSidebar } from '../js/sidebar.js';
+    import { obtenerConfiguracionPublica } from '../js/configuracion.js';
 
     // Barra lateral compartida
     inicializarSidebar();
+    document.querySelectorAll('[data-password-toggle]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            const input = document.getElementById(boton.dataset.passwordToggle);
+            const visible = input.type === 'text';
+            input.type = visible ? 'password' : 'text';
+            boton.setAttribute('aria-label',
+                `${visible ? 'Mostrar' : 'Ocultar'} ${boton.dataset.passwordLabel}`);
+            boton.querySelector('i').className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+        });
+    });
 
     let perfilActual = null;
+    let politicaContrasena = {
+        longitud_minima: 8,
+        mayuscula_requerida: true,
+        numero_requerido: true
+    };
 
     function actualizarAvatares(datos) {
         const iniciales = datos.nombre_completo.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
@@ -166,6 +199,21 @@
 
     async function cargarPerfil() {
         try {
+            try {
+                const configuracion = await obtenerConfiguracionPublica();
+                politicaContrasena = configuracion.politica_contrasena;
+                document.querySelector('#perfil-contrasena-nueva').placeholder =
+                    `Mínimo ${politicaContrasena.longitud_minima} caracteres`;
+                const requisitos = [
+                    `mínimo ${politicaContrasena.longitud_minima} caracteres`,
+                    politicaContrasena.mayuscula_requerida ? 'una mayúscula' : null,
+                    politicaContrasena.numero_requerido ? 'un número' : null
+                ].filter(Boolean);
+                document.getElementById('descripcion-politica-contrasena').textContent =
+                    `La contraseña debe cumplir con: ${requisitos.join(', ')}.`;
+            } catch (error) {
+                console.error('No se pudo cargar la política de contraseñas:', error);
+            }
             perfilActual = await obtenerPerfil();
             rellenarFormulario(perfilActual);
 
@@ -221,9 +269,9 @@
         if (!actual) return mostrarError('Escribe tu contraseña actual.');
         if (!nueva) return mostrarError('Escribe la nueva contraseña.');
 
-        const criterios = validarContrasena(nueva);
+        const criterios = validarContrasena(nueva, politicaContrasena);
         if (!criterios.longitud || !criterios.mayuscula || !criterios.numero) {
-            return mostrarError('La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.');
+            return mostrarError('La contraseña no cumple los requisitos actuales de seguridad.');
         }
         if (nueva !== confirmarNueva) return mostrarError('Las contraseñas nuevas no coinciden.');
 

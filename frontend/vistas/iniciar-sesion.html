@@ -84,7 +84,7 @@
                     <i class="bi bi-shield-check"></i>
                     <input class="input-dark" id="captcha-input" type="text"
                            autocomplete="off" placeholder="Escribe el código de la imagen"
-                           maxlength="5" style="text-transform: uppercase;">
+                           maxlength="5" autocapitalize="off" spellcheck="false">
                 </div>
             </div>
 
@@ -106,6 +106,7 @@
 <script type="module">
     import { iniciarSesion, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
     import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { inicializarAvisoGlobal } from '../js/configuracion.js';
 
     // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
     const volver = obtenerDestinoVolver();
@@ -124,6 +125,7 @@
     }
 
     inicializarCaptcha();
+    inicializarAvisoGlobal();
 
     const formulario = document.getElementById('formulario-login');
     const errorBox = document.getElementById('error-login');

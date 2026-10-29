@@ -67,12 +67,16 @@
                 <div class="campo-con-icono">
                     <i class="bi bi-lock"></i>
                     <input class="input-dark" type="password" id="contrasena-nueva"
-                           placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número"
                            autocomplete="new-password">
                     <button type="button" class="toggle-pass" id="btn-mostrar-pass">
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
+                <ul class="auth__password-requirements" id="requisitos-contrasena" aria-live="polite">
+                    <li data-requisito="longitud"><i class="bi bi-circle"></i> Al menos 8 caracteres</li>
+                    <li data-requisito="mayuscula"><i class="bi bi-circle"></i> Una letra mayúscula</li>
+                    <li data-requisito="numero"><i class="bi bi-circle"></i> Un número</li>
+                </ul>
             </div>
 
             <div class="auth__field auth__field--password">
@@ -104,7 +108,7 @@
                 <i class="bi bi-shield-check"></i>
                 <input class="input-dark" id="captcha-input" type="text"
                        autocomplete="off" placeholder="Escribe el código de la imagen"
-                       maxlength="5" style="text-transform: uppercase;">
+                       maxlength="5" autocapitalize="off" spellcheck="false">
             </div>
         </div>
 
@@ -121,6 +125,8 @@
 <script type="module">
     import api from '../js/api.js';
     import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { validarContrasena } from '../js/utilidades.js';
+    import { obtenerConfiguracionPublica, inicializarAvisoGlobal } from '../js/configuracion.js';
 
     const parametros = new URLSearchParams(window.location.search);
     const token = (parametros.get('token') || '').trim();
@@ -130,6 +136,11 @@
     const formSolicitud = document.getElementById('formulario-solicitud');
     const formConfirmar = document.getElementById('formulario-confirmar');
     const esDesarrolloLocal = window.location.port === '5500';
+    let politicaContrasena = {
+        longitud_minima: 8,
+        mayuscula_requerida: true,
+        numero_requerido: true
+    };
 
     function mostrarError(mensaje) {
         exitoBox.style.display = 'none';
@@ -152,6 +163,22 @@
     }
 
     inicializarCaptcha();
+    inicializarAvisoGlobal();
+    try {
+        const configuracion = await obtenerConfiguracionPublica();
+        politicaContrasena = configuracion.politica_contrasena;
+        const requisitos = document.querySelectorAll('#requisitos-contrasena [data-requisito]');
+        requisitos.forEach((elemento) => {
+            const requerido = elemento.dataset.requisito === 'longitud'
+                || (elemento.dataset.requisito === 'mayuscula' && politicaContrasena.mayuscula_requerida)
+                || (elemento.dataset.requisito === 'numero' && politicaContrasena.numero_requerido);
+            elemento.hidden = !requerido;
+        });
+        document.querySelector('[data-requisito="longitud"]').innerHTML =
+            `<i class="bi bi-circle"></i> Al menos ${politicaContrasena.longitud_minima} caracteres`;
+    } catch (error) {
+        console.error('No se pudo cargar la política de contraseñas:', error);
+    }
 
     // Mostrar/ocultar contraseña
     document.getElementById('btn-mostrar-pass').addEventListener('click', () => {
@@ -160,6 +187,18 @@
         const visible = input.type === 'text';
         input.type = visible ? 'password' : 'text';
         icono.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+
+    const inputContrasena = document.getElementById('contrasena-nueva');
+    inputContrasena.addEventListener('input', () => {
+        const requisitos = validarContrasena(inputContrasena.value, politicaContrasena);
+        document.querySelectorAll('#requisitos-contrasena [data-requisito]').forEach((item) => {
+            const cumplido = requisitos[item.dataset.requisito];
+            item.classList.toggle('cumplido', cumplido);
+            item.querySelector('i').className = cumplido
+                ? 'bi bi-check-circle-fill'
+                : 'bi bi-circle';
+        });
     });
 
     // 1. Solicitar el enlace para restablecer la contraseña
@@ -208,13 +247,13 @@
 
         const contrasena = document.getElementById('contrasena-nueva').value;
         const confirmar = document.getElementById('contrasena-confirmar').value;
-        const criterios = /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(contrasena);
+        const criterios = validarContrasena(contrasena, politicaContrasena);
 
         if (!contrasena) {
             mostrarError('Escribe una nueva contraseña.');
             return;
         }
-        if (!criterios) {
+        if (!criterios.longitud || !criterios.mayuscula || !criterios.numero) {
             mostrarError('La contraseña debe tener mínimo 8 caracteres, una mayúscula y un número.');
             return;
         }

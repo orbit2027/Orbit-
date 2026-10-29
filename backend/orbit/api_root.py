@@ -65,10 +65,16 @@ def api_root(request, format=None):
         },
         'administracion': {
             'estadisticas_globales': r('estadisticas-globales', request=request, format=format),
+            'configuracion_publica': r('configuracion-publica', request=request, format=format),
+            'configuracion': r('configuracion-admin', request=request, format=format),
             'listar_usuarios': r('listar-usuarios', request=request, format=format),
             'crear_usuario': r('crear-usuario', request=request, format=format),
             'detalle_usuario': '/api/v1/administracion/usuarios/<id>/',
             'toggle_activo': '/api/v1/administracion/usuarios/<id>/toggle/',
+            'tareas': r('tareas-admin', request=request, format=format),
+            'moderar_tarea': '/api/v1/administracion/contenido/tareas/<id>/',
+            'proyectos': r('proyectos-admin', request=request, format=format),
+            'moderar_proyecto': '/api/v1/administracion/contenido/proyectos/<id>/',
         },
         'documentacion': {
             'schema_openapi': r('schema', request=request, format=format),

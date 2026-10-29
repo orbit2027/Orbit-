@@ -11,6 +11,7 @@
  */
 import { obtenerUsuario, logout } from './autenticacion.js';
 import { obtenerInvitacionesPendientes } from './invitaciones.js';
+import { inicializarAvisoGlobal } from './configuracion.js';
 
 const CLAVE_TEMA = 'orbit_tema';
 const CLAVE_COLAPSADO = 'orbit_sidebar_colapsado';
@@ -344,6 +345,7 @@ function inicializarSidebar() {
     enlazar(sidebar);
     activarTooltips(sidebar);
     configurarMovil(sidebar);
+    inicializarAvisoGlobal();
     actualizarBotonTema();
     actualizarBadges(sidebar);
 

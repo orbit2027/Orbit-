@@ -116,6 +116,52 @@
     font-size: 14px;
     display: none;
 }
+.auth__password-requirements {
+    display: grid;
+    gap: 5px;
+    margin: 8px 0 0;
+    padding: 0;
+    color: var(--color-terciario);
+    font-size: 12px;
+    list-style: none;
+}
+.auth__password-requirements li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.auth__password-requirements li i { font-size: 13px; }
+.auth__password-requirements li.cumplido { color: var(--color-exito); }
+.perfil__password-wrap { position: relative; }
+.perfil__password-wrap .input-dark { padding-right: 42px; }
+.perfil__password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    color: var(--color-terciario);
+    cursor: pointer;
+}
+.perfil__password-toggle:hover { color: var(--color-primario); }
+.aviso-global-orbit {
+    position: fixed;
+    z-index: 300;
+    top: 12px;
+    left: 50%;
+    width: min(720px, calc(100% - 32px));
+    transform: translateX(-50%);
+    padding: 12px 18px;
+    border: 1px solid rgba(0, 229, 255, 0.35);
+    border-radius: 12px;
+    background: var(--color-secundario);
+    color: var(--color-texto);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    font-size: 13px;
+}
 
 .glass-card {
     background: rgba(255, 255, 255, 0.05);

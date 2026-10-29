@@ -186,7 +186,7 @@
             // Mensaje motivacional
             const motivacion = obtenerMotivacion(porcentaje);
             document.getElementById('mensaje-motivacional').textContent =
-                `${motivacion.texto} ${motivacion.emoji}`;
+                motivacion.texto;
             document.getElementById('subtitulo-progreso').textContent =
                 `Has completado el ${porcentaje}% de tus tareas este mes`;
 

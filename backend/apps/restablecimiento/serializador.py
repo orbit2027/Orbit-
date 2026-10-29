@@ -1,8 +1,8 @@
 """
 Serializadores DRF para el módulo de restablecimiento de contraseña.
 """
-import re
 from rest_framework import serializers
+from apps.administracion.politica_contrasena import validar_contrasena
 
 
 class SolicitarRestablecimientoSerializador(serializers.Serializer):
@@ -13,17 +13,12 @@ class SolicitarRestablecimientoSerializador(serializers.Serializer):
 class ConfirmarRestablecimientoSerializador(serializers.Serializer):
     """Cuerpo del restablecimiento: token + nueva contraseña."""
     token = serializers.CharField()
-    contrasena = serializers.CharField(min_length=8, write_only=True)
+    contrasena = serializers.CharField(write_only=True)
 
     def validate_contrasena(self, valor):
-        if not re.search(r'[A-Z]', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos una mayúscula."
-            )
-        if not re.search(r'\d', valor):
-            raise serializers.ValidationError(
-                "La contraseña debe contener al menos un número."
-            )
+        errores = validar_contrasena(valor)
+        if errores:
+            raise serializers.ValidationError(errores)
         return valor
 
 
