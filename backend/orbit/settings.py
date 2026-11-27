@@ -99,7 +99,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'apps.captcha.middleware.VerificarCaptchaMiddleware',
     'apps.administracion.middleware.MantenimientoMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5500', cast=Csv())
