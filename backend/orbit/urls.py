@@ -46,14 +46,26 @@ urlpatterns = [
 # separación frontend(5500) / backend(8000), por eso aquí se omite.
 if not settings.DEBUG:
     from django.views.static import serve
+
+    def serve_frontend(request, path, document_root, **kwargs):
+        """Sirve el frontend y fuerza revalidación para evitar JS obsoleto.
+
+        `django.views.static.serve` añade un `max-age` que puede dejar al
+        usuario con una versión anterior del captcha durante minutos tras un
+        despliegue. Con `no-cache` el navegador revalida (304 si no cambió).
+        """
+        respuesta = serve(request, path, document_root=document_root, **kwargs)
+        respuesta['Cache-Control'] = 'no-cache, must-revalidate'
+        return respuesta
+
     urlpatterns += [
-        re_path(r'^(?P<path>vistas/(?:.*/)?[\w\-]+\.html)$', serve,
+        re_path(r'^(?P<path>vistas/(?:.*/)?[\w\-]+\.html)$', serve_frontend,
                 {'document_root': str(settings.FRONTEND_DIR)}, name='servir-vistas'),
-        re_path(r'^(?P<path>(?:css|js|img)/.*)$', serve,
+        re_path(r'^(?P<path>(?:css|js|img)/.*)$', serve_frontend,
                 {'document_root': str(settings.FRONTEND_DIR)}, name='servir-estaticos-frontend'),
-        re_path(r'^$', serve, {'document_root': str(settings.FRONTEND_DIR),
-                               'path': 'index.html'}, name='servir-index'),
+        re_path(r'^$', serve_frontend, {'document_root': str(settings.FRONTEND_DIR),
+                                        'path': 'index.html'}, name='servir-index'),
         # Algunas vistas enlazan a "../index.html"; se sirve igual que "/".
-        re_path(r'^index\.html$', serve, {'document_root': str(settings.FRONTEND_DIR),
-                                          'path': 'index.html'}, name='servir-index-html'),
+        re_path(r'^index\.html$', serve_frontend, {'document_root': str(settings.FRONTEND_DIR),
+                                                   'path': 'index.html'}, name='servir-index-html'),
     ]

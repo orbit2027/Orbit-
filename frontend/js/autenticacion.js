@@ -91,12 +91,13 @@ function urlConVolver(ruta) {
  * Registro de nuevo usuario con auto-login.
  * El backend retorna tokens; se guardan para entrar directo al tablero.
  */
-async function registrar(nombreCompleto, correo, contrasena, captchaToken) {
+async function registrar(nombreCompleto, correo, contrasena, captcha) {
     const respuesta = await api.post('/usuarios/registro/', {
         nombre_completo: nombreCompleto,
         correo: correo,
         contrasena: contrasena,
-        captcha_token: captchaToken
+        captcha_sello: captcha.sello,
+        captcha_codigo: captcha.codigo
     });
 
     guardarSesion(respuesta.data.tokens, respuesta.data.usuario);
@@ -107,11 +108,12 @@ async function registrar(nombreCompleto, correo, contrasena, captchaToken) {
  * Inicio de sesión.
  * Almacena tokens y datos del usuario.
  */
-async function iniciarSesion(correo, contrasena, captchaToken) {
+async function iniciarSesion(correo, contrasena, captcha) {
     const respuesta = await api.post('/usuarios/login/', {
         correo: correo,
         contrasena: contrasena,
-        captcha_token: captchaToken
+        captcha_sello: captcha.sello,
+        captcha_codigo: captcha.codigo
     });
 
     guardarSesion(respuesta.data.tokens, respuesta.data.usuario);

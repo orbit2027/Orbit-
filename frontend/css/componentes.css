@@ -94,6 +94,12 @@
     border-color: rgba(0, 229, 255, 0.4);
 }
 .captcha-proyecto .campo-con-icono { width: 100%; }
+.captcha-proyecto__error {
+    margin: 0;
+    color: var(--color-error, #ff4d4d);
+    font-size: 12px;
+    line-height: 1.4;
+}
 .auth__recuperar {
     display: flex;
     justify-content: flex-end;

@@ -3,19 +3,27 @@ import json
 
 from django.http import JsonResponse
 
-from .servicio import verificar_token
+from .servicio import CAMPO_CODIGO, CAMPO_SELLO, verificar_captcha
 
 
-def _extraer_token_captcha(request):
-    """Lee captcha_token del JSON del body (o DRF request.data si existe)."""
-    if hasattr(request, 'data'):
-        return request.data.get('captcha_token', '')
-    if request.body:
+def _leer_campos(request):
+    """Lee `captcha_sello` y `captcha_codigo` del JSON del body (o DRF)."""
+    datos = None
+    if hasattr(request, 'data') and hasattr(request.data, 'get'):
+        datos = request.data
+    elif request.body:
         try:
-            return json.loads(request.body).get('captcha_token', '')
+            datos = json.loads(request.body)
         except (ValueError, TypeError):
-            pass
-    return request.POST.get('captcha_token', '')
+            datos = None
+    if datos is None and request.POST:
+        datos = request.POST
+    if not hasattr(datos, 'get'):
+        return '', ''
+    return (
+        str(datos.get(CAMPO_SELLO, '') or ''),
+        str(datos.get(CAMPO_CODIGO, '') or ''),
+    )
 
 
 class VerificarCaptchaMiddleware:
@@ -33,10 +41,13 @@ class VerificarCaptchaMiddleware:
 
     def __call__(self, request):
         if request.method == 'POST' and request.path in self.RUTAS_CAPTCHA:
-            token = _extraer_token_captcha(request)
-            if not verificar_token(request, token):
+            sello, codigo = _leer_campos(request)
+            if not verificar_captcha(sello, codigo):
                 return JsonResponse(
-                    {'error': 'Verificación CAPTCHA fallida'},
+                    {
+                        'error': 'Verificación CAPTCHA fallida',
+                        'codigo': 'captcha_invalido',
+                    },
                     status=403,
                 )
         return self.get_response(request)

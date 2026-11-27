@@ -2,8 +2,10 @@
 Vistas API para el modulo de administracion.
 Gestion de usuarios y estadisticas globales del sistema.
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
+
 from django.db.models import Count, Q
+from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -48,7 +50,7 @@ MensajeSerializador = inline_serializer(
 @permission_classes([IsAuthenticated])
 @requerir_rol('administrador')
 def estadisticas_globales(request):
-    ahora = datetime.utcnow()
+    ahora = timezone.now()
     inicio_dia = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
 
     total_usuarios = Usuario.objects.count()

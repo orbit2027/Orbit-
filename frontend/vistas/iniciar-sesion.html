@@ -105,7 +105,7 @@
 
 <script type="module">
     import { iniciarSesion, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
-    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { inicializarCaptcha, obtenerCaptcha, refrescarCaptcha } from '../js/captcha.js';
     import { inicializarAvisoGlobal } from '../js/configuracion.js';
 
     // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
@@ -159,10 +159,16 @@
             return;
         }
 
-        const captchaToken = obtenerCodigoCaptcha();
+        const captcha = obtenerCaptcha();
         const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        if (!captchaToken && !esDesarrolloLocal) {
+        if (!captcha.codigo && !esDesarrolloLocal) {
             errorBox.querySelector('span').textContent = 'Por favor completa el captcha.';
+            errorBox.style.display = 'flex';
+            return;
+        }
+        if (!captcha.sello && !esDesarrolloLocal) {
+            errorBox.querySelector('span').textContent =
+                'No se pudo cargar el captcha. Pulsa el botón de refresco e inténtalo otra vez.';
             errorBox.style.display = 'flex';
             return;
         }
@@ -171,19 +177,24 @@
             btnLogin.disabled = true;
             btnLogin.innerHTML = '<span class="loader-mini"></span> Iniciando...';
 
-            await iniciarSesion(correo, contrasena, captchaToken);
+            await iniciarSesion(correo, contrasena, captcha);
             redirigirSegunRol();
 
         } catch (error) {
             // Error genérico: no se revela si el correo existe o la contraseña es incorrecta.
-            // La única excepción es la cuenta inhabilitada: ahí la contraseña ya
-            // era correcta y conviene explicar por qué no puede entrar.
-            const mensaje = error.response?.data?.error;
+            // Sí se explican los dos casos en que el usuario puede actuar:
+            // cuenta inhabilitada y captcha incorrecto/caducado.
+            const datos = error.response?.data || {};
+            const mensaje = datos.error;
+            const falloCaptcha = error.response?.status === 403 &&
+                datos.codigo === 'captcha_invalido';
             const inhabilitada = error.response?.status === 403 &&
                 /inhabilitada/i.test(String(mensaje));
-            errorBox.querySelector('span').textContent = inhabilitada
-                ? mensaje
-                : 'Las credenciales ingresadas no son correctas.';
+            errorBox.querySelector('span').textContent = falloCaptcha
+                ? 'El captcha es incorrecto o expiró. Escribe el código nuevo e inténtalo otra vez.'
+                : inhabilitada
+                    ? mensaje
+                    : 'Las credenciales ingresadas no son correctas.';
             errorBox.style.display = 'flex';
             refrescarCaptcha();
         } finally {

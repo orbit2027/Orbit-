@@ -124,7 +124,7 @@
 
 <script type="module">
     import api from '../js/api.js';
-    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { inicializarCaptcha, obtenerCaptcha, refrescarCaptcha } from '../js/captcha.js';
     import { validarContrasena } from '../js/utilidades.js';
     import { obtenerConfiguracionPublica, inicializarAvisoGlobal } from '../js/configuracion.js';
 
@@ -213,9 +213,13 @@
             return;
         }
 
-        const captcha = obtenerCodigoCaptcha();
-        if (!captcha && !esDesarrolloLocal) {
+        const captcha = obtenerCaptcha();
+        if (!captcha.codigo && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
+            return;
+        }
+        if (!captcha.sello && !esDesarrolloLocal) {
+            mostrarError('No se pudo cargar el captcha. Pulsa el botón de refresco e inténtalo otra vez.');
             return;
         }
 
@@ -225,12 +229,15 @@
         try {
             const respuesta = await api.post('/restablecimiento/solicitar/', {
                 correo: correo,
-                captcha_token: captcha
+                captcha_sello: captcha.sello,
+                captcha_codigo: captcha.codigo
             });
             mostrarExito(respuesta.data.mensaje);
         } catch (error) {
             const data = error.response?.data;
-            const mensaje = data?.error || 'No pudimos enviar el enlace. Inténtalo más tarde.';
+            const mensaje = error.response?.status === 403 && data?.codigo === 'captcha_invalido'
+                ? 'El captcha es incorrecto o expiró. Escribe el código nuevo e inténtalo otra vez.'
+                : data?.error || 'No pudimos enviar el enlace. Inténtalo más tarde.';
             mostrarError(mensaje);
             refrescarCaptcha();
         } finally {
@@ -262,9 +269,13 @@
             return;
         }
 
-        const captcha = obtenerCodigoCaptcha();
-        if (!captcha && !esDesarrolloLocal) {
+        const captcha = obtenerCaptcha();
+        if (!captcha.codigo && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
+            return;
+        }
+        if (!captcha.sello && !esDesarrolloLocal) {
+            mostrarError('No se pudo cargar el captcha. Pulsa el botón de refresco e inténtalo otra vez.');
             return;
         }
 
@@ -275,7 +286,8 @@
             const respuesta = await api.post('/restablecimiento/confirmar/', {
                 token: token,
                 contrasena: contrasena,
-                captcha_token: captcha
+                captcha_sello: captcha.sello,
+                captcha_codigo: captcha.codigo
             });
             formConfirmar.style.display = 'none';
             mostrarExito(respuesta.data.mensaje);
@@ -284,7 +296,9 @@
             }, 2500);
         } catch (error) {
             const data = error.response?.data;
-            const mensaje = data?.error || 'El enlace es inválido o ya expiró.';
+            const mensaje = error.response?.status === 403 && data?.codigo === 'captcha_invalido'
+                ? 'El captcha es incorrecto o expiró. Escribe el código nuevo e inténtalo otra vez.'
+                : data?.error || 'El enlace es inválido o ya expiró.';
             mostrarError(mensaje);
             refrescarCaptcha();
         } finally {

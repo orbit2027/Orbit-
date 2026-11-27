@@ -119,7 +119,17 @@ def enviar_correo(destinatario, asunto, html, texto_plano):
         to=[destinatario],
     )
     correo.attach_alternative(html, 'text/html')
-    correo.send(fail_silently=True)
+    enviados = correo.send(fail_silently=True)
+    if not enviados:
+        # Con fail_silently=True Django no lanza la excepción: sin este log un
+        # error de Brevo/Resend (clave inválida, remitente no verificado, etc.)
+        # pasaría desapercibido y el correo simplemente no llegaría.
+        logger.error(
+            'No se pudo enviar el correo "%s" a %s con backend %s. '
+            'Revisa EMAIL_API_KEY y que DEFAULT_FROM_EMAIL sea un remitente '
+            'verificado en el proveedor.',
+            asunto, destinatario, settings.EMAIL_BACKEND,
+        )
 
 
 def _primera_palabra(usuario):

@@ -2,14 +2,36 @@
 Prueba de humo específica del módulo de proyectos (RF-PRO-01 a RF-PRO-06).
 Ejecutar con el servidor levantado en http://127.0.0.1:8000
 """
+import base64
+import json
 import os
 import sys
 import uuid
 import requests
 
 BASE = os.environ.get('API_BASE_URL', 'http://127.0.0.1:8000')
-CAPTCHA = 'token-de-prueba'
 fallos = []
+
+
+def captcha_de_prueba():
+    """Obtiene un captcha real y devuelve el par que espera la API.
+
+    El código viaja dentro del sello firmado (JSON en base64), así que el
+    script de humo funciona también con DEBUG=False. En local, donde el
+    CAPTCHA está desactivado, devolver campos vacíos también es válido.
+    """
+    respuesta = requests.get(f'{BASE}/api/v1/captcha/', timeout=10)
+    if respuesta.status_code != 200:
+        return {'captcha_sello': '', 'captcha_codigo': ''}
+    sello = respuesta.headers.get('X-Captcha-Sello', '')
+    try:
+        codigo_b64 = sello.split(':', 1)[0]
+        relleno = '=' * (-len(codigo_b64) % 4)
+        datos = json.loads(base64.urlsafe_b64decode(codigo_b64 + relleno))
+        codigo = datos['codigo']
+    except (ValueError, KeyError, TypeError):
+        codigo = ''
+    return {'captcha_sello': sello, 'captcha_codigo': codigo}
 
 
 def verificar(nombre, condicion, detalle=''):
@@ -27,7 +49,8 @@ def main():
     # Registrar y loguear un usuario normal
     r = requests.post(f"{BASE}/api/v1/usuarios/registro/", json={
         'nombre_completo': 'Probador de Proyectos',
-        'correo': correo, 'contrasena': contrasena, 'captcha_token': CAPTCHA,
+        'correo': correo, 'contrasena': contrasena,
+        **captcha_de_prueba(),
     }, timeout=10)
     verificar("Registro usuario", r.status_code == 201, str(r.status_code))
     token = r.json()['tokens']['access']
@@ -90,7 +113,7 @@ def main():
             json={
                 'correo': 'admin@orbit.local',
                 'contrasena': contrasena_admin,
-                'captcha_token': CAPTCHA,
+                **captcha_de_prueba(),
             },
             timeout=10,
         )

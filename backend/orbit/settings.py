@@ -86,13 +86,16 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # django-cors-headers debe ir antes de cualquier middleware que pueda
+    # generar respuestas (Common, CSRF, WhiteNoise), también en las peticiones
+    # fallidas y en las preflight OPTIONS.
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'apps.captcha.middleware.VerificarCaptchaMiddleware',
     'apps.administracion.middleware.MantenimientoMiddleware',
@@ -101,6 +104,9 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5500', cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
+# El navegador necesita leer esta cabecera cuando el frontend se sirve desde
+# otro origen (desarrollo local con Live Server).
+CORS_EXPOSE_HEADERS = ['X-Captcha-Sello']
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
     default=','.join(

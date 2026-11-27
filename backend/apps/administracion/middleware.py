@@ -10,6 +10,7 @@ class MantenimientoMiddleware:
     rutas_publicas_durante_mantenimiento = (
         '/api/v1/administracion/configuracion/publica/',
         '/api/v1/usuarios/login/',
+        '/api/v1/usuarios/registro/',
         '/api/v1/restablecimiento/',
         '/api/v1/captcha/',
     )

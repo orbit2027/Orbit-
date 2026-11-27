@@ -8,8 +8,11 @@ import { estaAutenticado, obtenerUsuario } from './autenticacion.js';
 // Rutas que requieren autenticación
 const RUTAS_PROTEGIDAS = [
     'tablero-kanban.html',
+    'proyectos.html',
     'mapa-mental.html',
+    'calendario.html',
     'estadisticas.html',
+    'perfil.html',
     'panel-admin.html'
 ];
 
@@ -43,6 +46,13 @@ function rutaEsAdmin(ruta) {
  * Función principal que se ejecuta al cargar cada página
  * Verifica autenticación y permisos antes de mostrar contenido
  */
+/** Redirige al login conservando la página pedida para volver tras entrar. */
+function irALogin(rutaActual) {
+    const destino = rutaActual + window.location.search + window.location.hash;
+    window.location.href =
+        `/vistas/iniciar-sesion.html?volver=${encodeURIComponent(destino)}`;
+}
+
 function verificarAcceso() {
     const rutaActual = window.location.pathname;
 
@@ -63,7 +73,7 @@ function verificarAcceso() {
     // Si es ruta protegida, verificar autenticación
     if (rutaRequiereAuth(rutaActual)) {
         if (!estaAutenticado()) {
-            window.location.href = '/vistas/iniciar-sesion.html';
+            irALogin(rutaActual);
             return false;
         }
 

@@ -2,7 +2,9 @@
 Vistas API para el módulo de estadísticas.
 Genera métricas individuales de productividad por usuario.
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -34,7 +36,7 @@ def estadisticas_usuario(request):
     completadas = Tarea.objects.filter(usuario=usuario, estado='completado').count()
 
     # Calcular datos semanales de las últimas semanas
-    ahora = datetime.utcnow()
+    ahora = timezone.now()
     semanales = []
 
     for i in range(3, -1, -1):

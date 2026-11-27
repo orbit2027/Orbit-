@@ -1,14 +1,22 @@
 """
 Generación y verificación del CAPTCHA SVG local de Orbit.
 
-No depende de servicios externos (Google reCAPTCHA retirado). El servidor
-genera una imagen SVG con un código aleatorio de 5 caracteres, lo guarda en la
-sesión y la verificación consume el código (uso único, con expiración).
+El código viaja firmado y con fecha dentro de un token (``django.core.signing``),
+por lo que la verificación no depende de la sesión, de cookies ni de la base de
+datos. Eso evita los fallos intermitentes en serverless: varias peticiones
+pueden generar códigos distintos sin sobrescribirse entre sí, y un cold start
+o una pestaña adicional no invalida el código que está viendo la persona.
+
+El token se entrega en la cabecera ``X-Captcha-Sello`` junto con el SVG y se
+devuelve al servidor en el campo ``captcha_sello``; la respuesta escrita va en
+``captcha_codigo``. El sello caduca solo (firma con timestamp + campo ``exp``).
 """
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings
+from django.core import signing
+from django.utils import timezone
 
 # Alfabeto mixto (mayúsculas y minúsculas) sin caracteres ambiguos.
 # Se omiten O/o, I/i, L/l y 0/1 para que las letras se lean sin confusión.
@@ -21,8 +29,10 @@ LARGO_CODIGO = 5
 ANCHO = 150
 ALTO = 50
 
-CLAVE_CODIGO = 'captcha_codigo'
-CLAVE_HORA = 'captcha_hora'
+SAL_FIRMA = 'orbit.captcha.v1'
+CABECERA_SELLO = 'X-Captcha-Sello'
+CAMPO_SELLO = 'captcha_sello'
+CAMPO_CODIGO = 'captcha_codigo'
 
 
 def generar_codigo():
@@ -77,42 +87,49 @@ def generar_svg(codigo):
     return ''.join(partes)
 
 
-def guardar_en_sesion(request, codigo):
-    request.session[CLAVE_CODIGO] = codigo
-    request.session[CLAVE_HORA] = datetime.now().isoformat()
+def _minutos_expiracion():
+    return getattr(settings, 'CAPTCHA_EXPIRACION_MINUTOS', 10)
 
 
-def _esta_expirado(request):
-    hora = request.session.get(CLAVE_HORA, '')
-    if not hora:
-        return True
-    try:
-        creado = datetime.fromisoformat(hora)
-        minutos = getattr(settings, 'CAPTCHA_EXPIRACION_MINUTOS', 10)
-        return datetime.now() - creado > timedelta(minutes=minutos)
-    except (TypeError, ValueError):
-        return True
+def crear_sello(codigo):
+    """Firma el código y su fecha de caducidad en un token transportable."""
+    carga = {
+        'codigo': str(codigo).upper(),
+        'exp': int((
+            timezone.now() + timedelta(minutes=_minutos_expiracion())
+        ).timestamp()),
+    }
+    return signing.dumps(carga, salt=SAL_FIRMA)
 
 
-def verificar_token(request, token_captcha):
+def verificar_captcha(sello, respuesta):
     """
-    Valida el código enviado contra el guardado en sesión.
+    Valida la firma, la caducidad y la respuesta del captcha.
 
-    Consume el código al acertar (uso único). En DEBUG o sin habilitar el
-    captcha no exige verificación (dev local y pruebas).
+    En DEBUG o con ``CAPTCHA_HABILITADO=False`` no exige verificación
+    (desarrollo local y pruebas).
     """
     if settings.DEBUG or not settings.CAPTCHA_HABILITADO:
         return True
 
-    codigo = str(request.session.get(CLAVE_CODIGO, '') or '')
-    if not codigo or _esta_expirado(request):
+    sello = str(sello or '').strip()
+    respuesta = str(respuesta or '').strip().upper()
+    if not sello or not respuesta:
         return False
 
-    enviado = str(token_captcha or '').strip().upper()
-    codigo = codigo.upper()
-    if codigo != enviado:
+    try:
+        carga = signing.loads(
+            sello,
+            salt=SAL_FIRMA,
+            max_age=_minutos_expiracion() * 60,
+        )
+    except (signing.BadSignature, signing.SignatureExpired):
         return False
 
-    request.session.pop(CLAVE_CODIGO, None)
-    request.session.pop(CLAVE_HORA, None)
-    return True
+    codigo = str(carga.get('codigo', '') or '').upper()
+    expiracion = carga.get('exp')
+    if not codigo:
+        return False
+    if isinstance(expiracion, (int, float)) and expiracion < timezone.now().timestamp():
+        return False
+    return codigo == respuesta

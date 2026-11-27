@@ -1,62 +1,124 @@
 /**
  * Widget CAPTCHA SVG local de Orbit (sin servicios externos).
- * La imagen la genera el backend en /api/v1/captcha/ y el código se
- * valida en el middleware con la sesión (el axios ya envía la cookie de
- * sesión gracias a withCredentials).
  *
- * La imagen se descarga por axios (mismo canal HTTP que el resto de la app,
- * con sus cookies/credenciales) y se incrusta como Blob URL. Esto evita los
- * bloqueos que algunos navegadores aplican a la petición directa de una
- * <img> hacia la API (mixed content, cookies de terceros, caché).
+ * El backend devuelve el SVG y, en la cabecera X-Captcha-Sello, un token
+ * firmado con el código y su caducidad. El cliente guarda ese par y lo envía
+ * junto a la respuesta escrita. No hay estado en sesión: varias pestañas o
+ * peticiones simultáneas no se sobrescriben entre sí.
  */
-import api, { API_BASE_URL } from './api.js';
+import api from './api.js';
 
 const ID_IMAGEN = 'captcha-imagen';
 const ID_INPUT = 'captcha-input';
 const ID_BOTON = 'btn-refrescar-captcha';
+const CABECERA_SELLO = 'x-captcha-sello';
 
+let selloActual = '';
 let blobUrlActual = null;
+let contadorCarga = 0;
+let controladorActual = null;
+
+function obtenerSello(headers) {
+    if (!headers) return '';
+    if (typeof headers.get === 'function') {
+        return headers.get(CABECERA_SELLO) || '';
+    }
+    return headers[CABECERA_SELLO] || '';
+}
+
+function mostrarErrorCarga(imagen, mensaje) {
+    selloActual = '';
+    imagen.style.visibility = 'hidden';
+
+    let aviso = document.getElementById('aviso-captcha');
+    if (!aviso) {
+        aviso = document.createElement('p');
+        aviso.id = 'aviso-captcha';
+        aviso.className = 'captcha-proyecto__error';
+        aviso.setAttribute('role', 'alert');
+        const contenedor = imagen.closest('.captcha-proyecto');
+        if (contenedor) contenedor.appendChild(aviso);
+    }
+    if (aviso) aviso.textContent = mensaje;
+}
+
+function limpiarErrorCarga(imagen) {
+    imagen.style.visibility = '';
+    imagen.alt = 'Código de verificación';
+    document.getElementById('aviso-captcha')?.remove();
+}
 
 async function cargarImagen() {
     const imagen = document.getElementById(ID_IMAGEN);
     if (!imagen) return;
+
+    // Solo la última petición puede pintar la imagen: descarta respuestas
+    // tardías de refrescos anteriores (latencia variable en serverless).
+    const numeroCarga = ++contadorCarga;
+    if (controladorActual) controladorActual.abort();
+    const controlador = new AbortController();
+    controladorActual = controlador;
+    selloActual = '';
+
     try {
-        const { data: svg } = await api.get('/captcha/', { responseType: 'text' });
+        const respuesta = await api.get('/captcha/', {
+            responseType: 'text',
+            signal: controlador.signal,
+        });
+        if (numeroCarga !== contadorCarga) return;
+
+        const svg = typeof respuesta.data === 'string' ? respuesta.data : '';
+        const sello = obtenerSello(respuesta.headers);
+        if (!svg.includes('<svg') || !sello) {
+            throw new Error('Respuesta de captcha inválida');
+        }
+
+        selloActual = sello;
         if (blobUrlActual) URL.revokeObjectURL(blobUrlActual);
-        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        blobUrlActual = URL.createObjectURL(blob);
+        blobUrlActual = URL.createObjectURL(
+            new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+        );
         imagen.src = blobUrlActual;
+        limpiarErrorCarga(imagen);
     } catch (error) {
-        // Plan B: pedir la imagen directamente (sin incrustar el SVG).
-        imagen.src = `${API_BASE_URL}/captcha/?v=${Date.now()}`;
+        if (error?.code === 'ERR_CANCELED' || numeroCarga !== contadorCarga) return;
+        mostrarErrorCarga(
+            imagen,
+            'No se pudo cargar el captcha. Pulsa el botón de refresco e inténtalo otra vez.'
+        );
     }
 }
 
 /** Inicializa el widget: carga la imagen y conecta el botón de refresco. */
 export function inicializarCaptcha() {
     const boton = document.getElementById(ID_BOTON);
-    if (boton) {
-        boton.addEventListener('click', cargarImagen);
+    if (boton && !boton.dataset.captchaInicializado) {
+        boton.dataset.captchaInicializado = '1';
+        boton.addEventListener('click', refrescarCaptcha);
     }
     cargarImagen();
 }
 
-/** Fuerza un nuevo código de captcha. */
+/** Borra la respuesta anterior y pide un código nuevo. */
 export function refrescarCaptcha() {
-    cargarImagen();
-}
-
-/** Devuelve el código escrito sin espacios; la validación no distingue mayúsculas. */
-export function obtenerCodigoCaptcha() {
     const input = document.getElementById(ID_INPUT);
-    return input ? input.value.trim().toUpperCase() : '';
+    if (input) input.value = '';
+    return cargarImagen();
 }
 
-/** Limpia el input y pide un código nuevo. */
+/** Alias conservado por compatibilidad. */
 export function limpiarCaptcha() {
+    return refrescarCaptcha();
+}
+
+/**
+ * Devuelve el par (sello firmado, respuesta escrita) que espera la API.
+ * Devuelve campos vacíos si la imagen no se pudo cargar.
+ */
+export function obtenerCaptcha() {
     const input = document.getElementById(ID_INPUT);
-    if (input) {
-        input.value = '';
-    }
-    cargarImagen();
+    return {
+        sello: selloActual,
+        codigo: input ? input.value.trim().toUpperCase() : '',
+    };
 }

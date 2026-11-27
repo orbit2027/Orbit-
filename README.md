@@ -177,4 +177,25 @@ por correo de la aplicación.
 - **El CAPTCHA no se exige**: con `DEBUG=False` se activa solo. Si agregaste
   `CAPTCHA_HABILITADO=False` en Vercel, bórrala o ponla en `True`.
 
+### CAPTCHA local (contrato)
+
+`GET /api/v1/captcha/` devuelve el SVG y una cabecera `X-Captcha-Sello` con un
+token firmado que contiene el código y su caducidad. El frontend envía ese
+sello en `captcha_sello` junto a la respuesta escrita en `captcha_codigo` a
+registro, login y restablecimiento. La verificación **no usa sesión ni cookie**:
+varias pestañas o peticiones simultáneas no se sobrescriben, y funciona igual
+con varias instancias de Vercel. El sello caduca a los
+`CAPTCHA_EXPIRACION_MINUTOS` (10 por defecto). Si el envío falla, la interfaz
+limpia el campo, pide un código nuevo y muestra el motivo del error.
+
+Si el CAPTCHA falla después de desplegar, comprueba en este orden:
+
+1. Que el deployment incluya la versión actual del backend **y** del frontend
+   (el build copia `frontend/` a `backend/frontend/`; los archivos estáticos se
+   sirven con `Cache-Control: no-cache` para evitar JS antiguo).
+2. Que `DEBUG=False` y que no exista `CAPTCHA_HABILITADO=False` en Vercel.
+3. Que la respuesta de `/api/v1/captcha/` incluya la cabecera
+   `X-Captcha-Sello`. Si no está, el frontend mostrará «No se pudo cargar el
+   captcha».
+
 No uses `python run_dev.py` como comando de build o de inicio en Vercel.

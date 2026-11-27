@@ -136,7 +136,7 @@
 <script type="module">
     import { registrar, estaAutenticado, redirigirSegunRol, obtenerDestinoVolver, urlConVolver } from '../js/autenticacion.js';
     import { validarContrasena } from '../js/utilidades.js';
-    import { inicializarCaptcha, obtenerCodigoCaptcha, refrescarCaptcha } from '../js/captcha.js';
+    import { inicializarCaptcha, obtenerCaptcha, refrescarCaptcha } from '../js/captcha.js';
     import { obtenerConfiguracionPublica, inicializarAvisoGlobal } from '../js/configuracion.js';
 
     // Conservar el destino de vuelta (p. ej. una invitación abierta desde el correo)
@@ -275,10 +275,14 @@
             return;
         }
 
-        const captchaToken = obtenerCodigoCaptcha();
+        const captcha = obtenerCaptcha();
         const esDesarrolloLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        if (!captchaToken && !esDesarrolloLocal) {
+        if (!captcha.codigo && !esDesarrolloLocal) {
             mostrarError('Por favor completa el captcha.');
+            return;
+        }
+        if (!captcha.sello && !esDesarrolloLocal) {
+            mostrarError('No se pudo cargar el captcha. Pulsa el botón de refresco e inténtalo otra vez.');
             return;
         }
 
@@ -286,18 +290,23 @@
             btnRegistro.disabled = true;
             btnRegistro.innerHTML = '<span class="loader-mini"></span> Creando cuenta...';
 
-            await registrar(nombre, correo, contrasena, captchaToken);
+            await registrar(nombre, correo, contrasena, captcha);
             redirigirSegunRol();
 
         } catch (error) {
-            // Mostrar el primer error que devuelva el servidor
+            // Mostrar el primer error que devuelva el servidor, con un texto
+            // útil cuando el rechazo fue del captcha.
             const datos = error.response?.data || {};
-            const primerError = Object.values(datos)[0];
-            mostrarError(
-                Array.isArray(primerError) ? primerError[0]
-                    : typeof primerError === 'string' ? primerError
-                    : 'Error al crear la cuenta. Intenta de nuevo.'
-            );
+            if (error.response?.status === 403 && datos.codigo === 'captcha_invalido') {
+                mostrarError('El captcha es incorrecto o expiró. Escribe el código nuevo e inténtalo otra vez.');
+            } else {
+                const primerError = Object.values(datos)[0];
+                mostrarError(
+                    Array.isArray(primerError) ? primerError[0]
+                        : typeof primerError === 'string' ? primerError
+                        : 'Error al crear la cuenta. Intenta de nuevo.'
+                );
+            }
             refrescarCaptcha();
         } finally {
             btnRegistro.disabled = false;
